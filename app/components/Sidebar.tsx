@@ -18,10 +18,14 @@ export default function Sidebar() {
     const pathname = usePathname();
 
     return (
-        <aside className="w-64 h-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col border-r border-gray-200 dark:border-gray-800">
+        <aside className="w-64 h-full bg-gray-100 dark:bg-[#113033] text-gray-900 dark:text-gray-100 flex flex-col border-r border-gray-200 dark:border-gray-800">
             {/* Logo / Brand */}
+            <div className="flex items-center justify-center">
+                <img src="/images/DeckHaven-Shield.png" alt="DeckHaven" width={128} height={128} />
+            </div>
             <div className="h-14 flex items-center px-6 border-b border-gray-200 dark:border-gray-800">
-                <span className="text-lg font-bold text-gray-900 dark:text-white">DeckHaven</span>
+
+                <span className="ml-2 text-lg font-bold text-gray-900 dark:text-white">DeckHaven</span>
             </div>
 
             {/* Nav */}

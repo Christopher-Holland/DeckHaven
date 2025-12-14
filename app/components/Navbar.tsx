@@ -27,7 +27,7 @@ export default function Navbar() {
     const isDark = mounted && (resolvedTheme === "dark" || theme === "dark");
 
     return (
-        <header className="h-14 w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-white grid grid-cols-3 items-center px-6">
+        <header className="h-14 w-full border-b border-gray-200 dark:border-gray-800 bg-zinc-50 dark:bg-[#113033] text-gray-900 dark:text-white grid grid-cols-3 items-center px-6">
 
             {/* Left */}
             <div className="flex items-center">
