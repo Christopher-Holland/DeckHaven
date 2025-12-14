@@ -1,6 +1,8 @@
 const config = {
   plugins: {
-    "@tailwindcss/postcss": {},
+    "@tailwindcss/postcss": {
+      // Tailwind v4 enables dark mode by default with class strategy
+    },
   },
 };
 

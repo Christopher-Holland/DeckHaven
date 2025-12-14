@@ -1,0 +1,19 @@
+"use client";
+
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { type ReactNode } from "react";
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  return (
+    <NextThemesProvider 
+      attribute="class" 
+      defaultTheme="light" 
+      enableSystem={true}
+      storageKey="deckhaven-theme"
+      disableTransitionOnChange={false}
+    >
+      {children}
+    </NextThemesProvider>
+  );
+}
+
