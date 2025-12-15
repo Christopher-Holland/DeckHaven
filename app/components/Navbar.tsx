@@ -3,10 +3,12 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useSidebar } from "./SidebarContext";
 
 export default function Navbar() {
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const { isCollapsed } = useSidebar();
 
     useEffect(() => {
         setMounted(true);
@@ -27,11 +29,11 @@ export default function Navbar() {
     const isDark = mounted && (resolvedTheme === "dark" || theme === "dark");
 
     return (
-        <header className="h-20 w-full border-b border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#113033] text-gray-900 dark:text-white grid grid-cols-3 items-center px-6">
+        <header className="h-20 w-full border-b border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#113033] text-gray-900 dark:text-white grid grid-cols-3 items-center px-6 transition-all duration-300">
 
             {/* Left */}
             <div className="flex items-center">
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h1 className="text-lg font-bold text-[#42c99c] dark:text-[#e8d5b8]">
                     DeckHaven
                 </h1>
             </div>
@@ -42,7 +44,7 @@ export default function Navbar() {
                     <input
                         type="text"
                         placeholder="Search cards, decks..."
-                        className="px-20 py-1.5 text-sm border border-[#42c99c] dark:border-[#82664e] rounded-md bg-white dark:bg-gray-800 text-[#193f44] dark:text-[#82664e] placeholder-[#193f44] dark:placeholder-[#82664e]
+                        className="px-20 py-1.5 text-sm border border-[#42c99c] dark:border-[#e8d5b8] rounded-md bg-gray-200 dark:bg-gray-800 text-[#36c293] dark:text-[#36c293] placeholder-[#193f44] dark:placeholder-[#e8d5b8]
                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]"
                     />
                 </div>
