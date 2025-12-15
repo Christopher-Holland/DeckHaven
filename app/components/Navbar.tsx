@@ -27,7 +27,7 @@ export default function Navbar() {
     const isDark = mounted && (resolvedTheme === "dark" || theme === "dark");
 
     return (
-        <header className="h-14 w-full border-b border-gray-200 dark:border-gray-800 bg-zinc-50 dark:bg-[#113033] text-gray-900 dark:text-white grid grid-cols-3 items-center px-6">
+        <header className="h-20 w-full border-b border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#113033] text-gray-900 dark:text-white grid grid-cols-3 items-center px-6">
 
             {/* Left */}
             <div className="flex items-center">
@@ -42,8 +42,8 @@ export default function Navbar() {
                     <input
                         type="text"
                         placeholder="Search cards, decks..."
-                        className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-20 py-1.5 text-sm border border-[#42c99c] dark:border-[#82664e] rounded-md bg-white dark:bg-gray-800 text-[#193f44] dark:text-[#82664e] placeholder-[#193f44] dark:placeholder-[#82664e]
+                       focus:outline-none focus:ring-2 focus:ring-[#42c99c]"
                     />
                 </div>
             </div>
@@ -53,7 +53,7 @@ export default function Navbar() {
                 <button
                     onClick={toggleTheme}
                     className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white
-                       flex items-center justify-center text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors cursor-pointer relative z-10"
+                       flex items-center justify-center text-sm font-medium hover:bg-[#113033] hover:text-white dark:hover:bg-[#82664e] transition-colors cursor-pointer relative z-10"
                     aria-label="Toggle theme"
                     type="button"
                 >
@@ -72,7 +72,6 @@ export default function Navbar() {
                     U
                 </button>
             </div>
-
         </header>
     );
 }
