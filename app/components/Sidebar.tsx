@@ -25,7 +25,7 @@ export default function Sidebar() {
                 <img src="/images/DeckHaven-Shield.png" alt="DeckHaven" width={128} height={128} className="shadow-lg rounded-full" />
             </div>
                 <div className="h-14 flex items-center justify-center px-6 border-b border-[#42c99c] dark:border-[#82664e]">
-                <span className="text-lg font-bold text-gray-900 dark:text-white">DeckHaven</span>
+                <span className="text-lg font-bold text-[#42c99c] dark:text-[#82664e]">DeckHaven</span>
             </div>
 
             {/* Nav */}
@@ -39,8 +39,8 @@ export default function Sidebar() {
                             href={item.href}
                             className={`block px-3 py-2 rounded-md text-sm font-medium transition
                 ${isActive
-                                    ? "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white"
-                                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                                    ? "bg-gray-200 dark:bg-gray-800 text-[#42c99c] dark:text-[#82664e]"
+                                    : "text-[#113033] dark:text-[#82664e] hover:text-[#36c293] dark:hover:text-[#36c293]"
                                 }
               `}
                         >
