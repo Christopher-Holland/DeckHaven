@@ -1,65 +1,99 @@
+"use client";
+
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main
+      className="
+        min-h-screen
+        flex items-center justify-center
+        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        px-6 py-6
+        text-[#193f44] dark:text-[#e8d5b8]
+      "
+    >
+      <div
+        className="
+          w-full max-w-xl
+          text-center
+          flex flex-col items-center
+          -mt-64
+        "
+      >
+        {/* Logo */}
+        <div className="mb-6">
+          <Image
+            src="/images/DeckHaven-Shield.png"
+            alt="Deck Haven logo"
+            width={256}
+            height={256}
+            className="rounded-full shadow-[0_0_30px_rgba(130,102,78,0.25)] dark:shadow-[0_0_30px_rgba(66,201,156,0.35)]"
+            priority
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* App Title */}
+        <h1 className="text-4xl font-semibold mb-3">
+          Deck Haven
+        </h1>
+
+        {/* Tagline */}
+        <p className="text-lg opacity-80 mb-8">
+          The collector's safe haven.
+        </p>
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+          <Link
+            href="/login"
+            className="
+              rounded-lg
+              border border-[#42c99c] dark:border-[#82664e]
+              bg-[#e8d5b8] dark:bg-[#173c3f]
+              text-[#193f44] dark:text-[#e8d5b8]
+              px-6 py-3
+              text-sm font-semibold
+              hover:bg-[#42c99c] hover:text-white
+              dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]
+              transition-all duration-200
+              shadow-sm
+            "
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Log In
+          </Link>
+
+          <Link
+            href="/register"
+            className="
+              rounded-lg
+              border border-[#42c99c] dark:border-[#82664e]
+              bg-[#42c99c] dark:bg-[#82664e]
+              text-white dark:text-[#e8d5b8]
+              px-6 py-3
+              text-sm font-semibold
+              hover:bg-[#36c293] dark:hover:bg-[#9d7a5f]
+              transition-all duration-200
+              shadow-sm
+            "
           >
-            Documentation
-          </a>
+            Create Account
+          </Link>
         </div>
-      </main>
-    </div>
+
+        {/* Divider */}
+        <div className="flex items-center justify-center mb-6">
+          <div className="w-24 h-px bg-[#82664e]/60" />
+        </div>
+
+        {/* Feature Highlights */}
+        <div className="space-y-2 text-sm opacity-80">
+          <p>Track and organize your card collection</p>
+          <p>Build and manage decks across sets</p>
+          <p>Stay updated with the latest TCG news</p>
+        </div>
+      </div>
+    </main>
   );
 }

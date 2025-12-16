@@ -34,7 +34,7 @@ export default function Dashboard() {
                     bg-[#e8d5b8] dark:bg-[#173c3f]
                     p-4
                 ">
-                    <h3 className="text-sm font-semibold mb-2 border-b border-[#42c99c] dark:border-[#82664e]">
+                    <h3 className="text-md font-semibold mb-2 border-b border-[#42c99c] dark:border-[#82664e]">
                         My Collection
                     </h3>
                     <p className="text-xs opacity-80">
@@ -61,7 +61,7 @@ export default function Dashboard() {
                     bg-[#e8d5b8] dark:bg-[#173c3f]
                     p-4
                 ">
-                    <h3 className="text-sm font-semibold mb-2 border-b border-[#42c99c] dark:border-[#82664e]">
+                    <h3 className="text-md font-semibold mb-2 border-b border-[#42c99c] dark:border-[#82664e]">
                         My Decks
                     </h3>
                     <p className="text-xs opacity-80">
@@ -79,7 +79,7 @@ export default function Dashboard() {
                     bg-[#e8d5b8] dark:bg-[#173c3f]
                     p-4
                 ">
-                    <h3 className="text-sm font-semibold mb-2 border-b border-[#42c99c] dark:border-[#82664e]">
+                    <h3 className="text-md font-semibold mb-2 border-b border-[#42c99c] dark:border-[#82664e]">
                         Recent Activity
                     </h3>
                     <p className="text-xs opacity-80">
@@ -97,7 +97,7 @@ export default function Dashboard() {
                     bg-[#e8d5b8] dark:bg-[#173c3f] p-4"
                 >
                     <div className="border-b border-[#42c99c] dark:border-[#82664e] mb-3">
-                        <h3 className="flex text-md font-semibold mb-3 items-center justify-center">
+                        <h3 className="flex text-md font-semibold pb-2">
                             Latest TCG News
                         </h3>
                     </div>

@@ -80,7 +80,7 @@ export default function Sidebar() {
                         alt="DeckHaven" 
                         width={48} 
                         height={48} 
-                        className="shadow-lg rounded-full" 
+                        className="rounded-full shadow-[0_0_20px_rgba(130,102,78,0.2)] dark:shadow-[0_0_30px_rgba(66,201,156,0.35)]" 
                     />
                 ) : (
                     <img 
@@ -88,7 +88,7 @@ export default function Sidebar() {
                         alt="DeckHaven" 
                         width={128} 
                         height={128} 
-                        className="shadow-lg rounded-full" 
+                        className="rounded-full shadow-[0_0_25px_rgba(130,102,78,0.25)] dark:shadow-[0_0_25px_rgba(66,201,156,0.35)]" 
                     />
                 )}
             </div>
