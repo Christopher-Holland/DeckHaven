@@ -119,10 +119,10 @@ export default function Sidebar() {
                                 ${isCollapsed ? "px-2 py-3" : "px-3 py-2"} 
                                 rounded-md 
                                 text-sm font-medium 
-                                transition
+                                transition-all duration-200
                                 ${isCollapsed ? "flex items-center justify-center" : "flex items-center gap-3"}
                                 ${isActive
-                                    ? "bg-gray-200 dark:bg-gray-800 text-[#42c99c] dark:text-[#e8d5b8]"
+                                    ? "text-[#42c99c] dark:text-[#e8d5b8] shadow-[0_0_15px_rgba(130,102,78,0.2)] dark:shadow-[0_0_15px_rgba(66,201,156,0.3)]"
                                     : "text-[#113033] dark:text-[#e8d5b8] hover:text-[#36c293] dark:hover:text-[#36c293]"
                                 }
                             `}
