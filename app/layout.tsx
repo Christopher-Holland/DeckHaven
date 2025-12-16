@@ -36,7 +36,7 @@ export default function RootLayout({
             <div className="flex flex-col flex-1 transition-all duration-300">
               <Navbar />
               <BrandNav />
-              <main className="p-6 overflow-y-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-all duration-300">
+              <main className="flex-1 overflow-y-auto p-0 min-h-0 transition-all duration-300">
                 {children}
               </main>
             </div>

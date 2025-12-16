@@ -66,6 +66,9 @@ export default function Dashboard() {
                     <p className="text-xs opacity-80">
                         Build and edit decks
                     </p>
+                    <p className="text-sm font-semibold mb-2">
+                        Favorite Deck Name here 
+                    </p>
                 </div>
 
                 {/* Card 3 */}
