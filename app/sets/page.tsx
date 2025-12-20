@@ -48,12 +48,13 @@ export default function Sets() {
                             "
                         aria-label="Favorite set"
                     >
-                        <StarIcon 
-                            className="w-4 h-4"
-                            style={{
-                                fill: isFavorited ? 'rgb(250 204 21)' : 'none',
-                                color: isFavorited ? 'rgb(250 204 21)' : 'currentColor',
-                            }}
+                        <StarIcon
+                            className={`
+                                w-4 h-4
+                                ${isFavorited
+                                    ? 'fill-[#42c99c] text-[#42c99c] dark:fill-yellow-300 dark:text-yellow-300'
+                                    : 'fill-none text-current'}
+  `}
                         />
                     </button>
 
@@ -64,6 +65,18 @@ export default function Sets() {
                             Set 1 Name
                         </h3>
                     </div>
+                    <img
+                        src="/images/DeckHaven-Shield.png"
+                        alt="Set 1"
+                        className="w-10 h-10 mx-auto"
+                    />
+
+                    <p className="text-sm opacity-80 text-center">
+                        Set 1 Description
+                    </p>
+                    <p className="text-sm opacity-80 text-center">
+                        XX of XXX cards
+                    </p>
                 </div>
             </section>
         </main>
