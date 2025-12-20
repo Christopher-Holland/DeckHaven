@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { StarIcon } from "lucide-react";
+import { ArrowRightIcon, StarIcon } from "lucide-react";
 
 export default function Sets() {
     const [isFavorited, setIsFavorited] = useState(false);
@@ -17,8 +17,35 @@ export default function Sets() {
             "
         >
             {/* Page Header */}
-            <section className="mb-6">
-                <h2 className="text-2xl font-semibold">Sets</h2>
+            <section className="mb-6 flex justify-between items-center">
+                <h2 className="text-2xl font-semibold">My Sets</h2>
+                <button
+                    className="
+                        group
+                        text-sm font-medium
+                        flex items-center gap-2
+                        px-3 py-1.5
+                        rounded-md
+                        text-[#193f44] dark:text-[#e8d5b8]
+                        bg-black/5 dark:bg-white/5
+                        hover:bg-black/10 dark:hover:bg-white/10
+                        transition-all duration-200 ease-out
+                        hover:translate-x-0.5
+                        focus:outline-none
+                        focus:ring-2 focus:ring-[#42c99c]
+                        dark:focus:ring-[#82664e]
+                        cursor-pointer
+                    "
+                >
+                    Browse All Sets
+                    <ArrowRightIcon
+                        className="
+                            w-4 h-4
+                            transition-transform duration-200
+                            group-hover:translate-x-1
+                            "
+                    />
+                </button>
             </section>
 
             {/* Content Grid */}
