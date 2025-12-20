@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { StarIcon } from "lucide-react";
 
 export default function Sets() {
+    const [isFavorited, setIsFavorited] = useState(false);
     return (
         <main
             className="
@@ -29,20 +31,30 @@ export default function Sets() {
                     {/* Favorite Button - top right of card */}
                     <button
                         type="button"
-                        onClick={() => {
-                            console.log("Star clicked");
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsFavorited(!isFavorited);
                         }}
                         className="
-                            absolute top-2 right-2
+                            absolute top-2 right-2 z-10
                             p-1 rounded
                             hover:opacity-80
                             focus:outline-none
                             focus:ring-2 focus:ring-[#42c99c]
                             dark:focus:ring-[#82664e]
+                            transition-colors
+                            cursor-pointer
                             "
                         aria-label="Favorite set"
                     >
-                        <StarIcon className="w-4 h-4" />
+                        <StarIcon 
+                            className="w-4 h-4"
+                            style={{
+                                fill: isFavorited ? 'rgb(250 204 21)' : 'none',
+                                color: isFavorited ? 'rgb(250 204 21)' : 'currentColor',
+                            }}
+                        />
                     </button>
 
                     {/* Set Name and Star on same row */}
@@ -51,8 +63,6 @@ export default function Sets() {
                         <h3 className="text-md font-semibold text-center px-12">
                             Set 1 Name
                         </h3>
-
-                        
                     </div>
                 </div>
             </section>
