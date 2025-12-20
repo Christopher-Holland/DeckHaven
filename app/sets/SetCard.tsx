@@ -1,8 +1,11 @@
 "use client";
 
 import { StarIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export type SetCardProps = {
+    id?: string; // optional but recommended
+    href?: string; // <-- new
     name: string;
     game?: string;
     imageSrc?: string;
@@ -13,11 +16,11 @@ export type SetCardProps = {
 
     isFavorited?: boolean;
     onToggleFavorite?: () => void;
-
-    onClick?: () => void;
 };
 
 export default function SetCard({
+    id,
+    href,
     name,
     game,
     imageSrc,
@@ -27,11 +30,25 @@ export default function SetCard({
     releaseDate,
     isFavorited = false,
     onToggleFavorite,
-    onClick,
 }: SetCardProps) {
+    const router = useRouter();
+
+    const handleNavigate = () => {
+        if (href) router.push(href);
+    };
+
     return (
         <div
-            onClick={onClick}
+            onClick={handleNavigate}
+            onKeyDown={(e) => {
+                if (!href) return;
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleNavigate();
+                }
+            }}
+            role={href ? "button" : undefined}
+            tabIndex={href ? 0 : undefined}
             className="
         relative rounded-lg
         border border-[#42c99c] dark:border-[#82664e]
@@ -45,8 +62,6 @@ export default function SetCard({
         hover:shadow-[0_0_20px_rgba(130,102,78,0.2)]
         dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
       "
-            role={onClick ? "button" : undefined}
-            tabIndex={onClick ? 0 : undefined}
         >
             {/* Favorite Button */}
             <button
@@ -80,39 +95,51 @@ export default function SetCard({
 
             {/* Title */}
             <div className="w-full mb-2 border-b border-[#42c99c] dark:border-[#82664e] pb-2">
-                <h3 className="text-lg font-semibold text-center px-12 truncate">{name}</h3>
+                <h3 className="text-lg font-semibold text-center px-12 truncate">
+                    {name}
+                </h3>
             </div>
 
             {/* Game badge */}
-            {game ? (
+            {game && (
                 <div className="flex justify-center mt-1">
                     <span className="text-xs px-2 py-0.5 rounded-full bg-black/10 dark:bg-white/10">
                         {game}
                     </span>
                 </div>
-            ) : null}
+            )}
 
             {/* Image */}
-            {imageSrc ? (
-                <img src={imageSrc} alt={name} className="w-10 h-10 mx-auto mt-3" />
-            ) : null}
+            {imageSrc && (
+                <img
+                    src={imageSrc}
+                    alt={name}
+                    className="w-10 h-10 mx-auto mt-3"
+                />
+            )}
 
             {/* Description */}
-            {description ? (
-                <p className="text-sm opacity-80 text-center mt-3">{description}</p>
-            ) : null}
+            {description && (
+                <p className="text-sm opacity-80 text-center mt-3">
+                    {description}
+                </p>
+            )}
 
             {/* Owned count */}
-            {typeof ownedCount === "number" ? (
+            {typeof ownedCount === "number" && (
                 <p className="text-sm opacity-80 text-center mt-2">
-                    {typeof totalCount === "number" ? `${ownedCount} out of ${totalCount} cards` : `${ownedCount} cards`}
+                    {typeof totalCount === "number"
+                        ? `${ownedCount} out of ${totalCount} cards`
+                        : `${ownedCount} cards`}
                 </p>
-            ) : null}
+            )}
 
             {/* Release date */}
-            {releaseDate ? (
-                <p className="text-xs opacity-60 text-center mt-1">Released: {releaseDate}</p>
-            ) : null}
+            {releaseDate && (
+                <p className="text-xs opacity-60 text-center mt-1">
+                    Released: {releaseDate}
+                </p>
+            )}
         </div>
     );
 }

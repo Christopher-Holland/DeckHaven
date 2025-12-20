@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowRightIcon } from "lucide-react";
 import SetCard from "./SetCard";
 
@@ -69,6 +70,8 @@ const demoSets: DemoSet[] = [
 ];
 
 export default function Sets() {
+    const router = useRouter();
+
     // Track favorites per-set id
     const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
 
@@ -94,7 +97,10 @@ export default function Sets() {
             {/* Page Header */}
             <section className="mb-6 flex justify-between items-center">
                 <h2 className="text-2xl font-semibold">My Sets</h2>
+
                 <button
+                    type="button"
+                    onClick={() => router.push("/sets/browse")}
                     className="
             group
             text-sm font-medium
@@ -115,11 +121,10 @@ export default function Sets() {
                     Browse All Sets
                     <ArrowRightIcon
                         className="
-                        w-4 h-4
-                        transition-transform duration-200
-                        group-hover:translate-x-1
-                        "
-                        // TO DO: make on click so that it is redirected to the all sets page
+              w-4 h-4
+              transition-transform duration-200
+              group-hover:translate-x-1
+            "
                     />
                 </button>
             </section>
@@ -129,6 +134,7 @@ export default function Sets() {
                 {demoSets.map((s) => (
                     <SetCard
                         key={s.id}
+                        id={s.id}
                         name={s.name}
                         game={s.game}
                         imageSrc={s.imageSrc}
@@ -138,7 +144,7 @@ export default function Sets() {
                         releaseDate={s.releaseDate}
                         isFavorited={favorites.has(s.id)}
                         onToggleFavorite={() => toggleFavorite(s.id)}
-                        onClick={() => console.log("Card clicked", s.id)}
+                        href={`/sets/${s.id}`}
                     />
                 ))}
             </section>
