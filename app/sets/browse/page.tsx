@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRightIcon } from "lucide-react";
-import SetCard from "./SetCard";
+import SetCard from "./browseCard";
 
 type DemoSet = {
     id: string;
@@ -18,9 +18,9 @@ type DemoSet = {
 
 const demoSets: DemoSet[] = [
     {
-        id: "set-1",
+        id: "set-11",
         name: "Set 1 Name",
-        game: "Magic: The Gathering",
+        game: "Pokemon",
         imageSrc: "/images/DeckHaven-Shield.png",
         description: "Set 1 Description",
         ownedCount: 12,
@@ -28,9 +28,9 @@ const demoSets: DemoSet[] = [
         releaseDate: "Month Day, Year",
     },
     {
-        id: "set-2",
+        id: "set-22",
         name: "Set 2 Name",
-        game: "Magic: The Gathering",
+        game: "Pokemon",
         imageSrc: "/images/DeckHaven-Shield.png",
         description: "Set 2 Description",
         ownedCount: 12,
@@ -38,7 +38,7 @@ const demoSets: DemoSet[] = [
         releaseDate: "Month Day, Year",
     },
     {
-        id: "set-3",
+        id: "set-33",
         name: "Set 3 Name",
         game: "Magic: The Gathering",
         imageSrc: "/images/DeckHaven-Shield.png",
@@ -48,7 +48,7 @@ const demoSets: DemoSet[] = [
         releaseDate: "Month Day, Year",
     },
     {
-        id: "set-4",
+        id: "set-44",
         name: "Set 4 Name",
         game: "Magic: The Gathering",
         imageSrc: "/images/DeckHaven-Shield.png",
@@ -58,9 +58,9 @@ const demoSets: DemoSet[] = [
         releaseDate: "Month Day, Year",
     },
     {
-        id: "set-5",
+        id: "set-55",
         name: "Set 5 Name",
-        game: "Magic: The Gathering",
+        game: "Yu-Gi-Oh!",
         imageSrc: "/images/DeckHaven-Shield.png",
         description: "Set 5 Description",
         ownedCount: 12,
@@ -69,7 +69,7 @@ const demoSets: DemoSet[] = [
     },
 ];
 
-export default function Sets() {
+export default function BrowseSets() {
     const router = useRouter();
 
     // Track favorites per-set id
@@ -96,11 +96,11 @@ export default function Sets() {
         >
             {/* Page Header */}
             <section className="mb-6 flex justify-between items-center">
-                <h2 className="text-2xl font-semibold">My Sets</h2>
+                <h2 className="text-2xl font-semibold">Browse All Sets</h2>
 
                 <button
                     type="button"
-                    onClick={() => router.push("/sets/browse")}
+                    onClick={() => router.push("/sets")}
                     className="
             group
             text-sm font-medium
@@ -118,7 +118,7 @@ export default function Sets() {
             cursor-pointer
           "
                 >
-                    Browse All Sets
+                    Back to My Sets
                     <ArrowRightIcon
                         className="
               w-4 h-4
