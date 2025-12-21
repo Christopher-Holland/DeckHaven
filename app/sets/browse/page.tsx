@@ -158,6 +158,7 @@ export default function BrowseSets() {
             flex items-center gap-2
             px-3 py-1.5
             rounded-md
+            border border-[#42c99c] dark:border-[#82664e]
             text-[#193f44] dark:text-[#e8d5b8]
             bg-black/5 dark:bg-white/5
             hover:bg-black/10 dark:hover:bg-white/10
@@ -188,7 +189,7 @@ export default function BrowseSets() {
 
                 <div className="flex flex-wrap gap-3">
                     <button 
-                    className="text-sm opacity-80 flex items-center gap-2 px-3 py-1.5 rounded-md text-[#193f44] dark:text-[#e8d5b8] bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 ease-out hover:translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e] cursor-pointer"
+                    className="text-sm opacity-80 flex items-center gap-2 px-3 py-1.5 rounded-md text-[#193f44] dark:text-[#e8d5b8] bg-black/5 dark:bg-white/5 border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 ease-out hover:translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e] cursor-pointer"
                     onClick={() => {
                         setGameFilter("all");
                         setShowFilter("all");
