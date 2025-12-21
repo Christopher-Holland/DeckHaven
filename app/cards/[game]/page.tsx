@@ -21,6 +21,7 @@ type SortBy = "az" | "za" | "newest" | "oldest" | "mostOwned";
 type RarityFilter = "all" | string;
 type TypeFilter = "all" | string;
 type ManaColorFilter = "all" | "white" | "blue" | "black" | "red" | "green" | "colorless" | "multicolor";
+type keywordFilter = "all" | string;
 
 const RARITY_OPTIONS: Record<string, { value: string; label: string }[]> = {
     mtg: [
@@ -110,7 +111,7 @@ export default function GamePage({ params }: PageProps) {
     const [rarity, setRarity] = useState<RarityFilter>("all");
     const [type, setType] = useState<TypeFilter>("all");
     const [manaColor, setManaColor] = useState<ManaColorFilter>("all");
-
+    const [keyword, setKeyword] = useState<keywordFilter>("all");
     // Options depend on game
     const rarityOptions = useMemo(() => {
         if (!gameParam) return [{ value: "all", label: "All" }];
@@ -133,18 +134,76 @@ export default function GamePage({ params }: PageProps) {
         { value: "colorless", label: "Colorless" },
         { value: "multicolor", label: "Multicolor" },
     ];
+    // Keyword options (only for MTG)
+    const keywordOptions: { value: keywordFilter; label: string }[] = [
+        { value: "all", label: "All" },
+
+        // Evergreen combat / abilities
+        { value: "flying", label: "Flying" },
+        { value: "trample", label: "Trample" },
+        { value: "haste", label: "Haste" },
+        { value: "lifelink", label: "Lifelink" },
+        { value: "deathtouch", label: "Deathtouch" },
+        { value: "vigilance", label: "Vigilance" },
+        { value: "first-strike", label: "First Strike" },
+        { value: "double-strike", label: "Double Strike" },
+        { value: "menace", label: "Menace" },
+        { value: "reach", label: "Reach" },
+
+        // Protection / survivability
+        { value: "hexproof", label: "Hexproof" },
+        { value: "ward", label: "Ward" },
+        { value: "indestructible", label: "Indestructible" },
+        { value: "protection", label: "Protection" },
+
+        // Casting / timing
+        { value: "flash", label: "Flash" },
+        { value: "cycling", label: "Cycling" },
+        { value: "kicker", label: "Kicker" },
+        { value: "flashback", label: "Flashback" },
+        { value: "foretell", label: "Foretell" },
+        { value: "suspend", label: "Suspend" },
+
+        // Spell mechanics
+        { value: "prowess", label: "Prowess" },
+        { value: "cascade", label: "Cascade" },
+        { value: "convoke", label: "Convoke" },
+        { value: "delve", label: "Delve" },
+        { value: "storm", label: "Storm" },
+        { value: "overload", label: "Overload" },
+
+        // Graveyard / recursion
+        { value: "undying", label: "Undying" },
+        { value: "persist", label: "Persist" },
+        { value: "escape", label: "Escape" },
+        { value: "unearth", label: "Unearth" },
+        { value: "dredge", label: "Dredge" },
+
+        // Board / synergy mechanics
+        { value: "landfall", label: "Landfall" },
+        { value: "exploit", label: "Exploit" },
+        { value: "populate", label: "Populate" },
+        { value: "proliferate", label: "Proliferate" },
+        { value: "mentor", label: "Mentor" },
+
+        // Transform / modal
+        { value: "transform", label: "Transform" },
+        { value: "daybound", label: "Daybound / Nightbound" },
+        { value: "modal-dfc", label: "Modal DFC" },
+    ];
 
     // If you switch games, keep the UI consistent by resetting game-specific filters
     useEffect(() => {
         setRarity("all");
         setType("all");
         setManaColor("all");
+        setKeyword("all");
     }, [gameParam]);
 
     // Placeholder filtered items (no data yet)
     const filteredItems = useMemo(() => {
         return [];
-    }, [showFilter, sortBy, rarity, type, manaColor, favorites]);
+    }, [showFilter, sortBy, rarity, type, manaColor, keyword, favorites]);
 
     const clearFilters = () => {
         setShowFilter("all");
@@ -152,6 +211,8 @@ export default function GamePage({ params }: PageProps) {
         setRarity("all");
         setType("all");
         setManaColor("all");
+        setKeyword("all");
+
     };
 
     return (
@@ -236,7 +297,7 @@ export default function GamePage({ params }: PageProps) {
                         </select>
                     </label>
 
-                    
+
 
                     {/* Rarity (game-specific) */}
                     <label className="text-sm opacity-80 flex items-center gap-2">
@@ -309,6 +370,30 @@ export default function GamePage({ params }: PageProps) {
                         </label>
                     )}
 
+                    {/* Keyword (MTG only) */}
+                    {gameParam === "mtg" && (
+                        <label className="text-sm opacity-80 flex items-center gap-2">
+                            Keyword
+                            <select
+                                value={keyword}
+                                onChange={(e) => setKeyword(e.target.value as keywordFilter)}
+                                className="
+                    rounded-md px-2 py-1 text-sm
+                    bg-black/5 dark:bg-white/5
+                    border border-[#42c99c] dark:border-[#82664e]
+                    focus:outline-none
+                    focus:ring-2 focus:ring-[#42c99c]
+                    dark:focus:ring-[#82664e]
+                  "
+                            >
+                                {keywordOptions.map((o) => (
+                                    <option key={o.value} value={o.value}>
+                                        {o.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                    )}
                     {/* Sort */}
                     <label className="text-sm opacity-80 flex items-center gap-2">
                         Sort
