@@ -20,7 +20,7 @@ const demoSets: DemoSet[] = [
     {
         id: "set-1",
         name: "Set 1 Name",
-        game: "Magic: The Gathering",
+        game: "Pokemon",
         imageSrc: "/images/DeckHaven-Shield.png",
         description: "Set 1 Description",
         ownedCount: 12,
@@ -30,7 +30,7 @@ const demoSets: DemoSet[] = [
     {
         id: "set-2",
         name: "Set 2 Name",
-        game: "Magic: The Gathering",
+        game: "Pokemon",
         imageSrc: "/images/DeckHaven-Shield.png",
         description: "Set 2 Description",
         ownedCount: 12,
@@ -60,9 +60,19 @@ const demoSets: DemoSet[] = [
     {
         id: "set-5",
         name: "Set 5 Name",
-        game: "Magic: The Gathering",
+        game: "Yu-Gi-Oh!",
         imageSrc: "/images/DeckHaven-Shield.png",
         description: "Set 5 Description",
+        ownedCount: 12,
+        totalCount: 165,
+        releaseDate: "Month Day, Year",
+    },
+    {
+        id: "set-6",
+        name: "Set 6 Name",
+        game: "Digimon",
+        imageSrc: "/images/DeckHaven-Shield.png",
+        description: "Set 6 Description",
         ownedCount: 12,
         totalCount: 165,
         releaseDate: "Month Day, Year",
@@ -178,13 +188,13 @@ export default function Sets() {
                 </p>
 
                 <div className="flex flex-wrap gap-3">
-                    <button 
-                    className="text-sm opacity-80 flex items-center gap-2 px-3 py-1.5 rounded-md text-[#193f44] dark:text-[#e8d5b8] bg-black/5 dark:bg-white/5 border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 ease-out hover:translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e] cursor-pointer"
-                    onClick={() => {
-                        setGameFilter("all");
-                        setShowFilter("all");
-                        setSortBy("az");
-                    }}
+                    <button
+                        className="text-sm opacity-80 flex items-center gap-2 px-3 py-1.5 rounded-md text-[#193f44] dark:text-[#e8d5b8] bg-black/5 dark:bg-white/5 border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 ease-out hover:translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e] cursor-pointer"
+                        onClick={() => {
+                            setGameFilter("all");
+                            setShowFilter("all");
+                            setSortBy("az");
+                        }}
                     >
                         Clear Filters
                         <XIcon className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
