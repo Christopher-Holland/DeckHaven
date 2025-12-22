@@ -2,6 +2,9 @@
 
 import { StarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import AddToCollectionControl from "../../components/AddToCollectionControl";
+import AddToWishlist from "../../components/AddToWishlist";
 
 export type CardsCardProps = {
     id?: string;
@@ -14,8 +17,11 @@ export type CardsCardProps = {
 
     isFavorited?: boolean;
     isWishlisted?: boolean;
+    inCollection?: boolean;
     onToggleFavorite?: () => void;
     onToggleWishlist?: () => void;
+    onToggleCollection?: () => void;
+    isInCollection?: boolean;
 };
 
 export default function CardsCard({
@@ -28,8 +34,11 @@ export default function CardsCard({
     ownedCount,
     isFavorited = false,
     isWishlisted = false,
+    inCollection = false,
+    isInCollection = false,
     onToggleFavorite,
-    onToggleWishlist
+    onToggleWishlist,
+    onToggleCollection
 }: CardsCardProps) {
     const router = useRouter();
     const handleNavigate = () => {
@@ -37,7 +46,8 @@ export default function CardsCard({
             router.push(href);
         }
     };
-
+    const [qty, setQty] = useState(ownedCount ?? 0);
+    const [wishlisted, setWishlisted] = useState(false);
     return (
         <div
             onClick={handleNavigate}
@@ -116,8 +126,25 @@ export default function CardsCard({
 
             {/* Owned Count */}
             <p className="text-xs opacity-70 text-center">
-                Owned: {ownedCount}
+                Owned: {ownedCount + qty}
             </p>
+
+            {/* Add to Collection Button */}
+            <div className="mt-3 flex justify-center items-center">
+                <AddToCollectionControl
+                    quantity={qty}
+                    onChange={setQty}
+                />
+            </div>
+
+            {/* Add to Wishlist Button */}
+            <div className="mt-3 flex justify-center items-center">
+                <AddToWishlist
+                    isWishlisted={wishlisted}
+                    onToggle={() => setWishlisted((v) => !v)}
+                />
+            </div>
+
         </div>
     );
 }

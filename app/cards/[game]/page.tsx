@@ -4,6 +4,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, XIcon } from "lucide-react";
 import CardsCard from "./CardsCard";
+import {
+    type ShowFilter,
+    type SortBy,
+    type RarityFilter,
+    type TypeFilter,
+    type ManaColorFilter,
+    type KeywordFilter,
+    getRarityOptions,
+    getTypeOptions,
+    MANA_COLOR_OPTIONS,
+    KEYWORD_OPTIONS,
+} from "./cardFilters";
 
 type CardItem = {
     id: string;
@@ -14,92 +26,13 @@ type CardItem = {
 };
 
 const GAME_LABELS: Record<string, string> = {
-    mtg: "Magic: The Gathering",
+    mtg: "Magic The Gathering",
     ptcg: "Pokémon",
     ytcg: "Yu-Gi-Oh!",
 };
 
 type PageProps = {
     params: Promise<{ game: string }>;
-};
-
-type ShowFilter = "all" | "owned" | "favorited";
-type SortBy = "az" | "za" | "newest" | "oldest" | "mostOwned";
-
-// Make these flexible across games
-type RarityFilter = "all" | string;
-type TypeFilter = "all" | string;
-type ManaColorFilter = "all" | "white" | "blue" | "black" | "red" | "green" | "colorless" | "multicolor";
-type KeywordFilter = "all" | string;
-
-const RARITY_OPTIONS: Record<string, { value: string; label: string }[]> = {
-    mtg: [
-        { value: "all", label: "All" },
-        { value: "common", label: "Common" },
-        { value: "uncommon", label: "Uncommon" },
-        { value: "rare", label: "Rare" },
-        { value: "mythic", label: "Mythic Rare" },
-        { value: "special", label: "Special" }, // bonus / flexible bucket
-    ],
-    ptcg: [
-        { value: "all", label: "All" },
-        { value: "common", label: "Common" },
-        { value: "uncommon", label: "Uncommon" },
-        { value: "rare", label: "Rare" },
-        { value: "double_rare", label: "Double Rare" },
-        { value: "ultra_rare", label: "Ultra Rare" },
-        { value: "illustration_rare", label: "Illustration Rare" },
-        { value: "special_illustration_rare", label: "Special Illustration Rare" },
-        { value: "hyper_rare", label: "Hyper Rare" },
-        { value: "promo", label: "Promo" },
-    ],
-    ytcg: [
-        { value: "all", label: "All" },
-        { value: "common", label: "Common" },
-        { value: "rare", label: "Rare" },
-        { value: "super_rare", label: "Super Rare" },
-        { value: "ultra_rare", label: "Ultra Rare" },
-        { value: "secret_rare", label: "Secret Rare" },
-        { value: "ultimate_rare", label: "Ultimate Rare" },
-        { value: "ghost_rare", label: "Ghost Rare" },
-        { value: "starlight_rare", label: "Starlight Rare" },
-    ],
-};
-
-const TYPE_OPTIONS: Record<string, { value: string; label: string }[]> = {
-    mtg: [
-        { value: "all", label: "All" },
-        { value: "creature", label: "Creature" },
-        { value: "instant", label: "Instant" },
-        { value: "sorcery", label: "Sorcery" },
-        { value: "artifact", label: "Artifact" },
-        { value: "enchantment", label: "Enchantment" },
-        { value: "planeswalker", label: "Planeswalker" },
-        { value: "land", label: "Land" },
-        { value: "battle", label: "Battle" },
-    ],
-    ptcg: [
-        { value: "all", label: "All" },
-        { value: "pokemon", label: "Pokémon" },
-        { value: "trainer", label: "Trainer" },
-        { value: "item", label: "Item" },
-        { value: "supporter", label: "Supporter" },
-        { value: "stadium", label: "Stadium" },
-        { value: "tool", label: "Pokémon Tool" },
-        { value: "energy", label: "Energy" },
-        { value: "special_energy", label: "Special Energy" },
-    ],
-    ytcg: [
-        { value: "all", label: "All" },
-        { value: "monster", label: "Monster" },
-        { value: "spell", label: "Spell" },
-        { value: "trap", label: "Trap" },
-        { value: "fusion", label: "Fusion" },
-        { value: "synchro", label: "Synchro" },
-        { value: "xyz", label: "Xyz" },
-        { value: "link", label: "Link" },
-        { value: "ritual", label: "Ritual" },
-    ],
 };
 
 
@@ -130,85 +63,10 @@ export default function GamePage({ params }: PageProps) {
     const [type, setType] = useState<TypeFilter>("all");
     const [manaColor, setManaColor] = useState<ManaColorFilter>("all");
     const [keyword, setKeyword] = useState<KeywordFilter>("all");
-    // Options depend on game
-    const rarityOptions = useMemo(() => {
-        if (!gameParam) return [{ value: "all", label: "All" }];
-        return RARITY_OPTIONS[gameParam] ?? [{ value: "all", label: "All" }];
-    }, [gameParam]);
 
-    const typeOptions = useMemo(() => {
-        if (!gameParam) return [{ value: "all", label: "All" }];
-        return TYPE_OPTIONS[gameParam] ?? [{ value: "all", label: "All" }];
-    }, [gameParam]);
-
-    // Mana color options (only for MTG)
-    const manaColorOptions: { value: ManaColorFilter; label: string }[] = [
-        { value: "all", label: "All" },
-        { value: "white", label: "White" },
-        { value: "blue", label: "Blue" },
-        { value: "black", label: "Black" },
-        { value: "red", label: "Red" },
-        { value: "green", label: "Green" },
-        { value: "colorless", label: "Colorless" },
-        { value: "multicolor", label: "Multicolor" },
-    ];
-    // Keyword options (only for MTG)
-    const keywordOptions: { value: KeywordFilter; label: string }[] = [
-        { value: "all", label: "All" },
-
-        // Evergreen combat / abilities
-        { value: "flying", label: "Flying" },
-        { value: "trample", label: "Trample" },
-        { value: "haste", label: "Haste" },
-        { value: "lifelink", label: "Lifelink" },
-        { value: "deathtouch", label: "Deathtouch" },
-        { value: "vigilance", label: "Vigilance" },
-        { value: "first-strike", label: "First Strike" },
-        { value: "double-strike", label: "Double Strike" },
-        { value: "menace", label: "Menace" },
-        { value: "reach", label: "Reach" },
-
-        // Protection / survivability
-        { value: "hexproof", label: "Hexproof" },
-        { value: "ward", label: "Ward" },
-        { value: "indestructible", label: "Indestructible" },
-        { value: "protection", label: "Protection" },
-
-        // Casting / timing
-        { value: "flash", label: "Flash" },
-        { value: "cycling", label: "Cycling" },
-        { value: "kicker", label: "Kicker" },
-        { value: "flashback", label: "Flashback" },
-        { value: "foretell", label: "Foretell" },
-        { value: "suspend", label: "Suspend" },
-
-        // Spell mechanics
-        { value: "prowess", label: "Prowess" },
-        { value: "cascade", label: "Cascade" },
-        { value: "convoke", label: "Convoke" },
-        { value: "delve", label: "Delve" },
-        { value: "storm", label: "Storm" },
-        { value: "overload", label: "Overload" },
-
-        // Graveyard / recursion
-        { value: "undying", label: "Undying" },
-        { value: "persist", label: "Persist" },
-        { value: "escape", label: "Escape" },
-        { value: "unearth", label: "Unearth" },
-        { value: "dredge", label: "Dredge" },
-
-        // Board / synergy mechanics
-        { value: "landfall", label: "Landfall" },
-        { value: "exploit", label: "Exploit" },
-        { value: "populate", label: "Populate" },
-        { value: "proliferate", label: "Proliferate" },
-        { value: "mentor", label: "Mentor" },
-
-        // Transform / modal
-        { value: "transform", label: "Transform" },
-        { value: "daybound", label: "Daybound / Nightbound" },
-        { value: "modal-dfc", label: "Modal DFC" },
-    ];
+    // Get filter options based on selected game
+    const rarityOptions = useMemo(() => getRarityOptions(gameParam), [gameParam]);
+    const typeOptions = useMemo(() => getTypeOptions(gameParam), [gameParam]);
 
     // If you switch games, keep the UI consistent by resetting game-specific filters
     useEffect(() => {
@@ -225,7 +83,7 @@ export default function GamePage({ params }: PageProps) {
             name: "Demo Card 1",
             imageSrc: "/images/DeckHaven-Shield.png",
             description: "This is a demo card",
-            ownedCount: 2,
+            ownedCount: 0,
         },
         {
             id: "card-2",
@@ -239,7 +97,7 @@ export default function GamePage({ params }: PageProps) {
             name: "Demo Card 3",
             imageSrc: "/images/DeckHaven-Shield.png",
             description: "Yet another demo card",
-            ownedCount: 1,
+            ownedCount: 0,
         },
     ];
 
@@ -457,7 +315,7 @@ export default function GamePage({ params }: PageProps) {
                         dark:focus:ring-[#82664e]
                       "
                                 >
-                                    {manaColorOptions.map((o) => (
+                                    {MANA_COLOR_OPTIONS.map((o) => (
                                         <option key={o.value} value={o.value}>
                                             {o.label}
                                         </option>
@@ -491,7 +349,7 @@ export default function GamePage({ params }: PageProps) {
                   "
                                 >
                                     <span className="text-left flex-1">
-                                        {keywordOptions.find((o) => o.value === keyword)?.label || "All"}
+                                        {KEYWORD_OPTIONS.find((o) => o.value === keyword)?.label || "All"}
                                     </span>
                                     <ChevronDown className="w-4 h-4 opacity-70 flex-shrink-0" />
                                 </button>
@@ -508,7 +366,7 @@ export default function GamePage({ params }: PageProps) {
                     text-sm
                   "
                                     >
-                                        {keywordOptions.map((o) => (
+                                        {KEYWORD_OPTIONS.map((o) => (
                                             <button
                                                 key={o.value}
                                                 type="button"

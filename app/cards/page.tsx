@@ -13,7 +13,7 @@ type CardGame = {
 const demoGames: CardGame[] = [
     {
         id: "mtg",
-        name: "Magic: The Gathering",
+        name: "Magic the Gathering",
         imageSrc: "/images/DeckHaven-Shield.png",
         ownedCount: 12,
     },

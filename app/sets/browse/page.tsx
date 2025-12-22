@@ -40,7 +40,7 @@ const demoSets: DemoSet[] = [
     {
         id: "set-33",
         name: "Set 3 Name",
-        game: "Magic: The Gathering",
+        game: "Magic The Gathering",
         imageSrc: "/images/DeckHaven-Shield.png",
         description: "Set 3 Description",
         ownedCount: 12,
@@ -50,7 +50,7 @@ const demoSets: DemoSet[] = [
     {
         id: "set-44",
         name: "Set 4 Name",
-        game: "Magic: The Gathering",
+        game: "Magic The Gathering",
         imageSrc: "/images/DeckHaven-Shield.png",
         description: "Set 4 Description",
         ownedCount: 12,

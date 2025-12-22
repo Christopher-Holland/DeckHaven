@@ -18,7 +18,7 @@ export const tcgNews: TCGNewsItem[] = [
     },
     {
         id: "2",
-        title: "Magic: The Gathering Reveals Upcoming Standard Rotation Changes",
+        title: "Magic The Gathering Reveals Upcoming Standard Rotation Changes",
         source: "Wizards of the Coast",
         category: "MTG",
         url: "https://magic.wizards.com",
