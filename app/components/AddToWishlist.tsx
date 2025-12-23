@@ -19,7 +19,7 @@ export default function AddToWishlistButton({
                 onToggle();
             }}
             className="
-        w-full
+        w-auto
         text-sm font-medium
         px-3 py-1.5
         rounded-md

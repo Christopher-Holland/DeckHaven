@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, XIcon } from "lucide-react";
+import { ChevronDown, XIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import CardsCard from "./CardsCard";
 import {
     type ShowFilter,
@@ -76,30 +76,28 @@ export default function GamePage({ params }: PageProps) {
         setKeyword("all");
     }, [gameParam]);
 
+    // Generate 45 test cards for each game
+    const generateTestCards = (game: string | null): CardItem[] => {
+        const cards: CardItem[] = [];
+        const gamePrefix = game || "card";
+        
+        for (let i = 1; i <= 45; i++) {
+            cards.push({
+                id: `${gamePrefix}-card-${i}`,
+                name: `${gameName} Card ${i}`,
+                imageSrc: "/images/DeckHaven-Shield.png",
+                description: `Test card ${i} for ${gameName}`,
+                ownedCount: Math.floor(Math.random() * 5), // Random owned count 0-4
+            });
+        }
+        
+        return cards;
+    };
+
     // Demo card data (placeholder until API is connected)
-    const demoCards: CardItem[] = [
-        {
-            id: "card-1",
-            name: "Demo Card 1",
-            imageSrc: "/images/DeckHaven-Shield.png",
-            description: "This is a demo card",
-            ownedCount: 0,
-        },
-        {
-            id: "card-2",
-            name: "Demo Card 2",
-            imageSrc: "/images/DeckHaven-Shield.png",
-            description: "This is another demo card",
-            ownedCount: 0,
-        },
-        {
-            id: "card-3",
-            name: "Demo Card 3",
-            imageSrc: "/images/DeckHaven-Shield.png",
-            description: "Yet another demo card",
-            ownedCount: 0,
-        },
-    ];
+    const demoCards: CardItem[] = useMemo(() => {
+        return generateTestCards(gameParam);
+    }, [gameParam, gameName]);
 
     // Filtered items
     const filteredItems = useMemo<CardItem[]>(() => {
@@ -115,12 +113,30 @@ export default function GamePage({ params }: PageProps) {
         // Sort
         items.sort((a, b) => {
             if (sortBy === "mostOwned") return b.ownedCount - a.ownedCount;
-            // az
+            if (sortBy === "za") return b.name.localeCompare(a.name);
+            if (sortBy === "newest") return b.id.localeCompare(a.id);
+            if (sortBy === "oldest") return a.id.localeCompare(b.id);
+            // az (default)
             return a.name.localeCompare(b.name);
         });
 
         return items;
-    }, [showFilter, sortBy, rarity, type, manaColor, keyword, favorites]);
+    }, [demoCards, showFilter, sortBy, rarity, type, manaColor, keyword, favorites]);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const cardsPerPage = 25;
+
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredItems.length / cardsPerPage);
+    const startIndex = (currentPage - 1) * cardsPerPage;
+    const endIndex = startIndex + cardsPerPage;
+    const paginatedItems = filteredItems.slice(startIndex, endIndex);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [showFilter, sortBy, rarity, type, manaColor, keyword]);
 
     const [keywordDropdownOpen, setKeywordDropdownOpen] = useState(false);
     const keywordDropdownRef = useRef<HTMLDivElement>(null);
@@ -192,7 +208,7 @@ export default function GamePage({ params }: PageProps) {
             {/* Filters */}
             <section className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <p className="text-sm opacity-70">
-                    Showing {filteredItems.length} card{filteredItems.length === 1 ? "" : "s"}
+                    Showing {filteredItems.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredItems.length)} of {filteredItems.length} card{filteredItems.length === 1 ? "" : "s"}
                 </p>
 
                 <div className="flex flex-wrap gap-3">
@@ -418,9 +434,95 @@ export default function GamePage({ params }: PageProps) {
                 </div>
             </section>
 
+            {/* Pagination Controls - Top */}
+            {totalPages > 1 && (
+                <section className="mb-6 flex items-center justify-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="
+                            px-3 py-1.5 rounded-md
+                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            text-[#193f44] dark:text-[#e8d5b8]
+                            border border-[#42c99c] dark:border-[#82664e]
+                            hover:bg-black/10 dark:hover:bg-white/10
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                            transition-colors
+                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                            dark:focus:ring-[#82664e]
+                            flex items-center gap-1
+                        "
+                    >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                    </button>
+                    
+                    <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                            // Show first page, last page, current page, and pages around current
+                            if (
+                                page === 1 ||
+                                page === totalPages ||
+                                (page >= currentPage - 1 && page <= currentPage + 1)
+                            ) {
+                                return (
+                                    <button
+                                        key={page}
+                                        type="button"
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`
+                                            px-3 py-1.5 rounded-md text-sm
+                                            transition-colors
+                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                            dark:focus:ring-[#82664e]
+                                            ${
+                                                currentPage === page
+                                                    ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
+                                                    : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
+                                            }
+                                        `}
+                                    >
+                                        {page}
+                                    </button>
+                                );
+                            } else if (page === currentPage - 2 || page === currentPage + 2) {
+                                return (
+                                    <span key={page} className="px-2 text-sm opacity-50">
+                                        ...
+                                    </span>
+                                );
+                            }
+                            return null;
+                        })}
+                    </div>
+                    
+                    <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="
+                            px-3 py-1.5 rounded-md
+                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            text-[#193f44] dark:text-[#e8d5b8]
+                            border border-[#42c99c] dark:border-[#82664e]
+                            hover:bg-black/10 dark:hover:bg-white/10
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                            transition-colors
+                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                            dark:focus:ring-[#82664e]
+                            flex items-center gap-1
+                        "
+                    >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
+                </section>
+            )}
+
             {/* Content Grid */}
             <section className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                {filteredItems.map((item) => (
+                {paginatedItems.map((item) => (
                     <CardsCard
                         key={item.id}
                         id={item.id}
@@ -435,6 +537,92 @@ export default function GamePage({ params }: PageProps) {
                     />
                 ))}
             </section>
+
+            {/* Pagination Controls - Bottom */}
+            {totalPages > 1 && (
+                <section className="mt-6 flex items-center justify-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="
+                            px-3 py-1.5 rounded-md
+                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            text-[#193f44] dark:text-[#e8d5b8]
+                            border border-[#42c99c] dark:border-[#82664e]
+                            hover:bg-black/10 dark:hover:bg-white/10
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                            transition-colors
+                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                            dark:focus:ring-[#82664e]
+                            flex items-center gap-1
+                        "
+                    >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                    </button>
+                    
+                    <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                            // Show first page, last page, current page, and pages around current
+                            if (
+                                page === 1 ||
+                                page === totalPages ||
+                                (page >= currentPage - 1 && page <= currentPage + 1)
+                            ) {
+                                return (
+                                    <button
+                                        key={page}
+                                        type="button"
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`
+                                            px-3 py-1.5 rounded-md text-sm
+                                            transition-colors
+                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                            dark:focus:ring-[#82664e]
+                                            ${
+                                                currentPage === page
+                                                    ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
+                                                    : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
+                                            }
+                                        `}
+                                    >
+                                        {page}
+                                    </button>
+                                );
+                            } else if (page === currentPage - 2 || page === currentPage + 2) {
+                                return (
+                                    <span key={page} className="px-2 text-sm opacity-50">
+                                        ...
+                                    </span>
+                                );
+                            }
+                            return null;
+                        })}
+                    </div>
+                    
+                    <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="
+                            px-3 py-1.5 rounded-md
+                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            text-[#193f44] dark:text-[#e8d5b8]
+                            border border-[#42c99c] dark:border-[#82664e]
+                            hover:bg-black/10 dark:hover:bg-white/10
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                            transition-colors
+                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                            dark:focus:ring-[#82664e]
+                            flex items-center gap-1
+                        "
+                    >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
+                </section>
+            )}
         </main>
     );
 }

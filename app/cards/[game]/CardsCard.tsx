@@ -1,6 +1,5 @@
 "use client";
 
-import { StarIcon, HeartIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AddToCollectionControl from "../../components/AddToCollectionControl";
@@ -25,96 +24,79 @@ export type CardsCardProps = {
 };
 
 export default function CardsCard({
-    id,
     href,
     name,
     game,
     imageSrc,
     description,
     ownedCount,
-    isFavorited = false,
-    isWishlisted = false,
-    inCollection = false,
-    isInCollection = false,
-    onToggleFavorite,
-    onToggleWishlist,
-    onToggleCollection
 }: CardsCardProps) {
     const router = useRouter();
-    const handleNavigate = () => {
-        if (href) {
-            router.push(href);
-        }
-    };
+
     const [qty, setQty] = useState(ownedCount ?? 0);
     const [wishlisted, setWishlisted] = useState(false);
+
+    const handleNavigate = () => {
+        if (href) router.push(href);
+    };
+
     return (
-        <div
-            onClick={handleNavigate}
-            onKeyDown={(e) => {
-                if (!href) return;
-                if (e.key === "Enter" || e.key === " ") {
-                    router.push(href);
-                }
-            }}
-            role={href ? "button" : undefined}
-            tabIndex={href ? 0 : undefined}
-            className="
-                group relative rounded-lg
-                border border-[#42c99c] dark:border-[#82664e]
-                bg-[#e8d5b8] dark:bg-[#173c3f]
-                p-4
-                cursor-pointer
-                transition-all duration-200 ease-out
-                hover:-translate-y-0.5
-                hover:border-[#2fbf8f]
-                dark:hover:border-[#9b7a5f]
-                hover:shadow-[0_0_20px_rgba(130,102,78,0.2)]
-                dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
-            "
-        >
-            
+        <div className="flex flex-col gap-3">
+            {/* CLICKABLE CARD */}
+            <div
+                onClick={handleNavigate}
+                onKeyDown={(e) => {
+                    if (!href) return;
+                    if (e.key === "Enter" || e.key === " ") router.push(href);
+                }}
+                role={href ? "button" : undefined}
+                tabIndex={href ? 0 : undefined}
+                className="
+          group relative rounded-lg
+          border border-[#42c99c] dark:border-[#82664e]
+          bg-[#e8d5b8] dark:bg-[#173c3f]
+          p-4
+          cursor-pointer
+          transition-all duration-200 ease-out
+          hover:-translate-y-0.5
+          hover:border-[#2fbf8f]
+          dark:hover:border-[#9b7a5f]
+          hover:shadow-[0_0_20px_rgba(130,102,78,0.2)]
+          dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
+        "
+            >
+                {/* Card Image */}
+                {imageSrc && (
+                    <img src={imageSrc} alt={name} className="w-full h-auto mb-3 rounded" />
+                )}
 
-            {/* Card Image */}
-            {imageSrc && (
-                <img
-                    src={imageSrc}
-                    alt={name}
-                    className="w-full h-auto mb-3 rounded"
-                />
-            )}
+                {/* Card Name */}
+                <h3 className="text-md font-semibold mb-2 text-center">{name}</h3>
 
-            {/* Card Name */}
-            <h3 className="text-md font-semibold mb-2 text-center">
-                {name}
-            </h3>
+                {/* Description */}
+                {description && (
+                    <p className="text-xs opacity-80 text-center mb-2">{description}</p>
+                )}
 
-            {/* Description */}
-            {description && (
-                <p className="text-xs opacity-80 text-center mb-2">
-                    {description}
-                </p>
-            )}
-
-            {/* Owned Count */}
-            <p className="text-xs opacity-70 text-center">
-                Owned: {ownedCount + qty}
-            </p>
-
-            {/* Add to Collection Button */}
-            <div className="mt-3 flex justify-center items-center">
-                <AddToCollectionControl
-                    quantity={qty}
-                    onChange={setQty}
-                />
+                {/* Owned Count */}
+                <p className="text-xs opacity-70 text-center">Owned: {ownedCount + qty}</p>
             </div>
 
-            {/* Add to Wishlist Button */}
-            <div className="mt-3 flex justify-center items-center">
-                <AddToWishlist
-                    isWishlisted={wishlisted}
-                    onToggle={() => setWishlisted((v) => !v)}
-                />
+            {/* CONTROLS UNDER THE CARD (NOT CLICKABLE FOR NAV) */}
+            <div
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+            >
+                <div className="flex justify-center items-center gap-4 mb-2">
+                    <AddToCollectionControl quantity={qty} onChange={setQty} />
+                </div>
+
+                <div className="flex justify-center items-center gap-4 mb-2">
+                    <AddToWishlist
+                        isWishlisted={wishlisted}
+                        onToggle={() => setWishlisted((v) => !v)}
+                    />
+                </div>
             </div>
         </div>
     );
