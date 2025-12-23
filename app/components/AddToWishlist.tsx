@@ -35,9 +35,10 @@ export default function AddToWishlistButton({
         >
             <HeartIcon
                 className={`w-4 h-4 ${isWishlisted
-                        ? "fill-[#42c99c] text-[#42c99c] dark:fill-yellow-300 dark:text-yellow-300"
+                        ? "fill-[#42c99c] text-[#42c99c] dark:fill-red-300 dark:text-red-300"
                         : "fill-none"
                     }`}
+                    aria-label={isWishlisted ? "Unwishlist card" : "Wishlist card"}
             />
             {isWishlisted ? "Wishlisted" : "Add to Wishlist"}
         </button>

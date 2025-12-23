@@ -1,6 +1,6 @@
 "use client";
 
-import { StarIcon } from "lucide-react";
+import { StarIcon, HeartIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AddToCollectionControl from "../../components/AddToCollectionControl";
@@ -73,35 +73,7 @@ export default function CardsCard({
                 dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
             "
         >
-            {/* Favorite Button */}
-            <button
-                type="button"
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onToggleFavorite?.();
-                }}
-                className="
-                    absolute top-2 right-2 z-10
-                    p-1 rounded
-                    hover:opacity-80
-                    focus:outline-none
-                    focus:ring-2 focus:ring-[#42c99c]
-                    dark:focus:ring-[#82664e]
-                    transition-opacity
-                "
-                aria-label={isFavorited ? "Unfavorite card" : "Favorite card"}
-            >
-                <StarIcon
-                    className={`
-                        w-4 h-4
-                        ${isFavorited
-                            ? "fill-[#42c99c] text-[#42c99c] dark:fill-yellow-300 dark:text-yellow-300"
-                            : "fill-none text-current"
-                        }
-                    `}
-                />
-            </button>
+            
 
             {/* Card Image */}
             {imageSrc && (
@@ -144,7 +116,6 @@ export default function CardsCard({
                     onToggle={() => setWishlisted((v) => !v)}
                 />
             </div>
-
         </div>
     );
 }
