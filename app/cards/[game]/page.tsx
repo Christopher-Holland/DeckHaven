@@ -80,7 +80,7 @@ export default function GamePage({ params }: PageProps) {
     const generateTestCards = (game: string | null): CardItem[] => {
         const cards: CardItem[] = [];
         const gamePrefix = game || "card";
-        
+
         for (let i = 1; i <= 45; i++) {
             cards.push({
                 id: `${gamePrefix}-card-${i}`,
@@ -90,7 +90,7 @@ export default function GamePage({ params }: PageProps) {
                 ownedCount: Math.floor(Math.random() * 5), // Random owned count 0-4
             });
         }
-        
+
         return cards;
     };
 
@@ -207,9 +207,7 @@ export default function GamePage({ params }: PageProps) {
 
             {/* Filters */}
             <section className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <p className="text-sm opacity-70">
-                    Showing {filteredItems.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredItems.length)} of {filteredItems.length} card{filteredItems.length === 1 ? "" : "s"}
-                </p>
+
 
                 <div className="flex flex-wrap gap-3">
                     <button
@@ -436,7 +434,10 @@ export default function GamePage({ params }: PageProps) {
 
             {/* Pagination Controls - Top */}
             {totalPages > 1 && (
-                <section className="mb-6 flex items-center justify-center gap-2">
+                <section className="mb-6 flex items-center justify-end gap-2">
+                    <p className="text-sm opacity-70">
+                        Showing {filteredItems.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredItems.length)} of {filteredItems.length} card{filteredItems.length === 1 ? "" : "s"}
+                    </p>
                     <button
                         type="button"
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -457,7 +458,7 @@ export default function GamePage({ params }: PageProps) {
                         <ChevronLeft className="w-4 h-4" />
                         Previous
                     </button>
-                    
+
                     <div className="flex items-center gap-1">
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
                             // Show first page, last page, current page, and pages around current
@@ -476,10 +477,9 @@ export default function GamePage({ params }: PageProps) {
                                             transition-colors
                                             focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                             dark:focus:ring-[#82664e]
-                                            ${
-                                                currentPage === page
-                                                    ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
-                                                    : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
+                                            ${currentPage === page
+                                                ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
+                                                : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
                                             }
                                         `}
                                     >
@@ -496,7 +496,7 @@ export default function GamePage({ params }: PageProps) {
                             return null;
                         })}
                     </div>
-                    
+
                     <button
                         type="button"
                         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -561,7 +561,7 @@ export default function GamePage({ params }: PageProps) {
                         <ChevronLeft className="w-4 h-4" />
                         Previous
                     </button>
-                    
+
                     <div className="flex items-center gap-1">
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
                             // Show first page, last page, current page, and pages around current
@@ -580,10 +580,9 @@ export default function GamePage({ params }: PageProps) {
                                             transition-colors
                                             focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                             dark:focus:ring-[#82664e]
-                                            ${
-                                                currentPage === page
-                                                    ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
-                                                    : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
+                                            ${currentPage === page
+                                                ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
+                                                : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
                                             }
                                         `}
                                     >
@@ -600,7 +599,7 @@ export default function GamePage({ params }: PageProps) {
                             return null;
                         })}
                     </div>
-                    
+
                     <button
                         type="button"
                         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
