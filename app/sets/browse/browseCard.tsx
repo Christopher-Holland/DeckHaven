@@ -63,39 +63,11 @@ export default function SetCard({
         dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
       "
         >
-            {/* Favorite Button */}
-            <button
-                type="button"
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onToggleFavorite?.();
-                }}
-                className="
-          absolute top-2 right-2 z-10
-          p-1 rounded
-          hover:opacity-80
-          focus:outline-none
-          focus:ring-2 focus:ring-[#42c99c]
-          dark:focus:ring-[#82664e]
-          transition-opacity
-        "
-                aria-label={isFavorited ? "Unfavorite set" : "Favorite set"}
-            >
-                <StarIcon
-                    className={`
-            w-4 h-4
-            ${isFavorited
-                            ? "fill-[#42c99c] text-[#42c99c] dark:fill-yellow-300 dark:text-yellow-300"
-                            : "fill-none text-current"
-                        }
-          `}
-                />
-            </button>
+            
 
             {/* Title */}
             <div className="w-full mb-2 border-b border-[#42c99c] dark:border-[#82664e] pb-2">
-                <h3 className="text-lg font-semibold text-center px-12 truncate">
+                <h3 className="text-lg font-semibold text-center break-words line-clamp-2">
                     {name}
                 </h3>
             </div>
@@ -111,11 +83,16 @@ export default function SetCard({
 
             {/* Image */}
             {imageSrc && (
-                <img
-                    src={imageSrc}
-                    alt={name}
-                    className="w-10 h-10 mx-auto mt-3"
-                />
+                <div className="flex justify-center mt-4">
+                    <img
+                        src={imageSrc}
+                        alt={name}
+                        className="w-16 h-16 
+                            [filter:brightness(0)_saturate(100%)_invert(58%)_sepia(89%)_saturate(1000%)_hue-rotate(130deg)_brightness(0.9)]
+                            dark:[filter:brightness(0)_saturate(100%)_invert(50%)_sepia(20%)_saturate(500%)_hue-rotate(10deg)_brightness(1.1)]
+                        "
+                    />
+                </div>
             )}
 
             {/* Description */}

@@ -13,6 +13,15 @@ type ScryfallSet = {
     set_type?: string;
     icon_svg_uri?: string;
     card_count?: number;
+    parent_set_code?: string; // Code of the parent set if this is a child set
+};
+
+type GroupedSet = {
+    parentCode: string;
+    parentSet: ScryfallSet;
+    childSets: ScryfallSet[];
+    totalCardCount: number;
+    earliestReleaseDate?: string;
 };
 
 type GameFilter = "all" | string;
@@ -24,6 +33,7 @@ export default function BrowseSets() {
 
     // State
     const [sets, setSets] = useState<ScryfallSet[]>([]);
+    const [groupedSets, setGroupedSets] = useState<GroupedSet[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
@@ -78,6 +88,10 @@ export default function BrowseSets() {
                 );
 
                 setSets(mtgSets);
+
+                // Group sets by parent
+                const grouped = groupSetsByParent(mtgSets);
+                setGroupedSets(grouped);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load sets");
             } finally {
@@ -88,6 +102,59 @@ export default function BrowseSets() {
         fetchSets();
     }, []);
 
+    // Group sets by parent_set_code
+    function groupSetsByParent(sets: ScryfallSet[]): GroupedSet[] {
+        const parentMap = new Map<string, ScryfallSet>();
+        const childMap = new Map<string, ScryfallSet[]>();
+        const allSetCodes = new Set(sets.map(s => s.code));
+
+        // First pass: identify parent sets and collect children
+        sets.forEach((set) => {
+            if (set.parent_set_code && allSetCodes.has(set.parent_set_code)) {
+                // This is a child set with a valid parent in our list
+                const parentCode = set.parent_set_code;
+                if (!childMap.has(parentCode)) {
+                    childMap.set(parentCode, []);
+                }
+                childMap.get(parentCode)!.push(set);
+            } else {
+                // This is a parent set (or standalone, or child with missing parent)
+                parentMap.set(set.code, set);
+            }
+        });
+
+        // Second pass: create grouped sets
+        const grouped: GroupedSet[] = [];
+
+        parentMap.forEach((parentSet, parentCode) => {
+            const children = childMap.get(parentCode) || [];
+            
+            // Calculate total card count from parent + all children
+            const totalCardCount = (parentSet.card_count || 0) + 
+                children.reduce((sum, child) => sum + (child.card_count || 0), 0);
+
+            // Find earliest release date (parent or earliest child)
+            const allDates = [
+                parentSet.released_at,
+                ...children.map(c => c.released_at)
+            ].filter(Boolean) as string[];
+            
+            const earliestReleaseDate = allDates.length > 0
+                ? allDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0]
+                : parentSet.released_at;
+
+            grouped.push({
+                parentCode,
+                parentSet,
+                childSets: children,
+                totalCardCount,
+                earliestReleaseDate,
+            });
+        });
+
+        return grouped;
+    }
+
     const toggleFavorite = (id: string) => {
         setFavorites((prev) => {
             const next = new Set(prev);
@@ -97,16 +164,16 @@ export default function BrowseSets() {
         });
     };
 
-    // Filter and sort sets
+    // Filter and sort grouped sets
     const filteredSets = useMemo(() => {
-        let items = [...sets];
+        let items = [...groupedSets];
 
         // Show filter (for future database integration)
         if (showFilter === "owned") {
             // Will filter by owned sets from database later
             items = items.filter(() => false); // Empty for now
         } else if (showFilter === "favorited") {
-            items = items.filter((s) => favorites.has(s.id));
+            items = items.filter((group) => favorites.has(group.parentSet.id));
         }
 
         // Sort
@@ -116,28 +183,28 @@ export default function BrowseSets() {
                 return 0;
             }
             if (sortBy === "az") {
-                return a.name.localeCompare(b.name);
+                return a.parentSet.name.localeCompare(b.parentSet.name);
             }
             if (sortBy === "za") {
-                return b.name.localeCompare(a.name);
+                return b.parentSet.name.localeCompare(a.parentSet.name);
             }
             if (sortBy === "newest") {
                 // Sort by release date, most recent first
-                const dateA = a.released_at ? new Date(a.released_at).getTime() : 0;
-                const dateB = b.released_at ? new Date(b.released_at).getTime() : 0;
+                const dateA = a.earliestReleaseDate ? new Date(a.earliestReleaseDate).getTime() : 0;
+                const dateB = b.earliestReleaseDate ? new Date(b.earliestReleaseDate).getTime() : 0;
                 return dateB - dateA; // Descending (newest first)
             }
             if (sortBy === "oldest") {
                 // Sort by release date, oldest first
-                const dateA = a.released_at ? new Date(a.released_at).getTime() : 0;
-                const dateB = b.released_at ? new Date(b.released_at).getTime() : 0;
+                const dateA = a.earliestReleaseDate ? new Date(a.earliestReleaseDate).getTime() : 0;
+                const dateB = b.earliestReleaseDate ? new Date(b.earliestReleaseDate).getTime() : 0;
                 return dateA - dateB; // Ascending (oldest first)
             }
             return 0;
         });
 
         return items;
-    }, [sets, showFilter, sortBy, favorites]);
+    }, [groupedSets, showFilter, sortBy, favorites]);
 
     // Pagination
     const totalPages = Math.ceil(filteredSets.length / setsPerPage);
@@ -384,20 +451,22 @@ export default function BrowseSets() {
 
             {/* Content Grid */}
             <section className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                {paginatedSets.map((set) => (
+                {paginatedSets.map((group) => (
                     <SetCard
-                        key={set.id}
-                        id={set.id}
-                        name={set.name}
+                        key={group.parentSet.id}
+                        id={group.parentSet.id}
+                        name={group.parentSet.name}
                         game="Magic the Gathering"
-                        imageSrc={set.icon_svg_uri || "/images/DeckHaven-Shield.png"}
-                        description={set.set_type || ""}
+                        imageSrc={group.parentSet.icon_svg_uri || "/images/DeckHaven-Shield.png"}
+                        description={group.childSets.length > 0 
+                            ? `${group.parentSet.set_type || ""} (${group.childSets.length + 1} sets)`
+                            : group.parentSet.set_type || ""}
                         ownedCount={0}
-                        totalCount={set.card_count || 0}
-                        releaseDate={formatDate(set.released_at)}
-                        isFavorited={favorites.has(set.id)}
-                        onToggleFavorite={() => toggleFavorite(set.id)}
-                        href={`/sets/${set.code}`}
+                        totalCount={group.totalCardCount}
+                        releaseDate={formatDate(group.earliestReleaseDate)}
+                        isFavorited={favorites.has(group.parentSet.id)}
+                        onToggleFavorite={() => toggleFavorite(group.parentSet.id)}
+                        href={`/sets/${group.parentCode}`}
                     />
                 ))}
             </section>

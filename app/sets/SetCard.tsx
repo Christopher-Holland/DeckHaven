@@ -111,11 +111,16 @@ export default function SetCard({
 
             {/* Image */}
             {imageSrc && (
-                <img
-                    src={imageSrc}
-                    alt={name}
-                    className="w-10 h-10 mx-auto mt-3"
-                />
+                <div className="flex justify-center mt-3">
+                    <img
+                        src={imageSrc}
+                        alt={name}
+                        className="w-10 h-10
+                            [filter:brightness(0)_saturate(100%)_invert(58%)_sepia(89%)_saturate(1000%)_hue-rotate(130deg)_brightness(0.9)]
+                            dark:[filter:brightness(0)_saturate(100%)_invert(50%)_sepia(20%)_saturate(500%)_hue-rotate(10deg)_brightness(1.1)]
+                        "
+                    />
+                </div>
             )}
 
             {/* Description */}

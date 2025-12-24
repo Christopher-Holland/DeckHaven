@@ -83,6 +83,7 @@ export type ScryfallSet = {
     set_type?: string;
     icon_svg_uri?: string;
     card_count?: number; // May not always be present in API response
+    parent_set_code?: string; // Code of the parent set if this is a child set
 };
 
 export async function getSets() {
