@@ -64,6 +64,23 @@ export default function GamePage({ params }: PageProps) {
     const [manaColor, setManaColor] = useState<ManaColorFilter>("all");
     const [keyword, setKeyword] = useState<KeywordFilter>("all");
 
+    // UI: collapsible filters
+    const [filtersOpen, setFiltersOpen] = useState(false);
+
+    // Count "active" filters so we can show a badge
+    const activeFilterCount = useMemo(() => {
+        let count = 0;
+
+        if (showFilter !== "all") count++;
+        if (sortBy !== "newest") count++;
+        if (rarity !== "all") count++;
+        if (type !== "all") count++;
+        if (gameParam === "mtg" && manaColor !== "all") count++;
+        if (gameParam === "mtg" && keyword !== "all") count++;
+
+        return count;
+    }, [showFilter, sortBy, rarity, type, manaColor, keyword, gameParam]);
+
     // Get filter options based on selected game
     const rarityOptions = useMemo(() => getRarityOptions(gameParam), [gameParam]);
     const typeOptions = useMemo(() => getTypeOptions(gameParam), [gameParam]);
@@ -81,7 +98,7 @@ export default function GamePage({ params }: PageProps) {
         const cards: CardItem[] = [];
         const gamePrefix = game || "card";
 
-        for (let i = 1; i <= 45; i++) {
+        for (let i = 1; i <= 55; i++) {
             cards.push({
                 id: `${gamePrefix}-card-${i}`,
                 name: `${gameName} Card ${i}`,
@@ -206,120 +223,111 @@ export default function GamePage({ params }: PageProps) {
             </section>
 
             {/* Filters */}
-            <section className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-
-
-                <div className="flex flex-wrap gap-3">
+            <section className="mb-6">
+                {/* Header row */}
+                <div className="flex items-center justify-between gap-3">
                     <button
                         type="button"
+                        onClick={() => setFiltersOpen((v) => !v)}
                         className="
-              text-sm opacity-80 flex items-center gap-2
-              px-3 py-1.5 rounded-md
-              text-[#193f44] dark:text-[#e8d5b8]
-              bg-black/5 dark:bg-white/5
-              border border-[#42c99c] dark:border-[#82664e]
-              hover:bg-black/10 dark:hover:bg-white/10
-              transition-all duration-200 ease-out
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-              dark:focus:ring-[#82664e]
-              cursor-pointer
-            "
-                        onClick={clearFilters}
+        inline-flex items-center gap-2
+        px-3 py-1.5 rounded-md text-sm font-medium
+        bg-black/5 dark:bg-white/5
+        border border-[#42c99c] dark:border-[#82664e]
+        hover:bg-black/10 dark:hover:bg-white/10
+        transition-colors
+        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+        dark:focus:ring-[#82664e]
+      "
+                        aria-expanded={filtersOpen}
+                        aria-controls="cards-filters-panel"
                     >
-                        Clear Filters
-                        <XIcon className="w-4 h-4" />
+                        <span>Filters</span>
+
+                        {activeFilterCount > 0 && (
+                            <span
+                                className="
+            ml-1 inline-flex items-center justify-center
+            min-w-[22px] h-[22px] px-1
+            rounded-full text-xs font-semibold
+            bg-[#42c99c] dark:bg-[#82664e]
+            text-white
+          "
+                            >
+                                {activeFilterCount}
+                            </span>
+                        )}
+
+                        <ChevronDown
+                            className={`w-4 h-4 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+                        />
                     </button>
 
-                    {/* Show */}
-                    <label className="text-sm opacity-80 flex items-center gap-2">
-                        Show
-                        <div className="relative">
-                            <select
-                                value={showFilter}
-                                onChange={(e) => setShowFilter(e.target.value as ShowFilter)}
+                    {/* Optional: quick clear on the right */}
+                    {activeFilterCount > 0 && (
+                        <button
+                            type="button"
+                            onClick={clearFilters}
+                            className="
+          text-sm opacity-80 flex items-center gap-2
+          px-3 py-1.5 rounded-md
+          bg-black/5 dark:bg-white/5
+          hover:bg-black/10 dark:hover:bg-white/10
+          transition-colors
+          focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+          dark:focus:ring-[#82664e]
+        "
+                        >
+                            Clear
+                            <XIcon className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
+
+                {/* Collapsible panel */}
+                <div
+                    id="cards-filters-panel"
+                    className={`
+      mt-3 overflow-hidden transition-[max-height,opacity] duration-300 ease-out
+      ${filtersOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"}
+    `}
+                >
+                    <div
+                        className="
+        p-4 rounded-lg
+        bg-black/5 dark:bg-white/5
+        border border-[#42c99c] dark:border-[#82664e]
+      "
+                    >
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                type="button"
                                 className="
-                    appearance-none rounded-md px-2 py-1 pr-7 text-sm
-                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                    text-[#193f44] dark:text-[#e8d5b8]
-                    border border-[#42c99c] dark:border-[#82664e]
-                    focus:outline-none
-                    focus:ring-2 focus:ring-[#42c99c]
-                    dark:focus:ring-[#82664e]
-                  "
+            text-sm opacity-80 flex items-center gap-2
+            px-3 py-1.5 rounded-md
+            text-[#193f44] dark:text-[#e8d5b8]
+            bg-black/5 dark:bg-white/5
+            border border-[#42c99c] dark:border-[#82664e]
+            hover:bg-black/10 dark:hover:bg-white/10
+            transition-all duration-200 ease-out
+            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+            dark:focus:ring-[#82664e]
+            cursor-pointer
+          "
+                                onClick={clearFilters}
                             >
-                                <option value="all">All</option>
-                                <option value="owned">Owned</option>
-                                <option value="favorited">Favorited</option>
-                            </select>
-                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 pointer-events-none" />
-                        </div>
-                    </label>
+                                Clear Filters
+                                <XIcon className="w-4 h-4" />
+                            </button>
 
-
-
-                    {/* Rarity (game-specific) */}
-                    <label className="text-sm opacity-80 flex items-center gap-2">
-                        Rarity
-                        <div className="relative">
-                            <select
-                                value={rarity}
-                                onChange={(e) => setRarity(e.target.value)}
-                                className="
-                    appearance-none rounded-md px-2 py-1 pr-7 text-sm
-                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                    text-[#193f44] dark:text-[#e8d5b8]
-                    border border-[#42c99c] dark:border-[#82664e]
-                    focus:outline-none
-                    focus:ring-2 focus:ring-[#42c99c]
-                    dark:focus:ring-[#82664e]
-                  "
-                            >
-                                {rarityOptions.map((o) => (
-                                    <option key={o.value} value={o.value}>
-                                        {o.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 pointer-events-none" />
-                        </div>
-                    </label>
-
-                    {/* Type (game-specific) */}
-                    <label className="text-sm opacity-80 flex items-center gap-2">
-                        Type
-                        <div className="relative">
-                            <select
-                                value={type}
-                                onChange={(e) => setType(e.target.value)}
-                                className="
-                    appearance-none rounded-md px-2 py-1 pr-7 text-sm
-                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                    text-[#193f44] dark:text-[#e8d5b8]
-                    border border-[#42c99c] dark:border-[#82664e]
-                    focus:outline-none
-                    focus:ring-2 focus:ring-[#42c99c]
-                    dark:focus:ring-[#82664e]
-                  "
-                            >
-                                {typeOptions.map((o) => (
-                                    <option key={o.value} value={o.value}>
-                                        {o.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 pointer-events-none" />
-                        </div>
-                    </label>
-
-                    {/* Mana Color (MTG only) */}
-                    {gameParam === "mtg" && (
-                        <label className="text-sm opacity-80 flex items-center gap-2">
-                            Mana Color
-                            <div className="relative">
-                                <select
-                                    value={manaColor}
-                                    onChange={(e) => setManaColor(e.target.value as ManaColorFilter)}
-                                    className="
+                            {/* Show */}
+                            <label className="text-sm opacity-80 flex items-center gap-2">
+                                Show
+                                <div className="relative">
+                                    <select
+                                        value={showFilter}
+                                        onChange={(e) => setShowFilter(e.target.value as ShowFilter)}
+                                        className="
                         appearance-none rounded-md px-2 py-1 pr-7 text-sm
                         bg-[#e8d5b8] dark:bg-[#173c3f]
                         text-[#193f44] dark:text-[#e8d5b8]
@@ -328,107 +336,190 @@ export default function GamePage({ params }: PageProps) {
                         focus:ring-2 focus:ring-[#42c99c]
                         dark:focus:ring-[#82664e]
                       "
-                                >
-                                    {MANA_COLOR_OPTIONS.map((o) => (
-                                        <option key={o.value} value={o.value}>
-                                            {o.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 pointer-events-none" />
-                            </div>
-                        </label>
-                    )}
-
-                    {/* Keyword (MTG only) */}
-                    {gameParam === "mtg" && (
-                        <label className="text-sm opacity-80 flex items-center gap-2">
-                            Keyword
-                            <div className="relative" ref={keywordDropdownRef}>
-                                <button
-                                    type="button"
-                                    onClick={() => setKeywordDropdownOpen((v) => !v)}
-                                    className="
-                    rounded-md px-2 py-1 text-sm
-                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                    text-[#193f44] dark:text-[#e8d5b8]
-                    border border-[#42c99c] dark:border-[#82664e]
-                    focus:outline-none
-                    focus:ring-2 focus:ring-[#42c99c]
-                    dark:focus:ring-[#82664e]
-                    min-w-[120px]
-                    hover:bg-[#ddd0b8] dark:hover:bg-[#1d4548]
-                    transition-colors
-                    flex items-center justify-between gap-2
-                  "
-                                >
-                                    <span className="text-left flex-1">
-                                        {KEYWORD_OPTIONS.find((o) => o.value === keyword)?.label || "All"}
-                                    </span>
-                                    <ChevronDown className="w-4 h-4 opacity-70 flex-shrink-0" />
-                                </button>
-
-                                {keywordDropdownOpen && (
-                                    <div
-                                        className="
-                    absolute z-50 mt-1 w-48
-                    max-h-64 overflow-y-auto
-                    rounded-md
-                    border border-[#42c99c] dark:border-[#82664e]
-                    bg-[#f6ead6] dark:bg-[#173c3f]
-                    shadow-lg
-                    text-sm
-                  "
                                     >
-                                        {KEYWORD_OPTIONS.map((o) => (
-                                            <button
-                                                key={o.value}
-                                                type="button"
-                                                className={`
-                          block w-full px-3 py-1.5 text-left
-                          hover:bg-black/10 dark:hover:bg-white/10
-                          transition-colors
-                          ${keyword === o.value ? "bg-black dark:bg-white/5 font-medium" : ""}
-                        `}
-                                                onClick={() => {
-                                                    setKeyword(o.value);
-                                                    setKeywordDropdownOpen(false);
-                                                }}
-                                            >
+                                        <option value="all">All</option>
+                                        <option value="owned">Owned</option>
+                                        <option value="favorited">Favorited</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 pointer-events-none" />
+                                </div>
+                            </label>
+
+                            {/* Rarity (game-specific) */}
+                            <label className="text-sm opacity-80 flex items-center gap-2">
+                                Rarity
+                                <div className="relative">
+                                    <select
+                                        value={rarity}
+                                        onChange={(e) => setRarity(e.target.value)}
+                                        className="
+                        appearance-none rounded-md px-2 py-1 pr-7 text-sm
+                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                        text-[#193f44] dark:text-[#e8d5b8]
+                        border border-[#42c99c] dark:border-[#82664e]
+                        focus:outline-none
+                        focus:ring-2 focus:ring-[#42c99c]
+                        dark:focus:ring-[#82664e]
+                      "
+                                    >
+                                        {rarityOptions.map((o) => (
+                                            <option key={o.value} value={o.value}>
                                                 {o.label}
-                                            </button>
+                                            </option>
                                         ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 pointer-events-none" />
+                                </div>
+                            </label>
+
+                            {/* Type (game-specific) */}
+                            <label className="text-sm opacity-80 flex items-center gap-2">
+                                Type
+                                <div className="relative">
+                                    <select
+                                        value={type}
+                                        onChange={(e) => setType(e.target.value)}
+                                        className="
+                        appearance-none rounded-md px-2 py-1 pr-7 text-sm
+                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                        text-[#193f44] dark:text-[#e8d5b8]
+                        border border-[#42c99c] dark:border-[#82664e]
+                        focus:outline-none
+                        focus:ring-2 focus:ring-[#42c99c]
+                        dark:focus:ring-[#82664e]
+                      "
+                                    >
+                                        {typeOptions.map((o) => (
+                                            <option key={o.value} value={o.value}>
+                                                {o.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 pointer-events-none" />
+                                </div>
+                            </label>
+
+                            {/* Mana Color (MTG only) */}
+                            {gameParam === "mtg" && (
+                                <label className="text-sm opacity-80 flex items-center gap-2">
+                                    Mana Color
+                                    <div className="relative">
+                                        <select
+                                            value={manaColor}
+                                            onChange={(e) => setManaColor(e.target.value as ManaColorFilter)}
+                                            className="
+                            appearance-none rounded-md px-2 py-1 pr-7 text-sm
+                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            text-[#193f44] dark:text-[#e8d5b8]
+                            border border-[#42c99c] dark:border-[#82664e]
+                            focus:outline-none
+                            focus:ring-2 focus:ring-[#42c99c]
+                            dark:focus:ring-[#82664e]
+                          "
+                                        >
+                                            {MANA_COLOR_OPTIONS.map((o) => (
+                                                <option key={o.value} value={o.value}>
+                                                    {o.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 pointer-events-none" />
                                     </div>
-                                )}
-                            </div>
-                        </label>
-                    )}
-                    {/* Sort */}
-                    <label className="text-sm opacity-80 flex items-center gap-2">
-                        Sort
-                        <div className="relative">
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value as SortBy)}
-                                className="
-                    appearance-none rounded-md px-2 py-1 pr-7 text-sm
-                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                    text-[#193f44] dark:text-[#e8d5b8]
-                    border border-[#42c99c] dark:border-[#82664e]
-                    focus:outline-none
-                    focus:ring-2 focus:ring-[#42c99c]
-                    dark:focus:ring-[#82664e]
-                  "
-                            >
-                                <option value="az">A–Z</option>
-                                <option value="za">Z–A</option>
-                                <option value="newest">Newest</option>
-                                <option value="oldest">Oldest</option>
-                                <option value="mostOwned">Most Owned</option>
-                            </select>
-                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 pointer-events-none" />
+                                </label>
+                            )}
+
+                            {/* Keyword (MTG only) */}
+                            {gameParam === "mtg" && (
+                                <label className="text-sm opacity-80 flex items-center gap-2">
+                                    Keyword
+                                    <div className="relative" ref={keywordDropdownRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setKeywordDropdownOpen((v) => !v)}
+                                            className="
+                        rounded-md px-2 py-1 text-sm
+                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                        text-[#193f44] dark:text-[#e8d5b8]
+                        border border-[#42c99c] dark:border-[#82664e]
+                        focus:outline-none
+                        focus:ring-2 focus:ring-[#42c99c]
+                        dark:focus:ring-[#82664e]
+                        min-w-[120px]
+                        hover:bg-[#ddd0b8] dark:hover:bg-[#1d4548]
+                        transition-colors
+                        flex items-center justify-between gap-2
+                      "
+                                        >
+                                            <span className="text-left flex-1">
+                                                {KEYWORD_OPTIONS.find((o) => o.value === keyword)?.label || "All"}
+                                            </span>
+                                            <ChevronDown className="w-4 h-4 opacity-70 flex-shrink-0" />
+                                        </button>
+
+                                        {keywordDropdownOpen && (
+                                            <div
+                                                className="
+                        absolute z-50 mt-1 w-48
+                        max-h-64 overflow-y-auto
+                        rounded-md
+                        border border-[#42c99c] dark:border-[#82664e]
+                        bg-[#f6ead6] dark:bg-[#173c3f]
+                        shadow-lg
+                        text-sm
+                      "
+                                            >
+                                                {KEYWORD_OPTIONS.map((o) => (
+                                                    <button
+                                                        key={o.value}
+                                                        type="button"
+                                                        className={`
+                              block w-full px-3 py-1.5 text-left
+                              hover:bg-black/10 dark:hover:bg-white/10
+                              transition-colors
+                              ${keyword === o.value ? "bg-black dark:bg-white/5 font-medium" : ""}
+                            `}
+                                                        onClick={() => {
+                                                            setKeyword(o.value);
+                                                            setKeywordDropdownOpen(false);
+                                                        }}
+                                                    >
+                                                        {o.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </label>
+                            )}
+
+                            {/* Sort */}
+                            <label className="text-sm opacity-80 flex items-center gap-2">
+                                Sort
+                                <div className="relative">
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value as SortBy)}
+                                        className="
+                        appearance-none rounded-md px-2 py-1 pr-7 text-sm
+                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                        text-[#193f44] dark:text-[#e8d5b8]
+                        border border-[#42c99c] dark:border-[#82664e]
+                        focus:outline-none
+                        focus:ring-2 focus:ring-[#42c99c]
+                        dark:focus:ring-[#82664e]
+                      "
+                                    >
+                                        <option value="az">A–Z</option>
+                                        <option value="za">Z–A</option>
+                                        <option value="newest">Newest</option>
+                                        <option value="oldest">Oldest</option>
+                                        <option value="mostOwned">Most Owned</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70 pointer-events-none" />
+                                </div>
+                            </label>
                         </div>
-                    </label>
+                    </div>
                 </div>
             </section>
 
