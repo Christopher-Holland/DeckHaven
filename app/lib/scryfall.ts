@@ -82,6 +82,7 @@ export type ScryfallSet = {
     released_at?: string;
     set_type?: string;
     icon_svg_uri?: string;
+    card_count?: number; // May not always be present in API response
 };
 
 export async function getSets() {
