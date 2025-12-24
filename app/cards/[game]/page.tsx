@@ -495,6 +495,10 @@ export default function GamePage({ params }: PageProps) {
                                             >
                                                 <option value="az">A–Z</option>
                                                 <option value="za">Z–A</option>
+                                                <option value="Card # (asc)">Card # (asc)</option>
+                                                <option value="Card # (desc)">Card # (desc)</option>
+                                                <option value="rarity (asc)">Rarity (asc)</option>
+                                                <option value="rarity (desc)">Rarity (desc)</option>
                                                 <option value="newest">Newest</option>
                                                 <option value="oldest">Oldest</option>
                                                 <option value="mostOwned">Most Owned</option>
