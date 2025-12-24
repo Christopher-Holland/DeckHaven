@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for Stack-Auth integration
+model User {
+  id            String   @id @default(cuid())
+  stackUserId   String   @unique // Stack-Auth user ID
+  email         String?  @unique
+  name          String?
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  collections   Collection[]
+  wishlists     Wishlist[]
+  decks         Deck[]
+
+  @@map("users")
+}
+
+// Card collection tracking
+model Collection {
+  id        String   @id @default(cuid())
+  userId    String
+  cardId    String   // Scryfall card ID
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cardId])
+  @@map("collections")
+}
+
+// Wishlist items
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  cardId    String   // Scryfall card ID
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cardId])
+  @@map("wishlists")
+}
+
+// Decks
+model Deck {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  game      String   // mtg, ptcg, ytcg
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("decks")
+}
+

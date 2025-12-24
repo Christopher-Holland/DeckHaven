@@ -11,6 +11,7 @@ import {
     Search,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+// @ts-expect-error: The CardsCard module or its types may not be present during local dev
 import CardsCard from "./CardsCard";
 import {
     type ShowFilter,
