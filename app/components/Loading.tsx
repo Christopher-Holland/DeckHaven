@@ -20,12 +20,10 @@ export default function Loading({
     return (
         <div className="flex flex-col items-center justify-center gap-3">
             <motion.div
-                className={`
-                    rounded-full
-                    border-[#42c99c] dark:border-[#82664e]
-                    border-t-transparent
-                    ${sizeClasses[size]}
-                `}
+                className={`rounded-full ${sizeClasses[size]} border-[#42c99c] dark:border-[#82664e]`}
+                style={{
+                    borderTopColor: "transparent",
+                }}
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
             />
