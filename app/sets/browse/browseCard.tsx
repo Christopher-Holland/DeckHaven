@@ -54,6 +54,8 @@ export default function SetCard({
         border border-[#42c99c] dark:border-[#82664e]
         bg-[#e8d5b8] dark:bg-[#173c3f]
         p-4
+        h-full
+        flex flex-col
         cursor-pointer
         transition-all duration-200 ease-out
         hover:-translate-y-0.5
@@ -63,19 +65,17 @@ export default function SetCard({
         dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
       "
         >
-            
-
             {/* Title */}
-            <div className="w-full mb-2 border-b border-[#42c99c] dark:border-[#82664e] pb-2">
-                <h3 className="text-lg font-semibold text-center break-words line-clamp-2">
+            <div className="w-full mb-2 border-b border-[#42c99c] dark:border-[#82664e] pb-2 flex-shrink-0">
+                <h3 className="text-lg font-semibold text-center line-clamp-2 min-h-[3.5rem] flex items-center justify-center">
                     {name}
                 </h3>
             </div>
 
             {/* Game badge */}
             {game && (
-                <div className="flex justify-center mt-1">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-black/10 dark:bg-white/10">
+                <div className="flex justify-center mt-1 flex-shrink-0">
+                    <span className="text-xs px-2 py-0.5 rounded-full border border-[#42c99c] dark:border-[#82664e] bg-black/10 dark:bg-white/10">
                         {game}
                     </span>
                 </div>
@@ -83,7 +83,7 @@ export default function SetCard({
 
             {/* Image */}
             {imageSrc && (
-                <div className="flex justify-center mt-4">
+                <div className="flex justify-center mt-4 flex-shrink-0">
                     <img
                         src={imageSrc}
                         alt={name}
@@ -97,14 +97,17 @@ export default function SetCard({
 
             {/* Description */}
             {description && (
-                <p className="text-sm opacity-80 text-center mt-3">
+                <p className="text-sm opacity-80 text-center mt-3 line-clamp-2 flex-grow">
                     {description}
                 </p>
             )}
 
+            {/* Spacer to push bottom content down */}
+            <div className="flex-grow" />
+
             {/* Owned count */}
             {typeof ownedCount === "number" && (
-                <p className="text-sm opacity-80 text-center mt-2">
+                <p className="text-sm opacity-80 text-center mt-2 flex-shrink-0">
                     {typeof totalCount === "number"
                         ? `${ownedCount} out of ${totalCount} cards`
                         : `${ownedCount} cards`}
@@ -113,7 +116,7 @@ export default function SetCard({
 
             {/* Release date */}
             {releaseDate && (
-                <p className="text-xs opacity-60 text-center mt-1">
+                <p className="text-xs opacity-60 text-center mt-1 flex-shrink-0">
                     Released: {releaseDate}
                 </p>
             )}

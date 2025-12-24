@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRightIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import SetCard from "./browseCard";
+import Loading from "@/app/components/Loading";
 
 type ScryfallSet = {
     id: string;
@@ -56,7 +57,7 @@ export default function BrowseSets() {
                     throw new Error("Failed to fetch sets");
                 }
                 const data = await response.json();
-                
+
                 // Filter for Magic the Gathering sets
                 // MTG sets typically have set_type: "expansion", "core", "commander", "draft_innovation", etc.
                 const mtgSetTypes = [
@@ -82,7 +83,7 @@ export default function BrowseSets() {
                     "funny",
                     "treasure_chest",
                 ];
-                
+
                 const mtgSets = data.data.filter((set: ScryfallSet) =>
                     mtgSetTypes.includes(set.set_type || "")
                 );
@@ -128,9 +129,9 @@ export default function BrowseSets() {
 
         parentMap.forEach((parentSet, parentCode) => {
             const children = childMap.get(parentCode) || [];
-            
+
             // Calculate total card count from parent + all children
-            const totalCardCount = (parentSet.card_count || 0) + 
+            const totalCardCount = (parentSet.card_count || 0) +
                 children.reduce((sum, child) => sum + (child.card_count || 0), 0);
 
             // Find earliest release date (parent or earliest child)
@@ -138,7 +139,7 @@ export default function BrowseSets() {
                 parentSet.released_at,
                 ...children.map(c => c.released_at)
             ].filter(Boolean) as string[];
-            
+
             const earliestReleaseDate = allDates.length > 0
                 ? allDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0]
                 : parentSet.released_at;
@@ -239,9 +240,7 @@ export default function BrowseSets() {
         transition-all duration-300
       "
             >
-                <div className="flex items-center justify-center min-h-[400px]">
-                    <p className="text-lg opacity-70">Loading sets...</p>
-                </div>
+                <Loading />
             </main>
         );
     }
@@ -312,11 +311,7 @@ export default function BrowseSets() {
 
             {/* Filters */}
             <section className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <p className="text-sm opacity-70">
-                    Showing {filteredSets.length > 0 ? startIndex + 1 : 0}-
-                    {Math.min(endIndex, filteredSets.length)} of {filteredSets.length} set
-                    {filteredSets.length === 1 ? "" : "s"}
-                </p>
+
 
                 <div className="flex flex-wrap gap-3">
                     {/* Show */}
@@ -368,6 +363,11 @@ export default function BrowseSets() {
             {/* Pagination Controls - Top */}
             {totalPages > 1 && (
                 <section className="mb-6 flex items-center justify-end gap-2">
+                    <p className="text-sm opacity-70">
+                        Showing {filteredSets.length > 0 ? startIndex + 1 : 0}-
+                        {Math.min(endIndex, filteredSets.length)} of {filteredSets.length} set
+                        {filteredSets.length === 1 ? "" : "s"}
+                    </p>
                     <button
                         type="button"
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -450,7 +450,7 @@ export default function BrowseSets() {
             )}
 
             {/* Content Grid */}
-            <section className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <section className="grid grid-cols-1 md:grid-cols-5 gap-6 items-stretch">
                 {paginatedSets.map((group) => (
                     <SetCard
                         key={group.parentSet.id}
@@ -458,7 +458,7 @@ export default function BrowseSets() {
                         name={group.parentSet.name}
                         game="Magic the Gathering"
                         imageSrc={group.parentSet.icon_svg_uri || "/images/DeckHaven-Shield.png"}
-                        description={group.childSets.length > 0 
+                        description={group.childSets.length > 0
                             ? `${group.parentSet.set_type || ""} (${group.childSets.length + 1} sets)`
                             : group.parentSet.set_type || ""}
                         ownedCount={0}
