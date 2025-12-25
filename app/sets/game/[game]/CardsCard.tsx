@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import AddToCollectionControl from "../../components/AddToCollectionControl";
-import AddToWishlist from "../../components/AddToWishlist";
+import AddToCollectionControl from "../../../components/AddToCollectionControl";
+import AddToWishlist from "../../../components/AddToWishlist";
 
 export type CardsCardProps = {
     id?: string;

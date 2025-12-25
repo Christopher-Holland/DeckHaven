@@ -11,7 +11,6 @@ import {
     Search,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-// @ts-expect-error: The CardsCard module or its types may not be present during local dev
 import CardsCard from "./CardsCard";
 import {
     type ShowFilter,
@@ -194,12 +193,12 @@ export default function GamePage({ params }: PageProps) {
                 <div>
                     <h2 className="text-2xl font-semibold">{gameName}</h2>
                     <p className="text-sm opacity-70 mt-1">
-                        Library page placeholder — browse + filters will live here.
+                        Browse cards and view their associated sets
                     </p>
                 </div>
 
                 <Link
-                    href="/cards"
+                    href="/sets"
                     className="
             text-sm font-medium
             px-3 py-1.5 rounded-md
@@ -210,7 +209,7 @@ export default function GamePage({ params }: PageProps) {
             dark:focus:ring-[#82664e]
           "
                 >
-                    Back to Cards
+                    Back to Sets
                 </Link>
             </section>
 
@@ -617,7 +616,7 @@ export default function GamePage({ params }: PageProps) {
                         ownedCount={item.ownedCount}
                         isFavorited={favorites.has(item.id)}
                         onToggleFavorite={() => toggleFavorite(item.id)}
-                        href={item.id ? `/cards/${gameParam}/${item.id}` : undefined}
+                        href={item.id ? `/sets/game/${gameParam}/${item.id}` : undefined}
                     />
                 ))}
             </section>
@@ -708,3 +707,4 @@ export default function GamePage({ params }: PageProps) {
         </main>
     );
 }
+

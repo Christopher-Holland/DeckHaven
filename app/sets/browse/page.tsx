@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRightIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import SetCard from "./browseCard";
 import Loading from "@/app/components/Loading";
@@ -29,8 +29,16 @@ type GameFilter = "all" | string;
 type ShowFilter = "all" | "owned" | "favorited";
 type SortBy = "az" | "za" | "newest" | "oldest" | "mostOwned";
 
+const GAME_LABELS: Record<string, string> = {
+    mtg: "Magic the Gathering",
+    ptcg: "Pokémon",
+    ytcg: "Yu-Gi-Oh!",
+};
+
 export default function BrowseSets() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const selectedGame = searchParams.get("game") || "mtg"; // Default to Magic
 
     // State
     const [sets, setSets] = useState<ScryfallSet[]>([]);
@@ -46,9 +54,17 @@ export default function BrowseSets() {
     const [showFilter, setShowFilter] = useState<ShowFilter>("all");
     const [sortBy, setSortBy] = useState<SortBy>("newest");
 
-    // Fetch sets from Scryfall
+    // Fetch sets based on selected game
     useEffect(() => {
         async function fetchSets() {
+            // Only Magic the Gathering is currently supported via Scryfall
+            if (selectedGame !== "mtg") {
+                setLoading(false);
+                setSets([]);
+                setGroupedSets([]);
+                return;
+            }
+
             try {
                 setLoading(true);
                 setError(null);
@@ -101,7 +117,8 @@ export default function BrowseSets() {
         }
 
         fetchSets();
-    }, []);
+        setCurrentPage(1); // Reset to page 1 when game changes
+    }, [selectedGame]);
 
     // Group sets by parent_set_code
     function groupSetsByParent(sets: ScryfallSet[]): GroupedSet[] {
@@ -275,7 +292,14 @@ export default function BrowseSets() {
         >
             {/* Page Header */}
             <section className="mb-4 flex justify-between items-center">
-                <h2 className="text-2xl font-semibold">Browse All Sets</h2>
+                <div>
+                    <h2 className="text-2xl font-semibold">
+                        {GAME_LABELS[selectedGame] || "Browse All Sets"}
+                    </h2>
+                    <p className="text-sm opacity-70 mt-1">
+                        Browse sets for {GAME_LABELS[selectedGame] || selectedGame}
+                    </p>
+                </div>
 
                 <button
                     type="button"
@@ -298,7 +322,7 @@ export default function BrowseSets() {
             cursor-pointer
           "
                 >
-                    Back to My Sets
+                    Back to Sets
                     <ArrowRightIcon
                         className="
               w-4 h-4
@@ -309,11 +333,50 @@ export default function BrowseSets() {
                 </button>
             </section>
 
-            {/* Filters */}
-            <section className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            {/* Unsupported Game Message */}
+            {selectedGame !== "mtg" && !loading && (
+                <section className="mb-6">
+                    <div
+                        className="
+                        rounded-lg
+                        border border-dashed border-[#42c99c] dark:border-[#82664e]
+                        bg-transparent
+                        p-12
+                        flex flex-col items-center justify-center
+                        text-center
+                        opacity-70
+                    "
+                    >
+                        <p className="text-lg font-medium mb-2">
+                            {GAME_LABELS[selectedGame]} sets coming soon
+                        </p>
+                        <p className="text-sm opacity-80 mb-4">
+                            API integration for {GAME_LABELS[selectedGame]} is in progress
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => router.push("/sets")}
+                            className="
+                            text-sm font-medium
+                            px-4 py-2 rounded-md
+                            bg-[#42c99c] dark:bg-[#82664e]
+                            text-white
+                            hover:bg-[#36c293] dark:hover:bg-[#9d7a5f]
+                            transition-colors
+                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                            dark:focus:ring-[#82664e]
+                        "
+                        >
+                            Back to Game Selection
+                        </button>
+                    </div>
+                </section>
+            )}
 
-
-                <div className="flex flex-wrap gap-3">
+            {/* Filters - Only show for supported games */}
+            {selectedGame === "mtg" && (
+                <section className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-wrap gap-3">
                     {/* Show */}
                     <label className="text-sm opacity-80 flex items-center gap-2">
                         Show
@@ -359,9 +422,10 @@ export default function BrowseSets() {
                     </label>
                 </div>
             </section>
+            )}
 
-            {/* Pagination Controls - Top */}
-            {totalPages > 1 && (
+            {/* Pagination Controls - Top - Only show for supported games with sets */}
+            {selectedGame === "mtg" && totalPages > 1 && (
                 <section className="mb-6 flex items-center justify-end gap-2">
                     <p className="text-sm opacity-70">
                         Showing {filteredSets.length > 0 ? startIndex + 1 : 0}-
@@ -449,14 +513,15 @@ export default function BrowseSets() {
                 </section>
             )}
 
-            {/* Content Grid */}
-            <section className="grid grid-cols-1 md:grid-cols-5 gap-6 items-stretch">
-                {paginatedSets.map((group) => (
+            {/* Content Grid - Only show for supported games */}
+            {selectedGame === "mtg" && (
+                <section className="grid grid-cols-1 md:grid-cols-5 gap-6 items-stretch">
+                    {paginatedSets.map((group) => (
                     <SetCard
                         key={group.parentSet.id}
                         id={group.parentSet.id}
                         name={group.parentSet.name}
-                        game="Magic the Gathering"
+                        game={GAME_LABELS[selectedGame] || "Magic the Gathering"}
                         imageSrc={group.parentSet.icon_svg_uri || "/images/DeckHaven-Shield.png"}
                         description={group.childSets.length > 0
                             ? `${group.parentSet.set_type || ""} (${group.childSets.length + 1} sets)`
@@ -468,11 +533,12 @@ export default function BrowseSets() {
                         onToggleFavorite={() => toggleFavorite(group.parentSet.id)}
                         href={`/sets/${group.parentCode}`}
                     />
-                ))}
-            </section>
+                    ))}
+                </section>
+            )}
 
-            {/* Pagination Controls - Bottom */}
-            {totalPages > 1 && (
+            {/* Pagination Controls - Bottom - Only show for supported games with sets */}
+            {selectedGame === "mtg" && totalPages > 1 && (
                 <section className="mt-6 flex items-center justify-end gap-2">
                     <button
                         type="button"
