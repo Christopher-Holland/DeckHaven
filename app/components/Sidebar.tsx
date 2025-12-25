@@ -1,18 +1,26 @@
-// src/components/layout/Sidebar.tsx
+/**
+ * Sidebar Navigation Component
+ * 
+ * Collapsible sidebar navigation menu with main app navigation links.
+ * Supports collapsing/expanding with state persisted to localStorage.
+ * Displays app logo and navigation items with active state highlighting.
+ * 
+ * @component
+ */
+
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-    ChevronLeft, 
-    ChevronRight, 
-    LayoutDashboard, 
-    Layers, 
-    CreditCard, 
-    FolderOpen, 
-    Library, 
-    Heart, 
-    Settings 
+import {
+    ChevronLeft,
+    ChevronRight,
+    LayoutDashboard,
+    Layers,
+    FolderOpen,
+    Library,
+    Heart,
+    Settings
 } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 import type { LucideIcon } from "lucide-react";
@@ -74,24 +82,24 @@ export default function Sidebar() {
             {/* Logo / Brand */}
             <div className={`flex items-center justify-center ${isCollapsed ? "py-2" : "py-4"}`}>
                 {isCollapsed ? (
-                    <img 
-                        src="/images/DeckHaven-Shield.png" 
-                        alt="DeckHaven" 
-                        width={48} 
-                        height={48} 
-                        className="rounded-full shadow-[0_0_20px_rgba(130,102,78,0.2)] dark:shadow-[0_0_30px_rgba(66,201,156,0.35)]" 
+                    <img
+                        src="/images/DeckHaven-Shield.png"
+                        alt="DeckHaven"
+                        width={48}
+                        height={48}
+                        className="rounded-full shadow-[0_0_20px_rgba(130,102,78,0.2)] dark:shadow-[0_0_30px_rgba(66,201,156,0.35)]"
                     />
                 ) : (
-                    <img 
-                        src="/images/DeckHaven-Shield.png" 
-                        alt="DeckHaven" 
-                        width={128} 
-                        height={128} 
-                        className="rounded-full shadow-[0_0_25px_rgba(130,102,78,0.25)] dark:shadow-[0_0_25px_rgba(66,201,156,0.35)]" 
+                    <img
+                        src="/images/DeckHaven-Shield.png"
+                        alt="DeckHaven"
+                        width={128}
+                        height={128}
+                        className="rounded-full shadow-[0_0_25px_rgba(130,102,78,0.25)] dark:shadow-[0_0_25px_rgba(66,201,156,0.35)]"
                     />
                 )}
             </div>
-            
+
             {/* Brand Name */}
             {!isCollapsed && (
                 <div className="h-14 flex items-center justify-center px-6 border-b border-[#42c99c] dark:border-[#82664e]">
@@ -99,7 +107,7 @@ export default function Sidebar() {
                 </div>
             )}
 
-            {/* Nav */}
+            {/* Navigation Items */}
             <nav className={`flex-1 ${isCollapsed ? "px-2 py-4" : "px-3 py-4"} space-y-1`}>
                 {navItems.map((item) => {
                     const isActive = pathname.startsWith(item.href);

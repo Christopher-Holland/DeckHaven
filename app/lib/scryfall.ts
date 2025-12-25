@@ -1,13 +1,22 @@
+/**
+ * Scryfall API Client
+ * 
+ * Provides TypeScript types and utility functions for interacting with the Scryfall API.
+ * Used for fetching Magic: The Gathering card and set data.
+ * 
+ * @module lib/scryfall
+ */
+
 export type ScryfallCard = {
     id: string;
     name: string;
     type_line: string;
     rarity: string;
-    set: string; // set code
+    set: string; // Set code (e.g., "m21", "thb")
     set_name: string;
     collector_number: string;
     mana_cost?: string;
-    cmc?: number;
+    cmc?: number; // Converted mana cost
     oracle_text?: string;
     colors?: string[];
     color_identity?: string[];
@@ -33,16 +42,24 @@ export type ScryfallList<T> = {
     next_page?: string;
 };
 
-const SCRYFALL = "https://api.scryfall.com";
+const SCRYFALL_BASE_URL = "https://api.scryfall.com";
 
+/**
+ * Generic fetch wrapper for Scryfall API requests
+ * 
+ * @param path - API endpoint path (e.g., "/cards/search")
+ * @param init - Optional fetch configuration
+ * @returns Promise resolving to the API response
+ * @throws Error if the API request fails
+ */
 export async function scryfallFetch<T>(path: string, init?: RequestInit): Promise<T> {
-    const res = await fetch(`${SCRYFALL}${path}`, {
+    const res = await fetch(`${SCRYFALL_BASE_URL}${path}`, {
         ...init,
         headers: {
             "Accept": "application/json",
             ...(init?.headers ?? {}),
         },
-        // Helps Next cache; tweak later
+        // Cache for 60 seconds to reduce API calls
         next: { revalidate: 60 },
     });
 
@@ -55,7 +72,11 @@ export async function scryfallFetch<T>(path: string, init?: RequestInit): Promis
 }
 
 /**
- * Cards in a set (paginated). Good for SetCards page.
+ * Fetches all cards in a specific set, paginated
+ * 
+ * @param setCode - The set code (e.g., "m21", "thb")
+ * @param page - Page number (default: 1)
+ * @returns Promise resolving to a paginated list of cards
  */
 export async function getCardsBySetCode(setCode: string, page = 1) {
     const q = encodeURIComponent(`set:${setCode} game:paper`);
@@ -65,27 +86,35 @@ export async function getCardsBySetCode(setCode: string, page = 1) {
 }
 
 /**
- * Trending-ish option: “most played” isn’t directly supported for paper,
- * so use a “random” endpoint or curated query for now.
+ * Fetches a random card from Scryfall
+ * Useful for discovery features or "card of the day" functionality
+ * 
+ * @returns Promise resolving to a random card
  */
 export async function getRandomCard() {
     return scryfallFetch<ScryfallCard>(`/cards/random`);
 }
 
 /**
- * Sets list (for your Sets page later)
+ * Scryfall Set type definition
+ * Represents a Magic: The Gathering set
  */
 export type ScryfallSet = {
     id: string;
-    code: string;
+    code: string; // Set code (e.g., "m21")
     name: string;
-    released_at?: string;
-    set_type?: string;
-    icon_svg_uri?: string;
-    card_count?: number; // May not always be present in API response
-    parent_set_code?: string; // Code of the parent set if this is a child set
+    released_at?: string; // ISO date string
+    set_type?: string; // e.g., "expansion", "core", "commander"
+    icon_svg_uri?: string; // URL to set icon SVG
+    card_count?: number; // Total number of cards in the set
+    parent_set_code?: string; // Code of parent set if this is a child set
 };
 
+/**
+ * Fetches all sets from Scryfall
+ * 
+ * @returns Promise resolving to a list of all sets
+ */
 export async function getSets() {
     return scryfallFetch<{ object: "list"; data: ScryfallSet[] }>(`/sets`);
 }

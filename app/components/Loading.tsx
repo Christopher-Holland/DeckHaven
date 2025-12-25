@@ -1,16 +1,29 @@
+/**
+ * Loading Spinner Component
+ * 
+ * Displays an animated spinning wheel loading indicator.
+ * Supports customizable size and optional loading message.
+ * 
+ * @component
+ * @example
+ * <Loading message="Loading sets..." size="lg" />
+ */
+
 "use client";
 
 import { motion } from "framer-motion";
 
-type Props = {
+type LoadingProps = {
+    /** Optional loading message displayed below the spinner */
     message?: string;
+    /** Size of the spinner: "sm", "md", or "lg" */
     size?: "sm" | "md" | "lg";
 };
 
 export default function Loading({
     message = "Loading...",
     size = "md",
-}: Props) {
+}: LoadingProps) {
     const sizeClasses = {
         sm: "w-4 h-4 border-2",
         md: "w-8 h-8 border-2",
@@ -22,7 +35,7 @@ export default function Loading({
             <motion.div
                 className={`rounded-full ${sizeClasses[size]} border-[#42c99c] dark:border-[#82664e]`}
                 style={{
-                    borderTopColor: "transparent",
+                    borderTopColor: "transparent", // Creates the spinning effect
                 }}
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}

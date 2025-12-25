@@ -1,11 +1,20 @@
-// src/components/layout/BrandNav.tsx
+/**
+ * Brand Navigation Component
+ * 
+ * Secondary navigation bar displaying game selection buttons (Magic, Pokémon, Yu-Gi-Oh!).
+ * Appears below the main navbar on all pages except the landing page.
+ * Currently displays game options (functionality to be implemented).
+ * 
+ * @component
+ */
+
 "use client";
 
 import { useSidebar } from "./SidebarContext";
 
 export default function BrandNav() {
     const { isCollapsed } = useSidebar();
-    
+
     return (
         <nav className="
             w-full h-12
@@ -20,10 +29,10 @@ export default function BrandNav() {
                     Magic the Gathering
                 </button>
                 <button className="hover:text-[#36c293] transition-colors">
-                    Pokémon 
+                    Pokémon
                 </button>
                 <button className="hover:text-[#36c293] transition-colors">
-                    Yu-Gi-Oh! 
+                    Yu-Gi-Oh!
                 </button>
             </div>
         </nav>

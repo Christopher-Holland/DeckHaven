@@ -1,4 +1,12 @@
-// src/components/layout/Navbar.tsx
+/**
+ * Navigation Bar Component
+ * 
+ * Top navigation bar displaying the DeckHaven logo, search bar, theme toggle,
+ * and user profile button. Appears on all pages except the landing page.
+ * 
+ * @component
+ */
+
 "use client";
 
 import { useTheme } from "next-themes";
@@ -10,6 +18,7 @@ export default function Navbar() {
     const [mounted, setMounted] = useState(false);
     const { isCollapsed } = useSidebar();
 
+    // Prevent hydration mismatch by only rendering theme-dependent UI after mount
     useEffect(() => {
         setMounted(true);
     }, []);
@@ -18,7 +27,7 @@ export default function Navbar() {
         if (!setTheme) {
             return;
         }
-        
+
         // Use resolvedTheme if available, otherwise fall back to theme
         const currentTheme = resolvedTheme || theme || "light";
         const newTheme = currentTheme === "dark" ? "light" : "dark";
@@ -31,14 +40,14 @@ export default function Navbar() {
     return (
         <header className="h-20 w-full border-b border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#113033] text-gray-900 dark:text-white grid grid-cols-3 items-center px-6 transition-all duration-300">
 
-            {/* Left */}
+            {/* Left: Logo */}
             <div className="flex items-center">
                 <h1 className="text-lg font-bold text-[#42c99c] dark:text-[#e8d5b8]">
                     DeckHaven
                 </h1>
             </div>
 
-            {/* Center */}
+            {/* Center: Search Bar */}
             <div className="flex justify-center">
                 <div className="hidden md:block">
                     <input
@@ -50,7 +59,7 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* Right */}
+            {/* Right: Theme Toggle & User Profile */}
             <div className="flex items-center justify-end gap-4">
                 <button
                     onClick={toggleTheme}

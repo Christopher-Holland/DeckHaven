@@ -1,20 +1,50 @@
+/**
+ * Set Card Component
+ * 
+ * Displays a single set card with favorite functionality. Used in the "My Sets" page
+ * to show user's tracked sets. Includes a favorite button and displays set information
+ * including name, icon, description, owned/total counts, and release date.
+ * 
+ * @component
+ * @example
+ * <SetCard
+ *   name="Throne of Eldraine"
+ *   game="Magic the Gathering"
+ *   imageSrc="/set-icon.svg"
+ *   ownedCount={50}
+ *   totalCount={269}
+ *   isFavorited={true}
+ *   onToggleFavorite={() => toggleFavorite()}
+ * />
+ */
+
 "use client";
 
 import { StarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export type SetCardProps = {
-    id?: string; // optional but recommended
-    href?: string; // <-- new
+    /** Unique identifier for the set */
+    id?: string;
+    /** URL to navigate to when card is clicked */
+    href?: string;
+    /** Set name */
     name: string;
+    /** Game name (e.g., "Magic the Gathering") */
     game?: string;
+    /** URL to set icon image */
     imageSrc?: string;
+    /** Set description or type */
     description?: string;
+    /** Number of cards owned from this set */
     ownedCount?: number;
+    /** Total number of cards in the set */
     totalCount?: number;
+    /** Formatted release date string */
     releaseDate?: string;
-
+    /** Whether the set is favorited */
     isFavorited?: boolean;
+    /** Callback when favorite status is toggled */
     onToggleFavorite?: () => void;
 };
 
@@ -68,7 +98,7 @@ export default function SetCard({
                 type="button"
                 onClick={(e) => {
                     e.preventDefault();
-                    e.stopPropagation();
+                    e.stopPropagation(); // Prevents card navigation
                     onToggleFavorite?.();
                 }}
                 className="
@@ -93,14 +123,14 @@ export default function SetCard({
                 />
             </button>
 
-            {/* Title */}
+            {/* Set Name */}
             <div className="w-full mb-2 border-b border-[#42c99c] dark:border-[#82664e] pb-2">
                 <h3 className="text-lg font-semibold text-center px-12 truncate">
                     {name}
                 </h3>
             </div>
 
-            {/* Game badge */}
+            {/* Game Badge */}
             {game && (
                 <div className="flex justify-center mt-1">
                     <span className="text-xs px-2 py-0.5 rounded-full bg-black/10 dark:bg-white/10">
@@ -109,7 +139,7 @@ export default function SetCard({
                 </div>
             )}
 
-            {/* Image */}
+            {/* Set Icon with CSS filters for colorization */}
             {imageSrc && (
                 <div className="flex justify-center mt-3">
                     <img
@@ -123,14 +153,14 @@ export default function SetCard({
                 </div>
             )}
 
-            {/* Description */}
+            {/* Set Description */}
             {description && (
                 <p className="text-sm opacity-80 text-center mt-3">
                     {description}
                 </p>
             )}
 
-            {/* Owned count */}
+            {/* Owned Card Count */}
             {typeof ownedCount === "number" && (
                 <p className="text-sm opacity-80 text-center mt-2">
                     {typeof totalCount === "number"
@@ -139,7 +169,7 @@ export default function SetCard({
                 </p>
             )}
 
-            {/* Release date */}
+            {/* Release Date */}
             {releaseDate && (
                 <p className="text-xs opacity-60 text-center mt-1">
                     Released: {releaseDate}

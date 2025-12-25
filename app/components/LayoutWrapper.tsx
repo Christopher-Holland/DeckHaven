@@ -1,3 +1,13 @@
+/**
+ * Layout Wrapper Component
+ * 
+ * Conditionally renders the full app layout (Sidebar, Navbar, BrandNav) or
+ * a minimal layout for the landing page. This allows the home page to have
+ * a different layout structure than the rest of the application.
+ * 
+ * @component
+ */
+
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -5,29 +15,34 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import BrandNav from "./BrandNav";
 
-export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isLandingPage = pathname === "/";
+type LayoutWrapperProps = {
+    children: React.ReactNode;
+};
 
-  if (isLandingPage) {
+export default function LayoutWrapper({ children }: LayoutWrapperProps) {
+    const pathname = usePathname();
+    const isLandingPage = pathname === "/";
+
+    // Render minimal layout for landing page
+    if (isLandingPage) {
+        return (
+            <div className="flex-1 w-full">
+                {children}
+            </div>
+        );
+    }
+
+    // Render full layout with sidebar and navigation for all other pages
     return (
-      <div className="flex-1 w-full">
-        {children}
-      </div>
+        <>
+            <Sidebar />
+            <div className="flex flex-col flex-1 transition-all duration-300">
+                <Navbar />
+                <BrandNav />
+                <main className="flex-1 overflow-y-auto p-0 min-h-0 transition-all duration-300">
+                    {children}
+                </main>
+            </div>
+        </>
     );
-  }
-
-  return (
-    <>
-      <Sidebar />
-      <div className="flex flex-col flex-1 transition-all duration-300">
-        <Navbar />
-        <BrandNav />
-        <main className="flex-1 overflow-y-auto p-0 min-h-0 transition-all duration-300">
-          {children}
-        </main>
-      </div>
-    </>
-  );
 }
-

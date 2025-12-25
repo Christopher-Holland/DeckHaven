@@ -1,21 +1,37 @@
+/**
+ * Add to Wishlist Button Component
+ * 
+ * Toggle button for adding/removing cards from a user's wishlist.
+ * Displays a heart icon that fills when the item is wishlisted.
+ * 
+ * @component
+ * @example
+ * <AddToWishlist 
+ *   isWishlisted={false}
+ *   onToggle={() => setWishlisted(!wishlisted)}
+ * />
+ */
+
 "use client";
 
 import { HeartIcon } from "lucide-react";
 
-type Props = {
+type AddToWishlistProps = {
+    /** Whether the item is currently in the wishlist */
     isWishlisted: boolean;
+    /** Callback function called when the wishlist status is toggled */
     onToggle: () => void;
 };
 
-export default function AddToWishlistButton({
+export default function AddToWishlist({
     isWishlisted,
     onToggle,
-}: Props) {
+}: AddToWishlistProps) {
     return (
         <button
             type="button"
             onClick={(e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // Prevents card click navigation
                 onToggle();
             }}
             className="
@@ -38,10 +54,9 @@ export default function AddToWishlistButton({
                         ? "fill-[#42c99c] text-[#42c99c] dark:fill-red-300 dark:text-red-300"
                         : "fill-none"
                     }`}
-                    aria-label={isWishlisted ? "Unwishlist card" : "Wishlist card"}
+                aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
             />
             {isWishlisted ? "Wishlisted" : "Add to Wishlist"}
         </button>
     );
 }
-

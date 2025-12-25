@@ -1,3 +1,14 @@
+/**
+ * Sets Landing Page
+ * 
+ * Displays game selection interface where users can choose between
+ * Magic the Gathering, Pokémon, or Yu-Gi-Oh! to browse sets.
+ * Clicking a game navigates to the browse page filtered by that game.
+ * 
+ * @page
+ * @route /sets
+ */
+
 "use client";
 
 import { PlusIcon } from "lucide-react";
@@ -29,7 +40,6 @@ const demoGames: CardGame[] = [
         imageSrc: "/images/DeckHaven-Shield.png",
         ownedCount: 12,
     },
-    
 ];
 
 export default function Sets() {
@@ -91,10 +101,9 @@ export default function Sets() {
                         </p>
                     </div>
                 ))}
-
-
             </section>
-            {/* Scanner Placeholder */}
+
+            {/* Card Scanner Placeholder */}
             <section className="mt-6">
                 <div
                     className="

@@ -1,12 +1,34 @@
+/**
+ * Add to Collection Control Component
+ * 
+ * Provides a quantity control interface for adding cards to a user's collection.
+ * Displays either an "Add to collection" button (when quantity is 0) or
+ * increment/decrement controls (when quantity > 0).
+ * 
+ * @component
+ * @example
+ * <AddToCollectionControl 
+ *   quantity={2} 
+ *   onChange={(qty) => setQuantity(qty)}
+ *   min={0}
+ *   max={10}
+ * />
+ */
+
 "use client";
 
 import { MinusIcon, PlusIcon } from "lucide-react";
 
-type Props = {
-    quantity: number;                 // current owned qty
+type AddToCollectionControlProps = {
+    /** Current quantity of cards owned */
+    quantity: number;
+    /** Callback function called when quantity changes */
     onChange: (nextQty: number) => void;
-    min?: number;                      // default 0
-    max?: number;                      // optional cap
+    /** Minimum allowed quantity (default: 0) */
+    min?: number;
+    /** Maximum allowed quantity (optional, no limit if undefined) */
+    max?: number;
+    /** Additional CSS classes */
     className?: string;
 };
 
@@ -16,17 +38,18 @@ export default function AddToCollectionControl({
     min = 0,
     max,
     className = "",
-}: Props) {
-    const canDec = quantity > min;
-    const canInc = max == null ? true : quantity < max;
+}: AddToCollectionControlProps) {
+    const canDecrease = quantity > min;
+    const canIncrease = max == null ? true : quantity < max;
 
     return (
         <div
             className={className}
-            onClick={(e) => e.stopPropagation()} // prevents card click navigation
+            onClick={(e) => e.stopPropagation()} // Prevents card click navigation
             onMouseDown={(e) => e.stopPropagation()}
         >
             {quantity <= 0 ? (
+                // Show "Add to collection" button when quantity is 0
                 <button
                     type="button"
                     onClick={() => onChange(1)}
@@ -46,6 +69,7 @@ export default function AddToCollectionControl({
                     Add to collection
                 </button>
             ) : (
+                // Show increment/decrement controls when quantity > 0
                 <div
                     className="
             inline-flex items-center gap-2
@@ -58,8 +82,8 @@ export default function AddToCollectionControl({
                 >
                     <button
                         type="button"
-                        onClick={() => canDec && onChange(quantity - 1)}
-                        disabled={!canDec}
+                        onClick={() => canDecrease && onChange(quantity - 1)}
+                        disabled={!canDecrease}
                         className="
               p-1 rounded
               border border-[#42c99c] dark:border-[#82664e]
@@ -79,8 +103,8 @@ export default function AddToCollectionControl({
 
                     <button
                         type="button"
-                        onClick={() => canInc && onChange(quantity + 1)}
-                        disabled={!canInc}
+                        onClick={() => canIncrease && onChange(quantity + 1)}
+                        disabled={!canIncrease}
                         className="
               p-1 rounded
               border border-[#42c99c] dark:border-[#82664e]
@@ -95,8 +119,6 @@ export default function AddToCollectionControl({
                     </button>
                 </div>
             )}
-            
         </div>
     );
 }
-
