@@ -1,9 +1,16 @@
 /**
  * Card Filter Options and Types
  * 
- * This module contains all filter-related types, constants, and utilities
- * for filtering cards in the card browsing interface. Filters are organized
- * by game type (MTG, Pokémon, Yu-Gi-Oh!) with game-specific options where applicable.
+ * Provides all filter-related types, constants, and utility functions for the card
+ * browsing interface. Defines filter options organized by game type (Magic the Gathering,
+ * Pokémon, Yu-Gi-Oh!) with game-specific options where applicable (e.g., mana colors
+ * and keywords for MTG).
+ * 
+ * This module is used by the game cards browse page (/sets/game/[game]) to populate
+ * filter dropdowns and validate filter selections. It supports extensibility for
+ * future game integrations by providing game-specific rarity and type options.
+ * 
+ * @module sets/game/[game]/cardFilters
  */
 
 // ============================================================================

@@ -1,8 +1,25 @@
+/**
+ * Set Cards Component
+ * 
+ * Displays an individual card within a set detail page. Shows card name, image, description,
+ * collector number, and owned count. Cards with 0 owned copies are displayed with reduced
+ * opacity and grayscale filter until added to the collection.
+ * 
+ * Includes "Add to Collection" and "Add to Wishlist" controls below each card. The component
+ * manages local state for quantity and wishlist status, and can notify parent components
+ * when the owned count changes.
+ * 
+ * Used in the set detail page (/sets/[setId]) to render each card in the set.
+ * 
+ * @component
+ */
+
 "use client";
 
 import { useState, useEffect } from "react";
 import AddToCollectionControl from "../../components/AddToCollectionControl";
 import AddToWishlist from "../../components/AddToWishlist";
+import { HeartIcon } from "lucide-react";
 
 export type SetCardsProps = {
     id?: string;
@@ -13,6 +30,9 @@ export type SetCardsProps = {
     ownedCount: number;
     collectorNumber?: string;
     onOwnedCountChange?: (count: number) => void;
+    onCardClick?: () => void;
+    isWishlisted?: boolean;
+    onWishlistToggle?: () => void;
 };
 
 export default function SetCards({
@@ -23,9 +43,15 @@ export default function SetCards({
     ownedCount: initialOwnedCount,
     collectorNumber,
     onOwnedCountChange,
+    onCardClick,
+    isWishlisted: externalWishlisted = false,
+    onWishlistToggle,
 }: SetCardsProps) {
     const [qty, setQty] = useState(initialOwnedCount ?? 0);
-    const [wishlisted, setWishlisted] = useState(false);
+    const [internalWishlisted, setInternalWishlisted] = useState(false);
+
+    // Use external wishlist state if provided, otherwise use internal state
+    const wishlisted = onWishlistToggle ? externalWishlisted : internalWishlisted;
 
     // Update local state when prop changes
     useEffect(() => {
@@ -44,11 +70,22 @@ export default function SetCards({
         <div className="flex flex-col gap-3">
             {/* CARD */}
             <div
+                onClick={onCardClick}
+                onKeyDown={(e) => {
+                    if (!onCardClick) return;
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onCardClick();
+                    }
+                }}
+                role={onCardClick ? "button" : undefined}
+                tabIndex={onCardClick ? 0 : undefined}
                 className={`
           group relative rounded-lg
           border border-[#42c99c] dark:border-[#82664e]
           bg-[#e8d5b8] dark:bg-[#173c3f]
           p-4
+          ${onCardClick ? "cursor-pointer" : ""}
           transition-all duration-200 ease-out
           ${isOwned 
             ? "opacity-100" 
@@ -95,7 +132,10 @@ export default function SetCards({
             </div>
 
             {/* CONTROLS UNDER THE CARD */}
-            <div>
+            <div
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+            >
                 <div className="flex justify-center items-center gap-4 mb-2">
                     <AddToCollectionControl quantity={qty} onChange={handleQuantityChange} />
                 </div>
@@ -103,7 +143,13 @@ export default function SetCards({
                 <div className="flex justify-center items-center gap-4 mb-2">
                     <AddToWishlist
                         isWishlisted={wishlisted}
-                        onToggle={() => setWishlisted((v) => !v)}
+                        onToggle={() => {
+                            if (onWishlistToggle) {
+                                onWishlistToggle();
+                            } else {
+                                setInternalWishlisted((v) => !v);
+                            }
+                        }}
                     />
                 </div>
             </div>

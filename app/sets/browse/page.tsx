@@ -1,3 +1,18 @@
+/**
+ * Browse Sets Page
+ * 
+ * Displays all available sets for a selected game (Magic the Gathering, Pokémon, Yu-Gi-Oh!).
+ * Fetches sets from Scryfall API (currently only Magic is supported), groups related sets
+ * by parent set code, and provides filtering, sorting, and pagination capabilities.
+ * 
+ * Users navigate here from the Sets landing page by selecting a game. The page shows
+ * 25 sets per page, sorted by release date (newest first by default), with options to
+ * filter by ownership/favorites and sort by various criteria.
+ * 
+ * @page
+ * @route /sets/browse?game={gameId}
+ */
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";

@@ -150,6 +150,8 @@ export default function SetCard({
                     Released: {releaseDate}
                 </p>
             )}
+
+            
         </div>
     );
 }
