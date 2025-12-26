@@ -38,17 +38,41 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const collections = await prisma.collection.findMany({
+        // Get pagination params
+        const searchParams = request.nextUrl.searchParams;
+        const page = parseInt(searchParams.get("page") || "1", 10);
+        const limit = parseInt(searchParams.get("limit") || "10", 10);
+        const skip = (page - 1) * limit;
+
+        // Get total count
+        const totalCount = await prisma.collection.count({
             where: { userId: dbUser.id },
         });
 
-        // Convert to map for easier lookup
+        // Get paginated collection items
+        const collections = await prisma.collection.findMany({
+            where: { userId: dbUser.id },
+            skip,
+            take: limit,
+            orderBy: { updatedAt: "desc" },
+        });
+
+        // Also return simple map for backward compatibility
         const collectionMap = new Map<string, number>();
         collections.forEach((item) => {
             collectionMap.set(item.cardId, item.quantity);
         });
 
-        return NextResponse.json({ collection: Object.fromEntries(collectionMap) });
+        return NextResponse.json({
+            items: collections,
+            collection: Object.fromEntries(collectionMap), // For backward compatibility
+            pagination: {
+                page,
+                limit,
+                total: totalCount,
+                totalPages: Math.ceil(totalCount / limit),
+            },
+        });
     } catch (error) {
         console.error("Error fetching collection:", error);
         return NextResponse.json(

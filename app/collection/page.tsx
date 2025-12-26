@@ -1,6 +1,130 @@
+/**
+ * Collection Page
+ * 
+ * Displays the user's card collection in a table format. Shows card name, set,
+ * quantity, tags (binders/decks), and action buttons. Includes pagination (10 cards per page)
+ * and fetches card details from Scryfall for display.
+ * 
+ * @page
+ * @route /collection
+ */
+
 "use client";
 
+import { useEffect, useState } from "react";
+import { useUser } from "@stackframe/stack";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Loading from "@/app/components/Loading";
+import type { ScryfallCard } from "@/app/lib/scryfall";
+
+type CollectionItem = {
+    id: string;
+    cardId: string;
+    quantity: number;
+    condition?: string | null;
+    language?: string | null;
+    isFoil: boolean;
+    notes?: string | null;
+};
+
+type CollectionData = {
+    items: CollectionItem[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+};
+
 export default function CollectionPage() {
+    const user = useUser();
+    const [collectionData, setCollectionData] = useState<CollectionData | null>(null);
+    const [cards, setCards] = useState<Map<string, ScryfallCard>>(new Map());
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    // Fetch collection data
+    useEffect(() => {
+        if (!user) return;
+
+        async function fetchCollection() {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const response = await fetch(`/api/collection?page=${currentPage}&limit=${itemsPerPage}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch collection");
+                }
+
+                const data: CollectionData = await response.json();
+                setCollectionData(data);
+
+                // Fetch card details from Scryfall for each card
+                const cardsMap = new Map<string, ScryfallCard>();
+                for (const item of data.items) {
+                    try {
+                        const cardResponse = await fetch(`/api/scryfall/card/${item.cardId}`);
+                        if (cardResponse.ok) {
+                            const cardData = await cardResponse.json();
+                            cardsMap.set(item.cardId, cardData);
+                        }
+                    } catch (err) {
+                        console.warn(`Failed to fetch card ${item.cardId}:`, err);
+                    }
+                }
+                setCards(cardsMap);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Failed to load collection");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchCollection();
+    }, [user, currentPage]);
+
+    // Calculate stats
+    const totalCards = collectionData?.pagination.total || 0;
+    const mtgCount = Array.from(cards.values()).filter(card => card.set).length; // Approximate MTG count
+
+    if (loading) {
+        return (
+            <main
+                className="
+                    min-h-[calc(100vh-8rem)]
+                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    px-6 py-6
+                    text-[#193f44] dark:text-[#e8d5b8]
+                    transition-all duration-300
+                "
+            >
+                <Loading />
+            </main>
+        );
+    }
+
+    if (error) {
+        return (
+            <main
+                className="
+                    min-h-[calc(100vh-8rem)]
+                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    px-6 py-6
+                    text-[#193f44] dark:text-[#e8d5b8]
+                    transition-all duration-300
+                "
+            >
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <p className="text-lg text-red-500">Error: {error}</p>
+                </div>
+            </main>
+        );
+    }
+
     return (
         <main
             className="
@@ -49,10 +173,10 @@ export default function CollectionPage() {
             {/* Stat tiles */}
             <section className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
-                    { label: "Total Cards", value: "100" },
-                    { label: "MTG", value: "60" },
-                    { label: "Pokémon", value: "30" },
-                    { label: "Yu-Gi-Oh!", value: "10" },
+                    { label: "Total Cards", value: totalCards.toString() },
+                    { label: "MTG", value: mtgCount.toString() },
+                    { label: "Pokémon", value: "0" },
+                    { label: "Yu-Gi-Oh!", value: "0" },
                 ].map((s) => (
                     <div
                         key={s.label}
@@ -135,24 +259,146 @@ export default function CollectionPage() {
                     <div className="col-span-2 text-right">Actions</div>
                 </div>
 
-                {/* Example row */}
-                <div className="grid grid-cols-12 gap-2 px-4 py-3 text-sm border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                    <div className="col-span-5 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded bg-black/10 dark:bg-white/10" />
-                        <div>
-                            <p className="font-medium leading-tight">Example Card Name</p>
-                            <p className="text-xs opacity-70">MTG</p>
-                        </div>
+                {/* Collection rows */}
+                {collectionData && collectionData.items.length > 0 ? (
+                    collectionData.items.map((item) => {
+                        const card = cards.get(item.cardId);
+                        const cardImage = card?.image_uris?.small || card?.image_uris?.normal || card?.card_faces?.[0]?.image_uris?.small;
+                        const cardName = card?.name || "Loading...";
+                        const setName = card?.set_name || "Unknown Set";
+                        const tags: string[] = [];
+                        if (item.isFoil) tags.push("Foil");
+                        if (item.condition) tags.push(item.condition);
+                        if (item.language && item.language !== "en") tags.push(item.language.toUpperCase());
+
+                        return (
+                            <div
+                                key={item.id}
+                                className="grid grid-cols-12 gap-2 px-4 py-3 text-sm border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                            >
+                                <div className="col-span-5 flex items-center gap-3">
+                                    {cardImage ? (
+                                        <img
+                                            src={cardImage}
+                                            alt={cardName}
+                                            className="w-10 h-10 rounded object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-10 h-10 rounded bg-black/10 dark:bg-white/10" />
+                                    )}
+                                    <div>
+                                        <p className="font-medium leading-tight">{cardName}</p>
+                                        <p className="text-xs opacity-70">MTG</p>
+                                    </div>
+                                </div>
+                                <div className="col-span-2 text-xs opacity-80">{setName}</div>
+                                <div className="col-span-1 text-center font-semibold">{item.quantity}</div>
+                                <div className="col-span-2 text-xs opacity-80">
+                                    {tags.length > 0 ? tags.join(" • ") : "—"}
+                                </div>
+                                <div className="col-span-2 flex justify-end gap-2">
+                                    <button className="text-xs underline opacity-80 hover:opacity-100">Edit</button>
+                                    <button className="text-xs underline opacity-80 hover:opacity-100">+1</button>
+                                </div>
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div className="px-4 py-8 text-center text-sm opacity-70">
+                        No cards in your collection yet. Start adding cards from sets!
                     </div>
-                    <div className="col-span-2 text-xs opacity-80">Example Set</div>
-                    <div className="col-span-1 text-center font-semibold">2</div>
-                    <div className="col-span-2 text-xs opacity-80">Binder • Deck</div>
-                    <div className="col-span-2 flex justify-end gap-2">
-                        <button className="text-xs underline opacity-80 hover:opacity-100">Edit</button>
-                        <button className="text-xs underline opacity-80 hover:opacity-100">+1</button>
-                    </div>
-                </div>
+                )}
             </section>
+
+            {/* Pagination */}
+            {collectionData && collectionData.pagination.totalPages > 1 && (
+                <section className="mt-6 flex items-center justify-between">
+                    <p className="text-sm opacity-70">
+                        Showing {collectionData.items.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
+                        {Math.min(currentPage * itemsPerPage, collectionData.pagination.total)} of {collectionData.pagination.total} cards
+                    </p>
+                    <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="
+                            px-3 py-1.5 rounded-md
+                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            text-[#193f44] dark:text-[#e8d5b8]
+                            border border-[#42c99c] dark:border-[#82664e]
+                            hover:bg-black/10 dark:hover:bg-white/10
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                            transition-colors
+                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                            dark:focus:ring-[#82664e]
+                            flex items-center gap-1
+                        "
+                    >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                        {Array.from({ length: collectionData.pagination.totalPages }, (_, i) => i + 1).map((page) => {
+                            if (
+                                page === 1 ||
+                                page === collectionData.pagination.totalPages ||
+                                (page >= currentPage - 1 && page <= currentPage + 1)
+                            ) {
+                                return (
+                                    <button
+                                        key={page}
+                                        type="button"
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`
+                                            px-3 py-1.5 rounded-md text-sm
+                                            transition-colors
+                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                            dark:focus:ring-[#82664e]
+                                            ${currentPage === page
+                                                ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
+                                                : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
+                                            }
+                                        `}
+                                    >
+                                        {page}
+                                    </button>
+                                );
+                            } else if (page === currentPage - 2 || page === currentPage + 2) {
+                                return (
+                                    <span key={page} className="px-2 text-sm opacity-50">
+                                        ...
+                                    </span>
+                                );
+                            }
+                            return null;
+                        })}
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => Math.min(collectionData.pagination.totalPages, p + 1))}
+                        disabled={currentPage === collectionData.pagination.totalPages}
+                        className="
+                            px-3 py-1.5 rounded-md
+                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            text-[#193f44] dark:text-[#e8d5b8]
+                            border border-[#42c99c] dark:border-[#82664e]
+                            hover:bg-black/10 dark:hover:bg-white/10
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                            transition-colors
+                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                            dark:focus:ring-[#82664e]
+                            flex items-center gap-1
+                        "
+                    >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
+                    </div>
+                </section>
+            )}
         </main>
     );
 }
