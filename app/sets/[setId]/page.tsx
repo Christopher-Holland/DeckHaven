@@ -228,7 +228,7 @@ export default function SetDetailPage({ params }: PageProps) {
             </section>
 
             {/* Cards Grid */}
-            <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <section className="grid grid-cols-1 md:grid-cols-6 gap-6">
                 {cards.map((card) => {
                     const ownedCount = ownedCounts.get(card.id) || 0;
                     const cardImage = card.image_uris?.normal ||

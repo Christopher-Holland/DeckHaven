@@ -89,7 +89,7 @@ export default function SetCards({
           transition-all duration-200 ease-out
           ${isOwned 
             ? "opacity-100" 
-            : "opacity-50 grayscale"
+            : "opacity-70 grayscale"
           }
           hover:opacity-100 hover:grayscale-0
           hover:-translate-y-0.5
