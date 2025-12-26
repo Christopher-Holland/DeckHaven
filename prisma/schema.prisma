@@ -65,8 +65,24 @@ model Deck {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deckCards DeckCard[]
 
   @@map("decks")
+}
+
+// Cards in decks
+model DeckCard {
+  id        String   @id @default(cuid())
+  deckId    String
+  cardId    String   // Scryfall card ID
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@unique([deckId, cardId])
+  @@map("deck_cards")
 }
 

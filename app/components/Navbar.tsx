@@ -9,14 +9,19 @@
 
 "use client";
 
+import { Suspense } from "react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useSidebar } from "./SidebarContext";
+import { useUser } from "@stackframe/stack";
+import { useRouter } from "next/navigation";
 
-export default function Navbar() {
+function NavbarContent() {
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const { isCollapsed } = useSidebar();
+    const user = useUser();
+    const router = useRouter();
 
     // Prevent hydration mismatch by only rendering theme-dependent UI after mount
     useEffect(() => {
@@ -78,11 +83,86 @@ export default function Navbar() {
                         </svg>
                     )}
                 </button>
-                <button className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white
-                           flex items-center justify-center text-sm font-medium">
-                    U
-                </button>
+                {user ? (
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            {user.profileImageUrl ? (
+                                <img
+                                    src={user.profileImageUrl}
+                                    alt={user.displayName || "User"}
+                                    className="h-8 w-8 rounded-full"
+                                />
+                            ) : (
+                                <div className="h-8 w-8 rounded-full bg-[#42c99c] dark:bg-[#82664e] text-white flex items-center justify-center text-sm font-medium">
+                                    {user.displayName?.[0] || user.primaryEmail?.[0] || "U"}
+                                </div>
+                            )}
+                            <span className="text-sm hidden md:block">
+                                {user.displayName || user.primaryEmail?.split("@")[0] || "User"}
+                            </span>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                await user.signOut();
+                                router.push("/");
+                            }}
+                            className="
+                                px-3 py-1.5 rounded-md text-sm
+                                bg-[#e8d5b8] dark:bg-[#173c3f]
+                                border border-[#42c99c] dark:border-[#82664e]
+                                hover:bg-[#42c99c] hover:text-white
+                                dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]
+                                transition-colors
+                            "
+                        >
+                            Sign Out
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => router.push("/auth/signin")}
+                        className="
+                            px-3 py-1.5 rounded-md text-sm
+                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            border border-[#42c99c] dark:border-[#82664e]
+                            hover:bg-[#42c99c] hover:text-white
+                            dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]
+                            transition-colors
+                        "
+                    >
+                        Sign In
+                    </button>
+                )}
             </div>
         </header>
+    );
+}
+
+export default function Navbar() {
+    return (
+        <Suspense fallback={
+            <header className="h-20 w-full border-b border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#113033] text-gray-900 dark:text-white grid grid-cols-3 items-center px-6 transition-all duration-300">
+                <div className="flex items-center">
+                    <h1 className="text-lg font-bold text-[#42c99c] dark:text-[#e8d5b8]">
+                        DeckHaven
+                    </h1>
+                </div>
+                <div className="flex justify-center">
+                    <div className="hidden md:block">
+                        <input
+                            type="text"
+                            placeholder="Search cards, decks..."
+                            className="px-20 py-1.5 text-sm border border-[#42c99c] dark:border-[#e8d5b8] rounded-md bg-gray-200 dark:bg-gray-800 text-[#36c293] dark:text-[#36c293] placeholder-[#193f44] dark:placeholder-[#e8d5b8] focus:outline-none focus:ring-2 focus:ring-[#42c99c]"
+                            disabled
+                        />
+                    </div>
+                </div>
+                <div className="flex items-center justify-end gap-4">
+                    <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                </div>
+            </header>
+        }>
+            <NavbarContent />
+        </Suspense>
     );
 }

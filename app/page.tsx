@@ -10,10 +10,22 @@
 
 "use client";
 
+import { Suspense, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@stackframe/stack";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function Home() {
+function HomeContent() {
+    const user = useUser();
+    const router = useRouter();
+
+    // Redirect authenticated users to dashboard
+    useEffect(() => {
+        if (user) {
+            router.push("/dashboard");
+        }
+    }, [user, router]);
     return (
         <main
             className="
@@ -57,7 +69,7 @@ export default function Home() {
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                     <Link
-                        href="/login"
+                        href="/auth/signin"
                         className="
               rounded-lg
               border border-[#42c99c] dark:border-[#82664e]
@@ -75,7 +87,7 @@ export default function Home() {
                     </Link>
 
                     <Link
-                        href="/register"
+                        href="/auth/signup"
                         className="
               rounded-lg
               border border-[#42c99c] dark:border-[#82664e]
@@ -105,5 +117,28 @@ export default function Home() {
                 </div>
             </div>
         </main>
+    );
+}
+
+export default function Home() {
+    return (
+        <Suspense fallback={
+            <main
+                className="
+                    min-h-screen
+                    flex items-center justify-center
+                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    px-6 py-6
+                    text-[#193f44] dark:text-[#e8d5b8]
+                "
+            >
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#42c99c] mx-auto mb-4"></div>
+                    <p className="text-sm opacity-70">Loading...</p>
+                </div>
+            </main>
+        }>
+            <HomeContent />
+        </Suspense>
     );
 }

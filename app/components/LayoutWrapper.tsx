@@ -22,9 +22,12 @@ type LayoutWrapperProps = {
 export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     const pathname = usePathname();
     const isLandingPage = pathname === "/";
+    
+    // Auth routes that should not show sidebar/navbar
+    const isAuthRoute = pathname.startsWith("/auth/") || pathname.startsWith("/handler/");
 
-    // Render minimal layout for landing page
-    if (isLandingPage) {
+    // Render minimal layout for landing page and auth routes
+    if (isLandingPage || isAuthRoute) {
         return (
             <div className="flex-1 w-full">
                 {children}

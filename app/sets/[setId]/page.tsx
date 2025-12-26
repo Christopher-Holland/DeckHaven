@@ -46,6 +46,35 @@ export default function SetDetailPage({ params }: PageProps) {
         params.then((p) => setSetId(p.setId));
     }, [params]);
 
+    // Fetch user collection and wishlist from database
+    useEffect(() => {
+        async function fetchUserData() {
+            try {
+                // Fetch collection
+                const collectionResponse = await fetch("/api/collection");
+                if (collectionResponse.ok) {
+                    const data = await collectionResponse.json();
+                    const collectionMap = new Map<string, number>();
+                    Object.entries(data.collection || {}).forEach(([cardId, qty]) => {
+                        collectionMap.set(cardId, qty as number);
+                    });
+                    setOwnedCounts(collectionMap);
+                }
+
+                // Fetch wishlist
+                const wishlistResponse = await fetch("/api/wishlist");
+                if (wishlistResponse.ok) {
+                    const data = await wishlistResponse.json();
+                    setWishlistedCards(new Set(data.wishlist || []));
+                }
+            } catch (err) {
+                console.error("Error fetching user data:", err);
+            }
+        }
+
+        fetchUserData();
+    }, []);
+
     // Fetch set info and cards
     useEffect(() => {
         if (!setId) return;
@@ -129,7 +158,8 @@ export default function SetDetailPage({ params }: PageProps) {
         fetchSetData();
     }, [setId]);
 
-    const updateOwnedCount = (cardId: string, count: number) => {
+    const updateOwnedCount = async (cardId: string, count: number) => {
+        // Optimistically update UI
         setOwnedCounts((prev) => {
             const next = new Map(prev);
             if (count === 0) {
@@ -139,6 +169,65 @@ export default function SetDetailPage({ params }: PageProps) {
             }
             return next;
         });
+
+        // Save to database
+        try {
+            await fetch("/api/collection", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cardId, quantity: count }),
+            });
+        } catch (err) {
+            console.error("Error updating collection:", err);
+            // Revert on error
+            setOwnedCounts((prev) => {
+                const next = new Map(prev);
+                const originalCount = ownedCounts.get(cardId) || 0;
+                if (originalCount === 0) {
+                    next.delete(cardId);
+                } else {
+                    next.set(cardId, originalCount);
+                }
+                return next;
+            });
+        }
+    };
+
+    const toggleWishlist = async (cardId: string) => {
+        const isWishlisted = wishlistedCards.has(cardId);
+        const newWishlisted = !isWishlisted;
+
+        // Optimistically update UI
+        setWishlistedCards((prev) => {
+            const next = new Set(prev);
+            if (newWishlisted) {
+                next.add(cardId);
+            } else {
+                next.delete(cardId);
+            }
+            return next;
+        });
+
+        // Save to database
+        try {
+            await fetch("/api/wishlist", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cardId, isWishlisted: newWishlisted }),
+            });
+        } catch (err) {
+            console.error("Error updating wishlist:", err);
+            // Revert on error
+            setWishlistedCards((prev) => {
+                const next = new Set(prev);
+                if (isWishlisted) {
+                    next.add(cardId);
+                } else {
+                    next.delete(cardId);
+                }
+                return next;
+            });
+        }
     };
 
     const handleCardClick = (card: ScryfallCard) => {
@@ -254,17 +343,7 @@ export default function SetDetailPage({ params }: PageProps) {
                             onOwnedCountChange={(count) => updateOwnedCount(card.id, count)}
                             onCardClick={() => handleCardClick(card)}
                             isWishlisted={wishlistedCards.has(card.id)}
-                            onWishlistToggle={() => {
-                                setWishlistedCards((prev) => {
-                                    const next = new Set(prev);
-                                    if (next.has(card.id)) {
-                                        next.delete(card.id);
-                                    } else {
-                                        next.add(card.id);
-                                    }
-                                    return next;
-                                });
-                            }}
+                            onWishlistToggle={() => toggleWishlist(card.id)}
                         />
                     );
                 })}
@@ -369,15 +448,7 @@ export default function SetDetailPage({ params }: PageProps) {
                                     type="button"
                                     onClick={() => {
                                         if (selectedCard) {
-                                            setWishlistedCards((prev) => {
-                                                const next = new Set(prev);
-                                                if (next.has(selectedCard.id)) {
-                                                    next.delete(selectedCard.id);
-                                                } else {
-                                                    next.add(selectedCard.id);
-                                                }
-                                                return next;
-                                            });
+                                            toggleWishlist(selectedCard.id);
                                         }
                                     }}
                                     className={`
