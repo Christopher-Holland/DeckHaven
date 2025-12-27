@@ -95,11 +95,45 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { cardId, quantity } = body;
+        const { cardId, quantity, condition, language, notes, isFoil, tags } = body;
+
+        console.log("Collection POST request:", { cardId, quantity, condition, language, notes, isFoil, tags });
 
         if (!cardId || typeof quantity !== "number" || quantity < 0) {
             return NextResponse.json(
                 { error: "Invalid request. cardId and quantity (>= 0) are required." },
+                { status: 400 }
+            );
+        }
+
+        // Validate optional fields
+        if (condition !== undefined && typeof condition !== "string" && condition !== null) {
+            return NextResponse.json(
+                { error: "Invalid request. condition must be a string or null." },
+                { status: 400 }
+            );
+        }
+        if (language !== undefined && typeof language !== "string" && language !== null) {
+            return NextResponse.json(
+                { error: "Invalid request. language must be a string or null." },
+                { status: 400 }
+            );
+        }
+        if (notes !== undefined && typeof notes !== "string" && notes !== null) {
+            return NextResponse.json(
+                { error: "Invalid request. notes must be a string or null." },
+                { status: 400 }
+            );
+        }
+        if (tags !== undefined && typeof tags !== "string" && tags !== null) {
+            return NextResponse.json(
+                { error: "Invalid request. tags must be a string or null." },
+                { status: 400 }
+            );
+        }
+        if (isFoil !== undefined && typeof isFoil !== "boolean") {
+            return NextResponse.json(
+                { error: "Invalid request. isFoil must be a boolean." },
                 { status: 400 }
             );
         }
@@ -130,28 +164,68 @@ export async function POST(request: NextRequest) {
                 },
             });
         } else {
+            // Build update object - frontend always sends all fields, so include them all
+            const cleanUpdateData: {
+                quantity: number;
+                condition?: string | null;
+                language?: string | null;
+                notes?: string | null;
+                tags?: string | null;
+                isFoil?: boolean;
+            } = {
+                quantity,
+            };
+
+            // Frontend always sends these fields (as null if not set), so we can always include them
+            if (condition !== undefined) {
+                cleanUpdateData.condition = condition || null;
+            }
+            if (language !== undefined) {
+                cleanUpdateData.language = language ? language.toLowerCase() : null;
+            }
+            if (notes !== undefined) {
+                cleanUpdateData.notes = notes || null;
+            }
+            if (tags !== undefined) {
+                cleanUpdateData.tags = tags || null;
+            }
+            if (isFoil !== undefined) {
+                cleanUpdateData.isFoil = isFoil;
+            }
+
+            // Build create data - include all fields with defaults
+            const createData = {
+                userId: dbUser.id,
+                cardId,
+                quantity,
+                condition: condition || null,
+                language: language ? language.toLowerCase() : null,
+                notes: notes || null,
+                tags: tags || null,
+                isFoil: isFoil ?? false,
+            };
+
             // Upsert collection item
-            await prisma.collection.upsert({
+            console.log("Upserting collection:", { update: cleanUpdateData, create: createData });
+            const result = await prisma.collection.upsert({
                 where: {
                     userId_cardId: {
                         userId: dbUser.id,
                         cardId,
                     },
                 },
-                update: { quantity },
-                create: {
-                    userId: dbUser.id,
-                    cardId,
-                    quantity,
-                },
+                update: cleanUpdateData,
+                create: createData,
             });
+            console.log("Collection upsert result:", result);
         }
 
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("Error updating collection:", error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to update collection";
         return NextResponse.json(
-            { error: "Failed to update collection" },
+            { error: errorMessage },
             { status: 500 }
         );
     }

@@ -39,6 +39,7 @@ model Collection {
   condition   String?  // e.g., "mint", "near_mint", "played", "damaged"
   language    String?  // e.g., "en", "ja", "es"
   isFoil      Boolean  @default(false)
+  tags        String?  // Comma-separated tags (e.g., "Trades, Favorites, Set Binder")
   notes       String?  // User notes about this card
   purchasePrice Decimal? // Purchase price if tracked
   purchaseDate DateTime? // Purchase date if tracked

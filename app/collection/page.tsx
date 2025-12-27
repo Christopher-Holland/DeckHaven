@@ -16,6 +16,7 @@ import { useUser } from "@stackframe/stack";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Loading from "@/app/components/Loading";
 import type { ScryfallCard } from "@/app/lib/scryfall";
+import EditCardListModal, { type EditableCard } from "./editCardListModal";
 
 type CollectionItem = {
     id: string;
@@ -24,6 +25,7 @@ type CollectionItem = {
     condition?: string | null;
     language?: string | null;
     isFoil: boolean;
+    tags?: string | null;
     notes?: string | null;
 };
 
@@ -45,6 +47,8 @@ export default function CollectionPage() {
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+    const [editCardListModalOpen, setEditCardListModalOpen] = useState(false);
+    const [editCardList, setEditCardList] = useState<CollectionItem | null>(null);
 
     // Fetch collection data
     useEffect(() => {
@@ -267,9 +271,15 @@ export default function CollectionPage() {
                         const cardName = card?.name || "Loading...";
                         const setName = card?.set_name || "Unknown Set";
                         const tags: string[] = [];
+                        // Build tags from card metadata
                         if (item.isFoil) tags.push("Foil");
                         if (item.condition) tags.push(item.condition);
                         if (item.language && item.language !== "en") tags.push(item.language.toUpperCase());
+                        // Add custom tags from database if they exist
+                        if (item.tags) {
+                            const customTags = item.tags.split(",").map((t: string) => t.trim()).filter((t: string) => t.length > 0);
+                            tags.push(...customTags);
+                        }
 
                         return (
                             <div
@@ -297,7 +307,15 @@ export default function CollectionPage() {
                                     {tags.length > 0 ? tags.join(" • ") : "—"}
                                 </div>
                                 <div className="col-span-2 flex justify-end gap-2">
-                                    <button className="text-xs underline opacity-80 hover:opacity-100">Edit</button>
+                                    <button
+                                        className="text-xs underline opacity-80 hover:opacity-100"
+                                        onClick={() => {
+                                            setEditCardListModalOpen(true);
+                                            setEditCardList(item);
+                                        }}
+                                        >
+                                        Edit
+                                    </button>
                                     <button className="text-xs underline opacity-80 hover:opacity-100">+1</button>
                                 </div>
                             </div>
@@ -318,11 +336,11 @@ export default function CollectionPage() {
                         {Math.min(currentPage * itemsPerPage, collectionData.pagination.total)} of {collectionData.pagination.total} cards
                     </p>
                     <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className="
+                        <button
+                            type="button"
+                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                            className="
                             px-3 py-1.5 rounded-md
                             bg-[#e8d5b8] dark:bg-[#173c3f]
                             text-[#193f44] dark:text-[#e8d5b8]
@@ -334,53 +352,53 @@ export default function CollectionPage() {
                             dark:focus:ring-[#82664e]
                             flex items-center gap-1
                         "
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                        Previous
-                    </button>
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                            Previous
+                        </button>
 
-                    <div className="flex items-center gap-1">
-                        {Array.from({ length: collectionData.pagination.totalPages }, (_, i) => i + 1).map((page) => {
-                            if (
-                                page === 1 ||
-                                page === collectionData.pagination.totalPages ||
-                                (page >= currentPage - 1 && page <= currentPage + 1)
-                            ) {
-                                return (
-                                    <button
-                                        key={page}
-                                        type="button"
-                                        onClick={() => setCurrentPage(page)}
-                                        className={`
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: collectionData.pagination.totalPages }, (_, i) => i + 1).map((page) => {
+                                if (
+                                    page === 1 ||
+                                    page === collectionData.pagination.totalPages ||
+                                    (page >= currentPage - 1 && page <= currentPage + 1)
+                                ) {
+                                    return (
+                                        <button
+                                            key={page}
+                                            type="button"
+                                            onClick={() => setCurrentPage(page)}
+                                            className={`
                                             px-3 py-1.5 rounded-md text-sm
                                             transition-colors
                                             focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                             dark:focus:ring-[#82664e]
                                             ${currentPage === page
-                                                ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
-                                                : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
-                                            }
+                                                    ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
+                                                    : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
+                                                }
                                         `}
-                                    >
-                                        {page}
-                                    </button>
-                                );
-                            } else if (page === currentPage - 2 || page === currentPage + 2) {
-                                return (
-                                    <span key={page} className="px-2 text-sm opacity-50">
-                                        ...
-                                    </span>
-                                );
-                            }
-                            return null;
-                        })}
-                    </div>
+                                        >
+                                            {page}
+                                        </button>
+                                    );
+                                } else if (page === currentPage - 2 || page === currentPage + 2) {
+                                    return (
+                                        <span key={page} className="px-2 text-sm opacity-50">
+                                            ...
+                                        </span>
+                                    );
+                                }
+                                return null;
+                            })}
+                        </div>
 
-                    <button
-                        type="button"
-                        onClick={() => setCurrentPage((p) => Math.min(collectionData.pagination.totalPages, p + 1))}
-                        disabled={currentPage === collectionData.pagination.totalPages}
-                        className="
+                        <button
+                            type="button"
+                            onClick={() => setCurrentPage((p) => Math.min(collectionData.pagination.totalPages, p + 1))}
+                            disabled={currentPage === collectionData.pagination.totalPages}
+                            className="
                             px-3 py-1.5 rounded-md
                             bg-[#e8d5b8] dark:bg-[#173c3f]
                             text-[#193f44] dark:text-[#e8d5b8]
@@ -392,13 +410,103 @@ export default function CollectionPage() {
                             dark:focus:ring-[#82664e]
                             flex items-center gap-1
                         "
-                    >
-                        Next
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
+                        >
+                            Next
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
                     </div>
                 </section>
             )}
+
+            {/* Edit Card Modal */}
+            <EditCardListModal
+                open={editCardListModalOpen}
+                card={editCardList ? {
+                    id: editCardList.id,
+                    cardId: editCardList.cardId,
+                    name: cards.get(editCardList.cardId)?.name || "Unknown Card",
+                    quantity: editCardList.quantity,
+                    condition: editCardList.condition || undefined,
+                    language: editCardList.language || undefined,
+                    notes: editCardList.notes || undefined,
+                    tags: editCardList.tags || undefined,
+                    isFoil: editCardList.isFoil,
+                } : null}
+                onClose={() => {
+                    setEditCardListModalOpen(false);
+                    setEditCardList(null);
+                }}
+                onSave={async (updated: EditableCard) => {
+                    if (!editCardList) {
+                        throw new Error("No card selected");
+                    }
+
+                    // Prepare request body - always include all fields
+                    const requestBody = {
+                        cardId: updated.cardId,
+                        quantity: updated.quantity,
+                        condition: updated.condition || null,
+                        language: updated.language || null,
+                        notes: updated.notes || null,
+                        tags: updated.tags || null,
+                        isFoil: updated.isFoil ?? false,
+                    };
+
+                    console.log("Saving card:", requestBody);
+
+                    // Update collection via API
+                    const response = await fetch("/api/collection", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(requestBody),
+                    });
+
+                    if (!response.ok) {
+                        let errorMessage = "Failed to save card";
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = errorData.error || errorMessage;
+                        } catch (e) {
+                            errorMessage = `Server error: ${response.status} ${response.statusText}`;
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    
+                    // Refresh collection data
+                    const collectionResponse = await fetch(`/api/collection?page=${currentPage}&limit=${itemsPerPage}`);
+                    if (!collectionResponse.ok) {
+                        throw new Error("Failed to refresh collection data");
+                    }
+
+                    const data: CollectionData = await collectionResponse.json();
+                    setCollectionData(data);
+
+                    // Refresh card details for all items on current page
+                    const cardsMap = new Map<string, ScryfallCard>();
+                    for (const item of data.items) {
+                        if (cards.has(item.cardId)) {
+                            // Keep existing card data
+                            cardsMap.set(item.cardId, cards.get(item.cardId)!);
+                        } else {
+                            // Fetch missing card data
+                            try {
+                                const cardResponse = await fetch(`/api/scryfall/card/${item.cardId}`);
+                                if (cardResponse.ok) {
+                                    const cardData = await cardResponse.json();
+                                    cardsMap.set(item.cardId, cardData);
+                                }
+                            } catch (err) {
+                                console.warn(`Failed to fetch card ${item.cardId}:`, err);
+                            }
+                        }
+                    }
+                    setCards(cardsMap);
+
+                    // Close modal only after successful save and refresh
+                    setEditCardListModalOpen(false);
+                    setEditCardList(null);
+                }}
+            />
         </main>
     );
 }
