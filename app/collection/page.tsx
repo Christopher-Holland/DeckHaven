@@ -17,6 +17,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Loading from "@/app/components/Loading";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import EditCardListModal, { type EditableCard } from "./editCardListModal";
+import { useRouter } from "next/navigation";
 
 type CollectionItem = {
     id: string;
@@ -41,6 +42,7 @@ type CollectionData = {
 
 export default function CollectionPage() {
     const user = useUser();
+    const router = useRouter();
     const [collectionData, setCollectionData] = useState<CollectionData | null>(null);
     const [cards, setCards] = useState<Map<string, ScryfallCard>>(new Map());
     const [loading, setLoading] = useState(true);
@@ -143,33 +145,24 @@ export default function CollectionPage() {
             <section className="mb-6 flex items-start justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-semibold">Collection</h2>
-                    <p className="text-sm opacity-70 mt-1">
-                        Inventory-first view of everything you own.
-                    </p>
+                    <p className="text-sm opacity-70 mt-1">Inventory-first view of everything you own.</p>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <button
+                        type="button"
+                        onClick={() => router.push("/collection/binders")}
                         className="
-              px-3 py-1.5 rounded-md text-sm font-medium
-              bg-black/5 dark:bg-white/5
-              border border-[#42c99c] dark:border-[#82664e]
-              hover:bg-black/10 dark:hover:bg-white/10
-              transition-colors
-            "
+        px-3 py-1.5 rounded-md text-sm font-medium
+        bg-black/5 dark:bg-white/5
+        border border-[#42c99c] dark:border-[#82664e]
+        hover:bg-black/10 dark:hover:bg-white/10
+        transition-colors
+        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+        dark:focus:ring-[#82664e]
+      "
                     >
-                        Add Item
-                    </button>
-                    <button
-                        className="
-              px-3 py-1.5 rounded-md text-sm font-medium
-              bg-black/5 dark:bg-white/5
-              border border-[#42c99c] dark:border-[#82664e]
-              hover:bg-black/10 dark:hover:bg-white/10
-              transition-colors
-            "
-                    >
-                        Import
+                        Binders
                     </button>
                 </div>
             </section>
@@ -178,7 +171,7 @@ export default function CollectionPage() {
             <section className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
                     { label: "Total Cards", value: totalCards.toString() },
-                    { label: "MTG", value: mtgCount.toString() },
+                    { label: "Magic the Gathering", value: mtgCount.toString() },
                     { label: "Pokémon", value: "0" },
                     { label: "Yu-Gi-Oh!", value: "0" },
                 ].map((s) => (
@@ -313,7 +306,7 @@ export default function CollectionPage() {
                                             setEditCardListModalOpen(true);
                                             setEditCardList(item);
                                         }}
-                                        >
+                                    >
                                         Edit
                                     </button>
                                     <button className="text-xs underline opacity-80 hover:opacity-100">+1</button>
@@ -471,7 +464,7 @@ export default function CollectionPage() {
                         }
                         throw new Error(errorMessage);
                     }
-                    
+
                     // Refresh collection data
                     const collectionResponse = await fetch(`/api/collection?page=${currentPage}&limit=${itemsPerPage}`);
                     if (!collectionResponse.ok) {
