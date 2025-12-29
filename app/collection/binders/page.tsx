@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@stackframe/stack";
 import NewBinderModal from "./newBinderModal";
 import Loading from "@/app/components/Loading";
+import OpenBinderModal from "./openBinderModal";
 
 type Binder = {
     id: string;
@@ -17,12 +18,95 @@ type Binder = {
     };
 };
 
+// Small helper: map your simple color names to nicer “binder cover” tints.
+// If you already store hex values, those will still work (we pass them through).
+function binderCoverColor(color: string | null): string {
+    if (!color) return "#ffffff";
+
+    const c = color.toLowerCase();
+    const map: Record<string, string> = {
+        white: "#ffffff",
+        black: "#1f2937",
+        green: "#16a34a",
+        red: "#dc2626",
+        blue: "#2563eb",
+        yellow: "#f59e0b",
+    };
+
+    return map[c] ?? color; // if it's already a hex/rgb, use it
+}
+
+function BinderPreview({
+    coverColor,
+    pocketCount = 9,
+}: {
+    coverColor: string;
+    pocketCount?: number;
+}) {
+    return (
+        <div
+            className="
+        relative overflow-hidden
+        rounded-xl
+        border border-black/10 dark:border-white/10
+        bg-white/60 dark:bg-black/10
+      "
+        >
+            {/* “Binder cover” tint */}
+            <div
+                className="absolute inset-0 opacity-[0.16]"
+                style={{ backgroundColor: coverColor }}
+            />
+
+            {/* Left spine + rings */}
+            <div className="absolute inset-y-0 left-0 w-10 border-r border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
+                <div className="absolute left-1/2 top-6 -translate-x-1/2 flex flex-col gap-5">
+                    {[0, 1, 2].map((i) => (
+                        <div key={i} className="relative">
+                            {/* hole */}
+                            <div className="h-3.5 w-3.5 rounded-full border border-black/20 dark:border-white/20 bg-[#f6ead6] dark:bg-[#0f2a2c]" />
+                            {/* ring shadow hint */}
+                            <div className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/10 dark:border-white/10" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Pocket page */}
+            <div className="relative pl-12 pr-3 py-3">
+                <div className="grid grid-cols-3 gap-2">
+                    {Array.from({ length: pocketCount }).map((_, idx) => (
+                        <div
+                            key={idx}
+                            className="
+                aspect-[2.5/3.5]
+                rounded-md
+                border border-black/10 dark:border-white/10
+                bg-white/70 dark:bg-white/5
+                shadow-sm
+              "
+                        >
+                            {/* subtle “card back” pattern */}
+                            <div className="h-full w-full rounded-md bg-black/0 dark:bg-black/0" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* glossy sleeve highlight */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
+        </div>
+    );
+}
+
 export default function BindersPage() {
     const user = useUser();
     const [isOpen, setIsOpen] = useState(false);
     const [binders, setBinders] = useState<Binder[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [openBinderModal, setOpenBinderModal] = useState(false);
+    const [selectedBinder, setSelectedBinder] = useState<Binder | null>(null);
 
     // Fetch binders
     useEffect(() => {
@@ -34,9 +118,7 @@ export default function BindersPage() {
                 setError(null);
 
                 const response = await fetch("/api/binders");
-                if (!response.ok) {
-                    throw new Error("Failed to fetch binders");
-                }
+                if (!response.ok) throw new Error("Failed to fetch binders");
 
                 const data = await response.json();
                 setBinders(data.binders || []);
@@ -51,10 +133,18 @@ export default function BindersPage() {
     }, [user]);
 
     const handleBinderCreated = () => {
-        // Refresh binders list
         fetch("/api/binders")
             .then((res) => res.json())
-            .then((data) => setBinders(data.binders || []))
+            .then((data) => {
+                setBinders(data.binders || []);
+                // Update selectedBinder if modal is open and binder was edited
+                if (selectedBinder && openBinderModal) {
+                    const updatedBinder = data.binders?.find((b: Binder) => b.id === selectedBinder.id);
+                    if (updatedBinder) {
+                        setSelectedBinder(updatedBinder);
+                    }
+                }
+            })
             .catch((err) => console.error("Failed to refresh binders:", err));
     };
 
@@ -62,12 +152,12 @@ export default function BindersPage() {
         return (
             <main
                 className="
-        min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
-        px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
-        transition-all duration-300
-      "
+          min-h-[calc(100vh-8rem)]
+          bg-[#f6ead6] dark:bg-[#0f2a2c]
+          px-6 py-6
+          text-[#193f44] dark:text-[#e8d5b8]
+          transition-all duration-300
+        "
             >
                 <Loading />
             </main>
@@ -78,12 +168,12 @@ export default function BindersPage() {
         return (
             <main
                 className="
-        min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
-        px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
-        transition-all duration-300
-      "
+          min-h-[calc(100vh-8rem)]
+          bg-[#f6ead6] dark:bg-[#0f2a2c]
+          px-6 py-6
+          text-[#193f44] dark:text-[#e8d5b8]
+          transition-all duration-300
+        "
             >
                 <div className="flex items-center justify-center min-h-[400px]">
                     <p className="text-lg text-red-500">Error: {error}</p>
@@ -105,7 +195,9 @@ export default function BindersPage() {
             <section className="mb-6 flex items-start justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-semibold">Binders</h2>
-                    <p className="text-sm opacity-70 mt-1">Create and manage your favorite binder layouts.</p>
+                    <p className="text-sm opacity-70 mt-1 mb-4">
+                        Create and manage your favorite binder layouts.
+                    </p>
                 </div>
                 <div className="flex items-center justify-end gap-2">
                     <button
@@ -119,47 +211,110 @@ export default function BindersPage() {
 
             {/* Binders Grid */}
             {binders.length > 0 ? (
-                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {binders.map((binder) => (
-                        <div
-                            key={binder.id}
-                            className="
-                                rounded-lg p-4
-                                border border-[#42c99c] dark:border-[#82664e]
-                                bg-[#e8d5b8] dark:bg-[#173c3f]
-                                hover:bg-black/5 dark:hover:bg-white/5
-                                transition-colors cursor-pointer
-                            "
-                        >
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                                <h3 className="text-lg font-semibold">{binder.name}</h3>
-                                {binder.color && (
-                                    <div
-                                        className="w-6 h-6 rounded-full border border-black/20 dark:border-white/20 flex-shrink-0"
-                                        style={{
-                                            backgroundColor: binder.color === "white" ? "#ffffff" : binder.color,
-                                            borderColor: binder.color === "white" ? "#ccc" : undefined,
-                                        }}
-                                        title={binder.color}
-                                    />
-                                )}
-                            </div>
-                            {binder.description && (
-                                <p className="text-sm opacity-70 mb-3 line-clamp-2">{binder.description}</p>
-                            )}
-                            <p className="text-xs opacity-60">
-                                {binder._count.binderCards} {binder._count.binderCards === 1 ? "card" : "cards"}
-                            </p>
-                        </div>
-                    ))}
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10">
+                    {binders.map((binder) => {
+                        // Simple color mapping (so "red"/"blue" etc. feel like materials)
+                        const coverClass =
+                            binder.color === "black"
+                                ? "bg-neutral-900"
+                                : binder.color === "white"
+                                    ? "bg-neutral-50"
+                                    : binder.color === "red"
+                                        ? "bg-red-700"
+                                        : binder.color === "blue"
+                                            ? "bg-blue-700"
+                                            : binder.color === "green"
+                                                ? "bg-emerald-700"
+                                                : binder.color === "yellow"
+                                                    ? "bg-amber-400"
+                                                    : "bg-[#173c3f]"; // fallback if color is something else
+
+                        const coverTextClass =
+                            binder.color === "yellow" || binder.color === "white"
+                                ? "text-neutral-900"
+                                : "text-white";
+
+                        return (
+                            <button
+                                key={binder.id}
+                                type="button"
+                                className="
+        group relative text-left w-full
+        rounded-xl
+        focus:outline-none
+        border-0
+        outline-none
+      "
+                            onClick={() => {
+                                setSelectedBinder(binder);
+                                setOpenBinderModal(true);
+                            }}
+                            >
+                                {/* “Binder cover” */}
+                                <div
+                                    className={`
+          relative overflow-hidden rounded-xl
+          ${coverClass}
+          shadow-lg
+          transition-transform duration-200
+          group-hover:-translate-y-6
+          aspect-[3/4]
+          border-0
+        `}
+                                >
+                                    {/* subtle leather/plastic sheen */}
+                                    <div className="pointer-events-none absolute inset-0 opacity-25 bg-gradient-to-br from-white/40 via-transparent to-black/30" />
+
+                                    {/* spine (left strip) - subtle binding edge */}
+                                    <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-black/15" />
+                                    <div className="pointer-events-none absolute inset-y-0 left-6 w-px bg-white/10" />
+
+                                    {/* Centered content on cover */}
+                                    <div className="relative h-full flex flex-col items-center justify-center px-6 pl-10 text-center">
+                                        <div
+                                            className={`
+                                            w-full max-w-[90%]
+                                            rounded-md border border-white/20 bg-black/20 backdrop-blur-[1px]
+                                            px-4 py-3
+                                            ${coverTextClass}
+                                            `}
+                                        >
+                                            <h3 className="text-base font-semibold leading-snug line-clamp-2">
+                                                {binder.name}
+                                            </h3>
+
+                                            {binder.description ? (
+                                                <p className={`mt-2 text-xs opacity-85 line-clamp-2 ${coverTextClass}`}>
+                                                    {binder.description}
+                                                </p>
+                                            ) : null}
+                                        </div>
+
+                                        {/* bottom info like a small stamp */}
+                                        <div className={`mt-5 text-xs opacity-90 ${coverTextClass}`}>
+                                            {binder._count.binderCards}{" "}
+                                            {binder._count.binderCards === 1 ? "card" : "cards"}
+                                        </div>
+                                    </div>
+
+                                    {/* table-cast shadow edge */}
+                                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 opacity-30 bg-gradient-to-t from-black/40 to-transparent" />
+                                </div>
+                            </button>
+                        );
+                    })}
                 </section>
             ) : (
-                <section className="
-                    rounded-lg p-12 text-center
-                    border border-[#42c99c] dark:border-[#82664e]
-                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                ">
-                    <p className="text-sm opacity-70 mb-4">No binders yet. Create your first binder to get started!</p>
+                <section
+                    className="
+            rounded-lg p-12 text-center
+            border border-[#42c99c] dark:border-[#82664e]
+            bg-[#e8d5b8] dark:bg-[#173c3f]
+          "
+                >
+                    <p className="text-sm opacity-70 mb-4">
+                        No binders yet. Create your first binder to get started!
+                    </p>
                     <button
                         className="px-4 py-2 rounded-md text-sm font-medium bg-[#42c99c] dark:bg-[#82664e] text-white hover:opacity-95 transition-opacity"
                         onClick={() => setIsOpen(true)}
@@ -169,9 +324,14 @@ export default function BindersPage() {
                 </section>
             )}
 
-            <NewBinderModal
-                open={isOpen}
-                onClose={() => setIsOpen(false)}
+            <NewBinderModal open={isOpen} onClose={() => setIsOpen(false)} onSuccess={handleBinderCreated} />
+            <OpenBinderModal
+                open={openBinderModal}
+                binder={selectedBinder}
+                onClose={() => {
+                    setOpenBinderModal(false);
+                    setSelectedBinder(null);
+                }}
                 onSuccess={handleBinderCreated}
             />
         </main>
