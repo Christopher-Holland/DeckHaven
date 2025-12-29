@@ -1,3 +1,15 @@
+/**
+ * Dashboard Page
+ * 
+ * Displays the user's dashboard with a summary of their collection, decks, and recent activity.
+ * 
+ * @page
+ * @route /dashboard
+ */
+
+// TODO: Figure out API to get the latest TCG News
+// TODO: Rethink layout and purpose of this page
+
 "use client";
 
 import { useSidebar } from "../components/SidebarContext";

@@ -9,6 +9,14 @@
  * @route /collection
  */
 
+// TODO: Add filters, sorting, and grouping options
+// TODO: Add ability to add cards to binders/decks
+// TODO: Add ability to delete cards
+// TODO: Add ability to export collection as CSV
+// TODO: Add ability to import collection from CSV
+// TODO: Add ability to export collection as JSON
+// TODO: Add ability to import collection from JSON
+
 "use client";
 
 import { useEffect, useState } from "react";

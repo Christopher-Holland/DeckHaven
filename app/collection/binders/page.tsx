@@ -1,3 +1,24 @@
+/**
+ * Binders Page
+ * 
+ * Displays the user's binders in a grid format. Allows for creating, editing, and deleting binders.
+ * 
+ * @page
+ * @route /collection/binders
+ */
+
+
+// TODO: Add ability to add cards to binders
+// TODO: Add ability to remove cards from binders
+// TODO: Add ability to edit layout of cards in binders - move cards around, like a drag and drop interface
+// TODO: Add ability to delete cards
+// TODO: Add ability pagination
+// TODO: Add page flipping animaiton for the binder pages
+// TODO: Add ability to export binders as CSV
+// TODO: Add ability to import binders from CSV
+// TODO: Add ability to export binders as JSON
+// TODO: Add ability to import binders from JSON
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -198,10 +219,16 @@ export default function BindersPage() {
                 <div>
                     <button
                         onClick={() => router.push("/collection")}
-                        className="inline-flex items-center gap-2 text-sm opacity-70 mt-1 mb-4"
+                        className="
+                            inline-flex items-center gap-2
+                            text-sm opacity-70
+                            hover:opacity-100
+                            hover:underline
+                            transition
+                        "
                     >
-                        <ArrowLeft className="w-5 h-5" />
-                        <span>Back to Collection</span>
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Collection
                     </button>
                 </div>
                 <div>
