@@ -5,6 +5,8 @@ import { useUser } from "@stackframe/stack";
 import NewBinderModal from "./newBinderModal";
 import Loading from "@/app/components/Loading";
 import OpenBinderModal from "./openBinderModal";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Binder = {
     id: string;
@@ -107,7 +109,7 @@ export default function BindersPage() {
     const [error, setError] = useState<string | null>(null);
     const [openBinderModal, setOpenBinderModal] = useState(false);
     const [selectedBinder, setSelectedBinder] = useState<Binder | null>(null);
-
+    const router = useRouter();
     // Fetch binders
     useEffect(() => {
         if (!user) return;
@@ -194,6 +196,15 @@ export default function BindersPage() {
         >
             <section className="mb-6 flex items-start justify-between gap-4">
                 <div>
+                    <button
+                        onClick={() => router.push("/collection")}
+                        className="inline-flex items-center gap-2 text-sm opacity-70 mt-1 mb-4"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                        <span>Back to Collection</span>
+                    </button>
+                </div>
+                <div>
                     <h2 className="text-2xl font-semibold">Binders</h2>
                     <p className="text-sm opacity-70 mt-1 mb-4">
                         Create and manage your favorite binder layouts.
@@ -245,10 +256,10 @@ export default function BindersPage() {
         border-0
         outline-none
       "
-                            onClick={() => {
-                                setSelectedBinder(binder);
-                                setOpenBinderModal(true);
-                            }}
+                                onClick={() => {
+                                    setSelectedBinder(binder);
+                                    setOpenBinderModal(true);
+                                }}
                             >
                                 {/* “Binder cover” */}
                                 <div
