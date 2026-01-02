@@ -38,20 +38,28 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get pagination params
+        // Get pagination and filter params
         const searchParams = request.nextUrl.searchParams;
         const page = parseInt(searchParams.get("page") || "1", 10);
         const limit = parseInt(searchParams.get("limit") || "10", 10);
+        const game = searchParams.get("game") || "all";
         const skip = (page - 1) * limit;
+
+        // Note: Currently all cards come from Scryfall (MTG only)
+        // In the future, we may need to add a game field to the Collection model
+        // For now, we'll filter client-side based on card data from Scryfall
+
+        // Get all collection items (we'll filter by game client-side based on card data)
+        const whereClause: { userId: string } = { userId: dbUser.id };
 
         // Get total count
         const totalCount = await prisma.collection.count({
-            where: { userId: dbUser.id },
+            where: whereClause,
         });
 
         // Get paginated collection items
         const collections = await prisma.collection.findMany({
-            where: { userId: dbUser.id },
+            where: whereClause,
             skip,
             take: limit,
             orderBy: { updatedAt: "desc" },
@@ -72,6 +80,7 @@ export async function GET(request: NextRequest) {
                 total: totalCount,
                 totalPages: Math.ceil(totalCount / limit),
             },
+            gameFilter: game, // Return the game filter for client-side filtering
         });
     } catch (error) {
         console.error("Error fetching collection:", error);

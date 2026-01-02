@@ -15,8 +15,10 @@ import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { SidebarProvider } from "./components/SidebarContext";
 import LayoutWrapper from "./components/LayoutWrapper";
+import { GameFilterProvider } from "./components/GameFilterContext";
 import type { Metadata } from "next";
 import { MedievalSharp } from "next/font/google";
+import Loading from "./components/Loading";
 
 const medievalSharp = MedievalSharp({
     subsets: ["latin"],
@@ -40,26 +42,21 @@ export default function RootLayout({ children }: RootLayoutProps) {
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={`flex h-screen ${medievalSharp.className}`}>
-                <StackProvider app={stackClientApp}>
-                    <StackTheme>
-                        <Suspense fallback={
-                            <div className="flex items-center justify-center w-full h-full">
-                                <div className="text-center">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#42c99c] mx-auto mb-4"></div>
-                                    <p className="text-sm opacity-70">Loading...</p>
-                                </div>
-                            </div>
-                        }>
-                            <ThemeProvider>
-                                <SidebarProvider>
-                                    <LayoutWrapper>
-                                        {children}
-                                    </LayoutWrapper>
-                                </SidebarProvider>
-                            </ThemeProvider>
-                        </Suspense>
-                    </StackTheme>
-                </StackProvider>
+                <GameFilterProvider>
+                    <StackProvider app={stackClientApp}>
+                        <StackTheme>
+                            <Suspense fallback={<Loading />}>
+                                <ThemeProvider>
+                                    <SidebarProvider>
+                                        <LayoutWrapper>
+                                            {children}
+                                        </LayoutWrapper>
+                                    </SidebarProvider>
+                                </ThemeProvider>
+                            </Suspense>
+                        </StackTheme>
+                    </StackProvider>
+                </GameFilterProvider>
             </body>
         </html>
     );

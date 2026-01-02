@@ -9,6 +9,8 @@ type Props = {
     onSuccess?: () => void;
 };
 export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
+    const [selectedGame, setSelectedGame] = useState("all");
+    const [size, setSize] = useState("2x2");
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [binderColor, setBinderColor] = useState("white");
@@ -18,6 +20,8 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
     // Reset form when modal opens/closes
     useEffect(() => {
         if (!open) {
+            setSelectedGame("all");
+            setSize("2x2");
             setName("");
             setDescription("");
             setBinderColor("white");
@@ -48,6 +52,8 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
                     name: name.trim(),
                     description: description.trim() || null,
                     color: binderColor,
+                    game: selectedGame === "all" ? null : selectedGame, // Store null for "all" (favorites)
+                    size: size,
                 }),
             });
 
@@ -131,6 +137,35 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
                         </div>
                     )}
                     <div className="space-y-4">
+                        {/* Game */}
+                        <label className="text-sm block">
+                            <span className="opacity-80">Game <span className="text-red-500">*</span></span>
+                            <select
+                                value={selectedGame}
+                                onChange={(e) => setSelectedGame(e.target.value)}
+                                required
+                                className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-[#e8d5b8] dark:bg-[#173c3f] border border-[#42c99c] dark:border-[#82664e] focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]">
+                                <option value="all">Favorites (All Games)</option>
+                                <option value="mtg">Magic the Gathering</option>
+                                <option value="pokemon">Pokémon</option>
+                                <option value="yugioh">Yu-Gi-Oh!</option>
+                            </select>
+                        </label>
+                        {/* Size */}
+                        <label className="text-sm block">
+                            <span className="opacity-80">Size</span>
+                            <select
+                                value={size}
+                                onChange={(e) => setSize(e.target.value)}
+                                required
+                                className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-[#e8d5b8] dark:bg-[#173c3f] border border-[#42c99c] dark:border-[#82664e] focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                            >
+                                <option value="2x2">2x2</option>
+                                <option value="3x3">3x3</option>
+                                <option value="4x4">4x4</option>
+                            </select>
+                        </label>
+
                         {/* Name */}
                         <label className="text-sm block">
                             <span className="opacity-80">Name</span>

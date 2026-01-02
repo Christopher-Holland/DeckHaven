@@ -6,9 +6,11 @@ import EditBinderModal from "./editBinderModal";
 
 type Binder = {
     id: string;
+    game?: string | null; // "mtg" | "pokemon" | "yugioh" | null
     name: string;
     description?: string | null;
     color?: string | null; // "white" | "black" | "red" | etc, or hex
+    size?: string | null; // "2x2" | "3x3" | "4x4"
     _count?: { binderCards: number };
 };
 
@@ -57,11 +59,19 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
     const coverColor = useMemo(() => normalizeBinderColor(binder?.color), [binder?.color]);
 
-    // Fill 9-pocket page (3x3). If fewer cards than pockets, remainder are empty.
+    // Determine grid size from binder size (default to 3x3 if not set)
+    const gridSize = useMemo(() => {
+        const size = binder?.size || "3x3";
+        if (size === "2x2") return { cols: 2, total: 4 };
+        if (size === "4x4") return { cols: 4, total: 16 };
+        return { cols: 3, total: 9 }; // default 3x3
+    }, [binder?.size]);
+
+    // Fill pockets based on grid size. If fewer cards than pockets, remainder are empty.
     const pageSlots = useMemo(() => {
-        const slots = Array.from({ length: 9 }, (_, i) => cards[i] ?? null);
+        const slots = Array.from({ length: gridSize.total }, (_, i) => cards[i] ?? null);
         return slots;
-    }, [cards]);
+    }, [cards, gridSize.total]);
 
     if (!open || !binder) return null;
 
@@ -243,7 +253,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                     >
                                         <div className="flex items-center justify-between gap-3">
                                             <div className="min-w-0">
-                                                <p className="text-xs uppercase tracking-wider opacity-70">
+                                                <p className="text-xs uppercase tracking-wider opacity-90">
                                                     DeckHaven Binder
                                                 </p>
                                                 <p className="text-lg font-semibold truncate">{binder.name}</p>
@@ -307,7 +317,13 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
                                 <div className="relative p-4 sm:p-5">
                                     {/* pocket grid */}
-                                    <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                                    <div 
+                                        className={`grid gap-3 sm:gap-4 ${
+                                            gridSize.cols === 2 ? "grid-cols-2" :
+                                            gridSize.cols === 4 ? "grid-cols-4" :
+                                            "grid-cols-3"
+                                        }`}
+                                    >
                                         {pageSlots.map((slot, idx) => (
                                             <div
                                                 key={idx}
@@ -359,7 +375,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                     {/* optional footer hint row */}
                                     <div className="mt-4 flex items-center justify-between text-xs opacity-65">
                                         <span>Page 1</span>
-                                        <span>{cards.length} shown • 9 slots</span>
+                                        <span>{cards.length} shown • {gridSize.total} slots ({binder.size || "3x3"})</span>
                                     </div>
                                 </div>
                             </div>

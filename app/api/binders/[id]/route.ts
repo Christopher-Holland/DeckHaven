@@ -30,7 +30,7 @@ export async function PATCH(
 
         const { id: binderId } = await params;
         const body = await request.json();
-        const { name, description, color } = body;
+        const { name, description, color, game, size } = body;
 
         if (!name || typeof name !== "string" || name.trim().length === 0) {
             return NextResponse.json(
@@ -49,6 +49,32 @@ export async function PATCH(
         if (color !== undefined && typeof color !== "string" && color !== null) {
             return NextResponse.json(
                 { error: "Invalid request. color must be a string or null." },
+                { status: 400 }
+            );
+        }
+        if (game !== undefined && game !== null && typeof game !== "string") {
+            return NextResponse.json(
+                { error: "Invalid request. game must be a string or null." },
+                { status: 400 }
+            );
+        }
+        // Validate game value if provided
+        if (game !== undefined && game !== null && !["mtg", "pokemon", "yugioh"].includes(game)) {
+            return NextResponse.json(
+                { error: "Invalid request. game must be one of: mtg, pokemon, yugioh, or null (for favorites/all games)." },
+                { status: 400 }
+            );
+        }
+        if (size !== undefined && size !== null && typeof size !== "string") {
+            return NextResponse.json(
+                { error: "Invalid request. size must be a string or null." },
+                { status: 400 }
+            );
+        }
+        // Validate size value if provided
+        if (size !== undefined && size !== null && !["2x2", "3x3", "4x4"].includes(size)) {
+            return NextResponse.json(
+                { error: "Invalid request. size must be one of: 2x2, 3x3, 4x4, or null." },
                 { status: 400 }
             );
         }
@@ -87,6 +113,8 @@ export async function PATCH(
                 name: name.trim(),
                 description: description?.trim() || null,
                 color: color || null,
+                game: game || null, // null means "all" (favorites)
+                size: size || null,
             },
             include: {
                 _count: {

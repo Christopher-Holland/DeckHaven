@@ -28,17 +28,22 @@ import Loading from "@/app/components/Loading";
 import OpenBinderModal from "./openBinderModal";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useGameFilter } from "@/app/components/GameFilterContext";
 
 type Binder = {
     id: string;
     name: string;
     description: string | null;
     color: string | null;
+    game: string | null; // "all" (favorites), "mtg", "pokemon", "yugioh" - null means favorites/all games
     createdAt: string;
     updatedAt: string;
     _count: {
         binderCards: number;
     };
+    binderCards?: Array<{
+        cardId: string;
+    }>;
 };
 
 // Small helper: map your simple color names to nicer “binder cover” tints.
@@ -124,13 +129,16 @@ function BinderPreview({
 
 export default function BindersPage() {
     const user = useUser();
+    const { game } = useGameFilter();
     const [isOpen, setIsOpen] = useState(false);
     const [binders, setBinders] = useState<Binder[]>([]);
+    const [allBinders, setAllBinders] = useState<Binder[]>([]); // Store all binders for filtering
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [openBinderModal, setOpenBinderModal] = useState(false);
     const [selectedBinder, setSelectedBinder] = useState<Binder | null>(null);
     const router = useRouter();
+    
     // Fetch binders
     useEffect(() => {
         if (!user) return;
@@ -140,11 +148,13 @@ export default function BindersPage() {
                 setLoading(true);
                 setError(null);
 
-                const response = await fetch("/api/binders");
+                // Build query string with game filter
+                const gameParam = game === "all" ? "" : `?game=${game}`;
+                const response = await fetch(`/api/binders${gameParam}`);
                 if (!response.ok) throw new Error("Failed to fetch binders");
 
                 const data = await response.json();
-                setBinders(data.binders || []);
+                setAllBinders(data.binders || []);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load binders");
             } finally {
@@ -153,22 +163,51 @@ export default function BindersPage() {
         }
 
         fetchBinders();
-    }, [user]);
+    }, [user, game]);
 
-    const handleBinderCreated = () => {
-        fetch("/api/binders")
-            .then((res) => res.json())
-            .then((data) => {
-                setBinders(data.binders || []);
-                // Update selectedBinder if modal is open and binder was edited
-                if (selectedBinder && openBinderModal) {
-                    const updatedBinder = data.binders?.find((b: Binder) => b.id === selectedBinder.id);
-                    if (updatedBinder) {
-                        setSelectedBinder(updatedBinder);
-                    }
+    // Filter binders by game
+    useEffect(() => {
+        if (allBinders.length === 0) {
+            setBinders([]);
+            return;
+        }
+
+        // Filter binders based on their game field
+        const filteredBinders = allBinders.filter((binder) => {
+            const binderGame = binder.game || "all"; // null means "all" (favorites)
+            
+            if (game === "all") {
+                // Show all binders when "all" is selected
+                return true;
+            }
+            
+            // Show binders that match the selected game OR are favorites (null/"all")
+            return binderGame === game || binderGame === "all";
+        });
+
+        setBinders(filteredBinders);
+    }, [allBinders, game]);
+
+    const handleBinderCreated = async () => {
+        try {
+            // Build query string with game filter
+            const gameParam = game === "all" ? "" : `?game=${game}`;
+            const response = await fetch(`/api/binders${gameParam}`);
+            if (!response.ok) throw new Error("Failed to refresh binders");
+            
+            const data = await response.json();
+            setAllBinders(data.binders || []);
+
+            // Update selectedBinder if modal is open and binder was edited
+            if (selectedBinder && openBinderModal) {
+                const updatedBinder = data.binders?.find((b: Binder) => b.id === selectedBinder.id);
+                if (updatedBinder) {
+                    setSelectedBinder(updatedBinder);
                 }
-            })
-            .catch((err) => console.error("Failed to refresh binders:", err));
+            }
+        } catch (err) {
+            console.error("Failed to refresh binders:", err);
+        }
     };
 
     if (loading) {

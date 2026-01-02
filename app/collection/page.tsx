@@ -26,6 +26,7 @@ import Loading from "@/app/components/Loading";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import EditCardListModal, { type EditableCard } from "./editCardListModal";
 import { useRouter } from "next/navigation";
+import { useGameFilter } from "@/app/components/GameFilterContext";
 
 type CollectionItem = {
     id: string;
@@ -59,7 +60,13 @@ export default function CollectionPage() {
     const itemsPerPage = 10;
     const [editCardListModalOpen, setEditCardListModalOpen] = useState(false);
     const [editCardList, setEditCardList] = useState<CollectionItem | null>(null);
-
+    const { game } = useGameFilter();
+    
+    // Reset to page 1 when game filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [game]);
+    
     // Fetch collection data
     useEffect(() => {
         if (!user) return;
@@ -69,14 +76,15 @@ export default function CollectionPage() {
                 setLoading(true);
                 setError(null);
 
-                const response = await fetch(`/api/collection?page=${currentPage}&limit=${itemsPerPage}`);
+                // Build query string with game filter
+                const gameParam = game === "all" ? "" : `&game=${game}`;
+                const response = await fetch(`/api/collection?page=${currentPage}&limit=${itemsPerPage}${gameParam}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch collection");
                 }
 
                 const data: CollectionData = await response.json();
-                setCollectionData(data);
-
+                
                 // Fetch card details from Scryfall for each card
                 const cardsMap = new Map<string, ScryfallCard>();
                 for (const item of data.items) {
@@ -91,6 +99,34 @@ export default function CollectionPage() {
                     }
                 }
                 setCards(cardsMap);
+
+                // Filter items by game client-side
+                // Since all cards currently come from Scryfall (MTG), we filter based on that
+                // All Scryfall cards are MTG, so:
+                // - If game is "all" or "mtg": show all items
+                // - If game is "pokemon" or "yugioh": show empty (no cards from those games yet)
+                let filteredItems = data.items;
+                let filteredTotal = data.pagination.total;
+                
+                if (game === "pokemon" || game === "yugioh") {
+                    // No cards from these games yet (all cards are from Scryfall/MTG)
+                    filteredItems = [];
+                    filteredTotal = 0;
+                } else if (game === "mtg" || game === "all") {
+                    // Show all cards (all are MTG)
+                    filteredItems = data.items;
+                    filteredTotal = data.pagination.total;
+                }
+
+                // Update collection data with filtered items
+                setCollectionData({
+                    items: filteredItems,
+                    pagination: {
+                        ...data.pagination,
+                        total: filteredTotal,
+                        totalPages: Math.ceil(filteredTotal / itemsPerPage),
+                    },
+                });
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load collection");
             } finally {
@@ -99,11 +135,15 @@ export default function CollectionPage() {
         }
 
         fetchCollection();
-    }, [user, currentPage]);
+    }, [user, currentPage, game]);
 
-    // Calculate stats
+    // Calculate stats by game
+    // Note: Stats are based on the total collection, not just the current page
+    // Since all cards currently come from Scryfall (MTG), all cards are MTG
     const totalCards = collectionData?.pagination.total || 0;
-    const mtgCount = Array.from(cards.values()).filter(card => card.set).length; // Approximate MTG count
+    const mtgCount = totalCards; // All Scryfall cards are MTG
+    const pokemonCount = 0; // Not implemented yet - would need Pokemon API
+    const yugiohCount = 0; // Not implemented yet - would need YuGiOh API
 
     if (loading) {
         return (
@@ -180,8 +220,8 @@ export default function CollectionPage() {
                 {[
                     { label: "Total Cards", value: totalCards.toString() },
                     { label: "Magic the Gathering", value: mtgCount.toString() },
-                    { label: "Pokémon", value: "0" },
-                    { label: "Yu-Gi-Oh!", value: "0" },
+                    { label: "Pokémon", value: pokemonCount.toString() },
+                    { label: "Yu-Gi-Oh!", value: yugiohCount.toString() },
                 ].map((s) => (
                     <div
                         key={s.label}
@@ -219,21 +259,6 @@ export default function CollectionPage() {
                 />
 
                 <div className="flex flex-wrap items-center gap-2">
-                    {["All", "MTG", "Pokémon", "Yu-Gi-Oh!"].map((t) => (
-                        <button
-                            key={t}
-                            className="
-                px-3 py-1.5 rounded-md text-sm
-                bg-[#e8d5b8] dark:bg-[#173c3f]
-                border border-[#42c99c] dark:border-[#82664e]
-                hover:bg-black/10 dark:hover:bg-white/10
-                transition-colors
-              "
-                        >
-                            {t}
-                        </button>
-                    ))}
-
                     <button
                         className="
               px-3 py-1.5 rounded-md text-sm font-medium
@@ -299,7 +324,10 @@ export default function CollectionPage() {
                                     )}
                                     <div>
                                         <p className="font-medium leading-tight">{cardName}</p>
-                                        <p className="text-xs opacity-70">MTG</p>
+                                        <p className="text-xs opacity-70">
+                                            {/* Determine game from card source - all Scryfall cards are MTG */}
+                                            MTG
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="col-span-2 text-xs opacity-80">{setName}</div>
