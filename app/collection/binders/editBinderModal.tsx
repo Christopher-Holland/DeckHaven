@@ -100,7 +100,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
         }
     }
 
-    const colors = ["white", "black", "green", "red", "blue", "yellow"];
+    const colors = ["white", "black", "slate", "stone", "red", "rose", "orange", "amber", "blue", "sky", "cyan", "teal", "green", "emerald", "lime", "purple", "violet", "pink", "gold"];
 
     if (!open || !binder) return null;
 

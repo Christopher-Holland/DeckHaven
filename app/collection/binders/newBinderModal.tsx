@@ -80,7 +80,7 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
         }
     }
 
-    const colors = ["white", "black", "green", "red", "blue", "yellow"];
+    const colors = ["white", "black", "slate", "stone", "red", "rose", "orange", "amber", "blue", "sky", "cyan", "teal", "green", "emerald", "lime", "purple", "violet", "pink", "gold"];
 
     if (!open) return null;
 

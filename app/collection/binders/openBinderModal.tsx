@@ -35,10 +35,23 @@ function normalizeBinderColor(color?: string | null) {
     const named: Record<string, string> = {
         white: "#ffffff",
         black: "#111827",
+        slate: "#475569",
+        stone: "#78716c",
         red: "#ef4444",
+        rose: "#f43f5e",
+        orange: "#f97316",
+        amber: "#f59e0b",
         blue: "#3b82f6",
+        sky: "#0ea5e9",
+        cyan: "#06b6d4",
+        teal: "#14b8a6",
         green: "#22c55e",
-        yellow: "#eab308",
+        emerald: "#10b981",
+        lime: "#84cc16",
+        purple: "#8b5cf6",
+        violet: "#7c3aed",
+        pink: "#ec4899",
+        gold: "#d4af37",
     };
 
     return named[color] ?? color; // supports hex strings too
@@ -317,12 +330,11 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
                                 <div className="relative p-4 sm:p-5">
                                     {/* pocket grid */}
-                                    <div 
-                                        className={`grid gap-3 sm:gap-4 ${
-                                            gridSize.cols === 2 ? "grid-cols-2" :
-                                            gridSize.cols === 4 ? "grid-cols-4" :
-                                            "grid-cols-3"
-                                        }`}
+                                    <div
+                                        className={`grid gap-3 sm:gap-4 ${gridSize.cols === 2 ? "grid-cols-2" :
+                                                gridSize.cols === 4 ? "grid-cols-4" :
+                                                    "grid-cols-3"
+                                            }`}
                                     >
                                         {pageSlots.map((slot, idx) => (
                                             <div

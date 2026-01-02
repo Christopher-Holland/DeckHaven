@@ -54,11 +54,24 @@ function binderCoverColor(color: string | null): string {
     const c = color.toLowerCase();
     const map: Record<string, string> = {
         white: "#ffffff",
-        black: "#1f2937",
-        green: "#16a34a",
-        red: "#dc2626",
-        blue: "#2563eb",
-        yellow: "#f59e0b",
+        black: "#111827",
+        slate: "#475569",
+        stone: "#78716c",
+        red: "#ef4444",
+        rose: "#f43f5e",
+        orange: "#f97316",
+        amber: "#f59e0b",
+        blue: "#3b82f6",
+        sky: "#0ea5e9",
+        cyan: "#06b6d4",
+        teal: "#14b8a6",
+        green: "#22c55e",
+        emerald: "#10b981",
+        lime: "#84cc16",
+        purple: "#8b5cf6",
+        violet: "#7c3aed",
+        pink: "#ec4899",
+        gold: "#d4af37",
     };
 
     return map[c] ?? color; // if it's already a hex/rgb, use it
@@ -138,7 +151,7 @@ export default function BindersPage() {
     const [openBinderModal, setOpenBinderModal] = useState(false);
     const [selectedBinder, setSelectedBinder] = useState<Binder | null>(null);
     const router = useRouter();
-    
+
     // Fetch binders
     useEffect(() => {
         if (!user) return;
@@ -175,12 +188,12 @@ export default function BindersPage() {
         // Filter binders based on their game field
         const filteredBinders = allBinders.filter((binder) => {
             const binderGame = binder.game || "all"; // null means "all" (favorites)
-            
+
             if (game === "all") {
                 // Show all binders when "all" is selected
                 return true;
             }
-            
+
             // Show binders that match the selected game OR are favorites (null/"all")
             return binderGame === game || binderGame === "all";
         });
@@ -194,7 +207,7 @@ export default function BindersPage() {
             const gameParam = game === "all" ? "" : `?game=${game}`;
             const response = await fetch(`/api/binders${gameParam}`);
             if (!response.ok) throw new Error("Failed to refresh binders");
-            
+
             const data = await response.json();
             setAllBinders(data.binders || []);
 
@@ -290,26 +303,18 @@ export default function BindersPage() {
             {binders.length > 0 ? (
                 <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10">
                     {binders.map((binder) => {
-                        // Simple color mapping (so "red"/"blue" etc. feel like materials)
-                        const coverClass =
-                            binder.color === "black"
-                                ? "bg-neutral-900"
-                                : binder.color === "white"
-                                    ? "bg-neutral-50"
-                                    : binder.color === "red"
-                                        ? "bg-red-700"
-                                        : binder.color === "blue"
-                                            ? "bg-blue-700"
-                                            : binder.color === "green"
-                                                ? "bg-emerald-700"
-                                                : binder.color === "yellow"
-                                                    ? "bg-amber-400"
-                                                    : "bg-[#173c3f]"; // fallback if color is something else
-
-                        const coverTextClass =
-                            binder.color === "yellow" || binder.color === "white"
-                                ? "text-neutral-900"
-                                : "text-white";
+                        // Use the binderCoverColor function to get the hex color
+                        const coverColor = binderCoverColor(binder.color);
+                        
+                        // Determine text color based on brightness (light colors need dark text)
+                        const isLightColor = binder.color === "yellow" || 
+                                            binder.color === "white" || 
+                                            binder.color === "lime" ||
+                                            binder.color === "amber" ||
+                                            binder.color === "orange" ||
+                                            binder.color === "sky" ||
+                                            binder.color === "cyan";
+                        const coverTextClass = isLightColor ? "text-neutral-900" : "text-white";
 
                         return (
                             <button
@@ -329,15 +334,15 @@ export default function BindersPage() {
                             >
                                 {/* “Binder cover” */}
                                 <div
-                                    className={`
+                                    className="
           relative overflow-hidden rounded-xl
-          ${coverClass}
           shadow-lg
           transition-transform duration-200
           group-hover:-translate-y-6
           aspect-[3/4]
           border-0
-        `}
+        "
+                                    style={{ backgroundColor: coverColor }}
                                 >
                                     {/* subtle leather/plastic sheen */}
                                     <div className="pointer-events-none absolute inset-0 opacity-25 bg-gradient-to-br from-white/40 via-transparent to-black/30" />
