@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Edit, Plus, Trash, X, ChevronLeft, ChevronRight } from "lucide-react";
 import EditBinderModal from "./editBinderModal";
 import type { ScryfallCard } from "@/app/lib/scryfall";
+import AddToBinderModal from "./addToBinderModal";
 
 type Binder = {
     id: string;
@@ -22,6 +23,7 @@ type BinderCard = {
     cardId: string; // Scryfall card ID
     imageUrl?: string | null; // optional for later
     title?: string | null;    // optional for tooltip
+    isInCollection?: boolean; // whether card is in user's collection
 };
 
 type Props = {
@@ -37,9 +39,18 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
     const [deleting, setDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [isFlipping, setIsFlipping] = useState(false);
-    const [binderCards, setBinderCards] = useState<BinderCard[]>([]);
+    const [binderCards, setBinderCards] = useState<Array<{
+        id: string;
+        cardId: string;
+        slotIndex?: number | null;
+        pageNumber?: number | null;
+    }>>([]);
     const [cardDetails, setCardDetails] = useState<Map<string, ScryfallCard>>(new Map());
     const [loadingCards, setLoadingCards] = useState(false);
+    const [addToBinderModalOpen, setAddToBinderModalOpen] = useState(false);
+    const [pendingSlotIndex, setPendingSlotIndex] = useState<number | null>(null);
+    const [pendingPageNumber, setPendingPageNumber] = useState<number | null>(null);
+    const [collectionCardIds, setCollectionCardIds] = useState<Set<string>>(new Set());
 
     // Fetch binder cards when modal opens
     useEffect(() => {
@@ -55,12 +66,26 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
             try {
                 setLoadingCards(true);
+                
+                // Fetch binder cards
                 const response = await fetch(`/api/binders/${binder.id}`);
                 if (!response.ok) throw new Error("Failed to fetch binder cards");
 
                 const data = await response.json();
                 const cards = data.binder?.binderCards || [];
                 setBinderCards(cards);
+
+                // Fetch user's collection to check ownership
+                try {
+                    const collectionResponse = await fetch(`/api/collection?page=1&limit=10000`);
+                    if (collectionResponse.ok) {
+                        const collectionData = await collectionResponse.json();
+                        const cardIds = new Set<string>(collectionData.items?.map((item: { cardId: string }) => item.cardId) || []);
+                        setCollectionCardIds(cardIds);
+                    }
+                } catch (err) {
+                    console.warn("Failed to fetch collection:", err);
+                }
 
                 // Fetch card details from Scryfall
                 const detailsMap = new Map<string, ScryfallCard>();
@@ -107,32 +132,38 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
         return { cols: 3, total: 9 }; // default 3x3
     }, [binder?.size]);
 
-    // Calculate total pages
+    // Calculate total pages - always allow up to 20 pages for navigation
     const totalPages = useMemo(() => {
-        const totalCards = binderCards.length;
-        const cardsPerPage = gridSize.total;
-        return Math.max(1, Math.ceil(totalCards / cardsPerPage));
-    }, [binderCards.length, gridSize.total]);
+        return 20; // Always allow navigation through 20 pages
+    }, []);
 
-    // Get cards for a specific page
-    const getPageCards = (page: number) => {
-        const startIndex = (page - 1) * gridSize.total;
-        const endIndex = startIndex + gridSize.total;
-        return binderCards.slice(startIndex, endIndex);
-    };
-
-    // Fill slots for a page
+    // Fill slots for a page based on slotIndex and pageNumber
     const getPageSlots = (page: number) => {
-        const pageCards = getPageCards(page);
+        // Filter cards for this page
+        const pageCards = binderCards.filter(bc => 
+            bc.pageNumber === page || (!bc.pageNumber && page === 1)
+        );
+        
+        // Create a map of slotIndex -> card
+        const slotMap = new Map<number, typeof binderCards[0]>();
+        pageCards.forEach(card => {
+            if (card.slotIndex !== null && card.slotIndex !== undefined) {
+                slotMap.set(card.slotIndex, card);
+            }
+        });
+        
+        // Fill slots array
         const slots = Array.from({ length: gridSize.total }, (_, i) => {
-            const card = pageCards[i];
+            const card = slotMap.get(i);
             if (!card) return null;
             const cardDetail = cardDetails.get(card.cardId);
+            const isInCollection = collectionCardIds.has(card.cardId);
             return {
                 id: card.id,
                 cardId: card.cardId,
                 imageUrl: cardDetail?.image_uris?.small || cardDetail?.image_uris?.normal || null,
                 title: cardDetail?.name || null,
+                isInCollection,
             };
         });
         return slots;
@@ -168,17 +199,28 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
         return () => window.removeEventListener("keydown", onKeyDown);
     }, [open, onClose, editModalOpen, deleting, currentPage, totalPages, isFlipping]);
 
-    // Current page slots
-    const currentPageSlots = useMemo(() => getPageSlots(currentPage), [currentPage, binderCards, cardDetails, gridSize.total]);
-
-    // Previous page slots (for page 2+)
-    const previousPageSlots = useMemo(() => {
-        if (currentPage === 1) return null;
-        return getPageSlots(currentPage - 1);
-    }, [currentPage, binderCards, cardDetails, gridSize.total]);
+    // Left page: Page N (or cover if page 1)
+    // Page 1: Cover | Page 1
+    // Page 2: Page 2 | Page 3
+    // Page 3: Page 4 | Page 5
+    // So when viewing page N: Left = Page N, Right = Page N+1 (or Page 1 if N=1)
+    const leftPageSlots = useMemo(() => {
+        if (currentPage === 1) return null; // Will show cover
+        return getPageSlots(currentPage); // Show current page on left
+    }, [currentPage, binderCards, cardDetails, gridSize.total, collectionCardIds]);
+    
+    // Right page: Page N+1 (or Page 1 if viewing page 1)
+    const rightPageSlots = useMemo(() => {
+        if (currentPage === 1) return getPageSlots(1); // Page 1 shows Page 1 on right
+        if (currentPage >= totalPages) {
+            // On last page, show empty page on right
+            return Array.from({ length: gridSize.total }, () => null);
+        }
+        return getPageSlots(currentPage + 1); // Show next page
+    }, [currentPage, binderCards, cardDetails, gridSize.total, totalPages, collectionCardIds]);
 
     // Render a single page component
-    const renderPage = (slots: (BinderCard | null)[], isLeftPage: boolean = false) => (
+    const renderPage = (slots: (BinderCard | null)[], pageNumber: number) => (
         <div
             className="
                 relative rounded-2xl
@@ -204,8 +246,8 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 {/* pocket grid */}
                 <div
                     className={`grid gap-3 sm:gap-4 ${gridSize.cols === 2 ? "grid-cols-2" :
-                            gridSize.cols === 4 ? "grid-cols-4" :
-                                "grid-cols-3"
+                        gridSize.cols === 4 ? "grid-cols-4" :
+                            "grid-cols-3"
                         }`}
                 >
                     {slots.map((slot, idx) => (
@@ -229,7 +271,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                 <img
                                     src={slot.imageUrl}
                                     alt={slot.title ?? "Card"}
-                                    className="h-full w-full object-cover"
+                                    className={`h-full w-full object-cover ${slot.isInCollection === false ? "opacity-60 grayscale" : ""}`}
                                 />
                             ) : (
                                 <div className="h-full w-full flex items-center justify-center">
@@ -249,8 +291,12 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                             ) : (
                                                 <button
                                                     type="button"
-                                                    onClick={() => { }}
-                                                    className="flex flex-col items-center justify-center gap-1"
+                                                    onClick={() => {
+                                                        setPendingSlotIndex(idx);
+                                                        setPendingPageNumber(pageNumber);
+                                                        setAddToBinderModalOpen(true);
+                                                    }}
+                                                    className="flex flex-col items-center justify-center gap-1 hover:opacity-90 transition-opacity cursor-pointer text-black/60 dark:text-white/60 border border-black/15 dark:border-white/15 rounded-md p-2"
                                                 >
                                                     <Plus className="w-4 h-4" />
                                                     <span>Add Card</span>
@@ -269,8 +315,8 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
     // Render the cover component
     const renderCover = () => (
-            <div
-                className="
+        <div
+            className="
                 relative rounded-2xl
                 border border-black/10 dark:border-white/10
                 shadow-xl
@@ -278,31 +324,31 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 w-full h-full
                 min-h-[400px]
             "
-                style={{ backgroundColor: coverColor }}
-            >
-                {/* cover shine */}
-                <div
-                    aria-hidden="true"
-                    className="absolute inset-0 opacity-5"
-                    style={{
-                        background:
-                            "linear-gradient(120deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 35%, rgba(0,0,0,0.10) 100%)",
-                    }}
-                />
+            style={{ backgroundColor: coverColor }}
+        >
+            {/* cover shine */}
+            <div
+                aria-hidden="true"
+                className="absolute inset-0 opacity-5"
+                style={{
+                    background:
+                        "linear-gradient(120deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 35%, rgba(0,0,0,0.10) 100%)",
+                }}
+            />
 
-                {/* faux "stitched" edge */}
-                <div
-                    aria-hidden="true"
-                    className="absolute inset-0 rounded-2xl"
-                    style={{
-                        boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.12)",
-                    }}
-                />
+            {/* faux "stitched" edge */}
+            <div
+                aria-hidden="true"
+                className="absolute inset-0 rounded-2xl"
+                style={{
+                    boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.12)",
+                }}
+            />
 
-                {/* label plate */}
-                <div className="absolute left-5 top-5 right-5">
-                    <div
-                        className="
+            {/* label plate */}
+            <div className="absolute left-5 top-5 right-5">
+                <div
+                    className="
                         rounded-xl
                         border border-black/15
                         bg-white/80
@@ -311,38 +357,38 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                         text-[#193f44]
                         shadow-md
                     "
-                    >
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                                <p className="text-xs uppercase tracking-wider opacity-90">
-                                    DeckHaven Binder
-                                </p>
-                                <p className="text-lg font-semibold truncate">{binder?.name}</p>
-                                {binder?.description?.trim() ? (
-                                    <p className="text-sm opacity-75 line-clamp-2 mt-0.5">{binder.description}</p>
-                                ) : null}
-                            </div>
+                >
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-xs uppercase tracking-wider opacity-90">
+                                DeckHaven Binder
+                            </p>
+                            <p className="text-lg font-semibold truncate">{binder?.name}</p>
+                            {binder?.description?.trim() ? (
+                                <p className="text-sm opacity-75 line-clamp-2 mt-0.5">{binder.description}</p>
+                            ) : null}
                         </div>
                     </div>
                 </div>
             </div>
-            );
+        </div>
+    );
 
-            if (!open || !binder) return null;
+    if (!open || !binder) return null;
 
-            return (
+    return (
+        <div
+            className="fixed inset-0 z-[999] flex items-center justify-center"
+            aria-modal="true"
+            role="dialog"
+            aria-label="Open Binder"
+        >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/60" onMouseDown={onClose} />
+
+            {/* Modal Shell */}
             <div
-                className="fixed inset-0 z-[999] flex items-center justify-center"
-                aria-modal="true"
-                role="dialog"
-                aria-label="Open Binder"
-            >
-                {/* Backdrop */}
-                <div className="absolute inset-0 bg-black/60" onMouseDown={onClose} />
-
-                {/* Modal Shell */}
-                <div
-                    className="
+                className="
           relative w-[min(1100px,96vw)] max-h-[92vh]
           overflow-hidden
           rounded-2xl
@@ -351,21 +397,21 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
           text-[#193f44] dark:text-[#e8d5b8]
           shadow-2xl
         "
-                    onMouseDown={(e) => e.stopPropagation()}
-                >
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-3 p-4 border-b border-black/10 dark:border-white/10">
-                        <div className="min-w-0">
-                            <h3 className="text-lg font-semibold truncate">{binder.name}</h3>
-                            <p className="text-sm opacity-70 truncate">
-                                {binder.description?.trim()
-                                    ? binder.description
-                                    : `${binder._count?.binderCards ?? binderCards.length} cards`}
-                            </p>
+                onMouseDown={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3 p-4 border-b border-black/10 dark:border-white/10">
+                    <div className="min-w-0">
+                        <h3 className="text-lg font-semibold truncate">{binder.name}</h3>
+                        <p className="text-sm opacity-70 truncate">
+                            {binder.description?.trim()
+                                ? binder.description
+                                : `${binder._count?.binderCards ?? binderCards.length} cards`}
+                        </p>
 
-                        </div>
-                        <button
-                            className="
+                    </div>
+                    <button
+                        className="
                             inline-flex items-center gap-2
                             px-3 py-2 rounded-md text-sm
                             bg-black/5 dark:bg-white/5
@@ -374,14 +420,14 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                             flex-shrink-0
                             transition-colors
                             "
-                            type="button"
-                            onClick={() => setEditModalOpen(true)}
-                        >
-                            <Edit className="w-5 h-5" />
-                            <span className="text-sm">Edit Binder</span>
-                        </button>
-                        <button
-                            className="
+                        type="button"
+                        onClick={() => setEditModalOpen(true)}
+                    >
+                        <Edit className="w-5 h-5" />
+                        <span className="text-sm">Edit Binder</span>
+                    </button>
+                    <button
+                        className="
                             inline-flex items-center gap-2
                             px-3 py-2 rounded-md text-sm
                             bg-red-500/10 dark:bg-red-500/20
@@ -392,39 +438,39 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                             transition-colors
                             disabled:opacity-50 disabled:cursor-not-allowed
                             "
-                            type="button"
-                            onClick={async () => {
-                                if (!binder || !confirm(`Are you sure you want to delete "${binder.name}"? This action cannot be undone.`)) {
-                                    return;
+                        type="button"
+                        onClick={async () => {
+                            if (!binder || !confirm(`Are you sure you want to delete "${binder.name}"? This action cannot be undone.`)) {
+                                return;
+                            }
+                            setDeleting(true);
+                            try {
+                                const response = await fetch(`/api/binders/${binder.id}`, {
+                                    method: "DELETE",
+                                });
+                                if (!response.ok) {
+                                    throw new Error("Failed to delete binder");
                                 }
-                                setDeleting(true);
-                                try {
-                                    const response = await fetch(`/api/binders/${binder.id}`, {
-                                        method: "DELETE",
-                                    });
-                                    if (!response.ok) {
-                                        throw new Error("Failed to delete binder");
-                                    }
-                                    onClose();
-                                    if (onSuccess) {
-                                        onSuccess();
-                                    }
-                                } catch (err) {
-                                    alert(err instanceof Error ? err.message : "Failed to delete binder");
-                                } finally {
-                                    setDeleting(false);
+                                onClose();
+                                if (onSuccess) {
+                                    onSuccess();
                                 }
-                            }}
-                            disabled={deleting}
-                        >
-                            <Trash className="w-5 h-5" />
-                            <span className="text-sm">{deleting ? "Deleting..." : "Delete Binder"}</span>
-                        </button>
+                            } catch (err) {
+                                alert(err instanceof Error ? err.message : "Failed to delete binder");
+                            } finally {
+                                setDeleting(false);
+                            }
+                        }}
+                        disabled={deleting}
+                    >
+                        <Trash className="w-5 h-5" />
+                        <span className="text-sm">{deleting ? "Deleting..." : "Delete Binder"}</span>
+                    </button>
 
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="
               p-2 rounded-md
               bg-black/5 dark:bg-white/5
               hover:bg-black/10 dark:hover:bg-white/10
@@ -432,17 +478,17 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
               focus:outline-none focus:ring-2 focus:ring-[#42c99c]
               dark:focus:ring-[#82664e]
             "
-                            aria-label="Close modal"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
+                        aria-label="Close modal"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
 
-                    {/* Binder Scene */}
-                    <div className="p-4 sm:p-6">
-                        {/* “Table” surface */}
-                        <div
-                            className="
+                {/* Binder Scene */}
+                <div className="p-4 sm:p-6">
+                    {/* “Table” surface */}
+                    <div
+                        className="
               relative
               rounded-2xl
               border border-black/10 dark:border-white/10
@@ -450,105 +496,105 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
               p-4 sm:p-6
               overflow-hidden
             "
-                        >
-                            {/* subtle diagonal texture */}
-                            <div
-                                aria-hidden="true"
-                                className="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.10]"
-                                style={{
-                                    backgroundImage:
-                                        "repeating-linear-gradient(135deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 12px)",
-                                }}
-                            />
+                    >
+                        {/* subtle diagonal texture */}
+                        <div
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.10]"
+                            style={{
+                                backgroundImage:
+                                    "repeating-linear-gradient(135deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 12px)",
+                            }}
+                        />
 
-                            {/* Binder open layout */}
-                            {loadingCards ? (
-                                <div className="flex items-center justify-center min-h-[400px]">
-                                    <div className="text-center">
-                                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#42c99c] dark:border-[#82664e] mb-4"></div>
-                                        <p className="text-sm opacity-70">Loading binder cards...</p>
-                                    </div>
+                        {/* Binder open layout */}
+                        {loadingCards ? (
+                            <div className="flex items-center justify-center min-h-[400px]">
+                                <div className="text-center">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#42c99c] dark:border-[#82664e] mb-4"></div>
+                                    <p className="text-sm opacity-70">Loading binder cards...</p>
                                 </div>
-                            ) : (
-                                <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_70px_1fr] gap-4 lg:gap-6 items-stretch">
-                                    {/* LEFT SIDE - Cover on page 1, card page on page 2+ */}
-                                    <div className="relative w-full h-full">
-                                        {currentPage === 1 ? (
-                                            <div
-                                                className={`
-                                                relative w-full h-full
-                                                transition-all duration-500 ease-in-out
-                                                ${isFlipping ? "opacity-0 scale-95" : "opacity-100 scale-100"}
-                                            `}
-                                            >
-                                                {renderCover()}
-                                            </div>
-                                        ) : previousPageSlots ? (
-                                            <div
-                                                className={`
-                                                relative w-full h-full
-                                                transition-all duration-500 ease-in-out
-                                                ${isFlipping ? "opacity-0 scale-95" : "opacity-100 scale-100"}
-                                            `}
-                                            >
-                                                {renderPage(previousPageSlots, true)}
-                                            </div>
-                                        ) : (
-                                            <div className="relative w-full h-full">
-                                                {renderPage(currentPageSlots, true)}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* RINGS / SPINE */}
-                                    <div className="relative flex items-center justify-center">
+                            </div>
+                        ) : (
+                            <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_70px_1fr] items-stretch">
+                                {/* LEFT SIDE - Cover on page 1, current page on page 2+ */}
+                                <div className="relative w-full h-full">
+                                    {currentPage === 1 ? (
                                         <div
-                                            className="
+                                            className={`
+                                                relative w-full h-full
+                                                transition-all duration-500 ease-in-out
+                                                ${isFlipping ? "opacity-0 scale-95" : "opacity-100 scale-100"}
+                                            `}
+                                        >
+                                            {renderCover()}
+                                        </div>
+                                    ) : leftPageSlots ? (
+                                        <div
+                                            className={`
+                                                relative w-full h-full
+                                                transition-all duration-500 ease-in-out
+                                                ${isFlipping ? "opacity-0 scale-95" : "opacity-100 scale-100"}
+                                            `}
+                                        >
+                                            {renderPage(leftPageSlots, currentPage)}
+                                        </div>
+                                    ) : (
+                                        <div className="relative w-full h-full">
+                                            {renderPage(getPageSlots(currentPage), currentPage)}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* RINGS / SPINE */}
+                                <div className="relative flex items-center justify-center">
+                                    <div
+                                        className="
                                             relative h-full w-full
                                             rounded-2xl
                                             border border-black/10 dark:border-white/10
                                             overflow-hidden
                                         "
-                                            style={{ backgroundColor: spineColor }}
-                                        >
-                                            {/* spine highlight */}
-                                            <div
-                                                aria-hidden="true"
-                                                className="absolute inset-0 opacity-40"
-                                                style={{
-                                                    background:
-                                                        "linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.06), rgba(0,0,0,0.10))",
-                                                }}
-                                            />
-
-                                            {/* inner "hinge" line */}
-                                            <div className="absolute inset-y-0 left-1/2 w-px bg-black/15 dark:bg-white/15" />
-                                        </div>
-                                    </div>
-
-                                    {/* RIGHT PAGE - Current page */}
-                                    <div className="relative w-full h-full">
+                                        style={{ backgroundColor: spineColor }}
+                                    >
+                                        {/* spine highlight */}
                                         <div
-                                            className={`
+                                            aria-hidden="true"
+                                            className="absolute inset-0 opacity-40"
+                                            style={{
+                                                background:
+                                                    "linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.06), rgba(0,0,0,0.10))",
+                                            }}
+                                        />
+
+                                        {/* inner "hinge" line */}
+                                        <div className="absolute inset-y-0 left-1/2 w-px bg-black/15 dark:bg-white/15" />
+                                    </div>
+                                </div>
+
+                                {/* RIGHT PAGE - Next page (or current page if page 1) */}
+                                <div className="relative w-full h-full">
+                                    <div
+                                        className={`
                                             relative w-full h-full
                                             transition-all duration-500 ease-in-out
                                             ${isFlipping ? "opacity-0 scale-95" : "opacity-100 scale-100"}
                                         `}
-                                        >
-                                            {renderPage(currentPageSlots, false)}
-                                        </div>
+                                    >
+                                        {rightPageSlots ? renderPage(rightPageSlots, currentPage === 1 ? 1 : currentPage + 1) : renderPage(getPageSlots(currentPage), currentPage)}
                                     </div>
                                 </div>
-                            )}
+                            </div>
+                        )}
 
-                            {/* Pagination Controls */}
-                            {!loadingCards && (
-                                <div className="mt-6 flex items-center justify-between px-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => handlePageChange(currentPage - 1)}
-                                        disabled={currentPage === 1 || isFlipping}
-                                        className="
+                        {/* Pagination Controls */}
+                        {!loadingCards && (
+                            <div className="mt-6 flex items-center justify-between px-4">
+                                <button
+                                    type="button"
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1 || isFlipping}
+                                    className="
                                         flex items-center gap-2
                                         px-4 py-2 rounded-md
                                         bg-[#e8d5b8] dark:bg-[#173c3f]
@@ -560,58 +606,58 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                         focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                         dark:focus:ring-[#82664e]
                                     "
-                                    >
-                                        <ChevronLeft className="w-4 h-4" />
-                                        Previous
-                                    </button>
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                    Previous
+                                </button>
 
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm opacity-70">
-                                            Page {currentPage} of {totalPages}
-                                        </span>
-                                        <div className="flex items-center gap-1">
-                                            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                                                let pageNum: number;
-                                                if (totalPages <= 7) {
-                                                    pageNum = i + 1;
-                                                } else if (currentPage <= 4) {
-                                                    pageNum = i + 1;
-                                                } else if (currentPage >= totalPages - 3) {
-                                                    pageNum = totalPages - 6 + i;
-                                                } else {
-                                                    pageNum = currentPage - 3 + i;
-                                                }
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm opacity-70">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                                            let pageNum: number;
+                                            if (totalPages <= 7) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage <= 4) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage >= totalPages - 3) {
+                                                pageNum = totalPages - 6 + i;
+                                            } else {
+                                                pageNum = currentPage - 3 + i;
+                                            }
 
-                                                return (
-                                                    <button
-                                                        key={pageNum}
-                                                        type="button"
-                                                        onClick={() => handlePageChange(pageNum)}
-                                                        disabled={isFlipping}
-                                                        className={`
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    type="button"
+                                                    onClick={() => handlePageChange(pageNum)}
+                                                    disabled={isFlipping}
+                                                    className={`
                                                         px-3 py-1.5 rounded-md text-sm
                                                         transition-colors
                                                         focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                                         dark:focus:ring-[#82664e]
                                                         disabled:opacity-50 disabled:cursor-not-allowed
                                                         ${currentPage === pageNum
-                                                                ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
-                                                                : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
-                                                            }
+                                                            ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
+                                                            : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
+                                                        }
                                                     `}
-                                                    >
-                                                        {pageNum}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
+                                </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => handlePageChange(currentPage + 1)}
-                                        disabled={currentPage === totalPages || isFlipping}
-                                        className="
+                                <button
+                                    type="button"
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage >= totalPages || isFlipping}
+                                    className="
                                         flex items-center gap-2
                                         px-4 py-2 rounded-md
                                         bg-[#e8d5b8] dark:bg-[#173c3f]
@@ -623,35 +669,76 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                         focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                         dark:focus:ring-[#82664e]
                                     "
-                                    >
-                                        Next
-                                        <ChevronRight className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            )}
+                                >
+                                    Next
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
 
-                            {/* bottom shadow to “lift” binder off table */}
-                            <div
-                                aria-hidden="true"
-                                className="pointer-events-none absolute inset-x-10 bottom-4 h-10 blur-2xl opacity-25"
-                                style={{ background: "radial-gradient(closest-side, rgba(0,0,0,0.55), transparent)" }}
-                            />
-                        </div>
+                        {/* bottom shadow to “lift” binder off table */}
+                        <div
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-x-10 bottom-4 h-10 blur-2xl opacity-25"
+                            style={{ background: "radial-gradient(closest-side, rgba(0,0,0,0.55), transparent)" }}
+                        />
                     </div>
                 </div>
-
-                {/* Edit Binder Modal */}
-                <EditBinderModal
-                    open={editModalOpen}
-                    binder={binder}
-                    onClose={() => setEditModalOpen(false)}
-                    onSuccess={() => {
-                        setEditModalOpen(false);
-                        if (onSuccess) {
-                            onSuccess();
-                        }
-                    }}
-                />
             </div>
-            );
+
+            {/* Edit Binder Modal */}
+            <EditBinderModal
+                open={editModalOpen}
+                binder={binder}
+                onClose={() => setEditModalOpen(false)}
+                onSuccess={() => {
+                    setEditModalOpen(false);
+                    if (onSuccess) {
+                        onSuccess();
+                    }
+                }}
+            />
+
+            {/* Add to Binder Modal */}
+            <AddToBinderModal
+                open={addToBinderModalOpen}
+                binderId={binder.id}
+                binderGame={binder.game ?? "mtg"}
+                currentPage={pendingPageNumber ?? currentPage}
+                cardsPerPage={gridSize.total}
+                pendingSlotIndex={pendingSlotIndex}
+                    onClose={() => {
+                        setAddToBinderModalOpen(false);
+                        setPendingSlotIndex(null);
+                        setPendingPageNumber(null);
+                    }}
+                onAdded={async () => {
+                    // Refresh binder cards after adding
+                    const response = await fetch(`/api/binders/${binder.id}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setBinderCards(data.binder?.binderCards || []);
+                        
+                        // Refetch card details for new cards
+                        const newCards = data.binder?.binderCards || [];
+                        const detailsMap = new Map<string, ScryfallCard>();
+                        for (const bc of newCards) {
+                            if (!cardDetails.has(bc.cardId)) {
+                                try {
+                                    const cardResponse = await fetch(`/api/scryfall/card/${bc.cardId}`);
+                                    if (cardResponse.ok) {
+                                        const cardData = await cardResponse.json();
+                                        detailsMap.set(bc.cardId, cardData);
+                                    }
+                                } catch (err) {
+                                    console.warn(`Failed to fetch card ${bc.cardId}:`, err);
+                                }
+                            }
+                        }
+                        setCardDetails(prev => new Map([...prev, ...detailsMap]));
+                    }
+                }}
+            />
+        </div>
+    );
 }

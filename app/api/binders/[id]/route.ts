@@ -56,8 +56,13 @@ export async function GET(
                     select: {
                         id: true,
                         cardId: true,
+                        slotIndex: true,
+                        pageNumber: true,
                     },
-                    orderBy: { createdAt: "asc" },
+                    orderBy: [
+                        { pageNumber: "asc" },
+                        { slotIndex: "asc" },
+                    ],
                 },
             },
         });
