@@ -46,7 +46,7 @@ export default function BrandNav() {
                             onClick={() => setGame(item.key)}
                             className={[
                                 "transition-colors",
-                                active ? "text-[#36c293]" : "hover:text-[#36c293]",
+                                active ? "text-[#36c293] underline" : "hover:text-[#36c293] ",
                             ].join(" ")}
                             aria-current={active ? "page" : undefined}
                         >
