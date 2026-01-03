@@ -13,7 +13,9 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
     const [size, setSize] = useState("2x2");
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [binderColor, setBinderColor] = useState("white");
+    const [coverColor, setCoverColor] = useState("#ffffff");
+    const [spineColor, setSpineColor] = useState("#1f2937");
+    const [pageColor, setPageColor] = useState("#f6ead6");
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +26,9 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
             setSize("2x2");
             setName("");
             setDescription("");
-            setBinderColor("white");
+            setCoverColor("#ffffff");
+            setSpineColor("#1f2937");
+            setPageColor("#f6ead6");
             setError(null);
         }
     }, [open]);
@@ -51,7 +55,9 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
                 body: JSON.stringify({
                     name: name.trim(),
                     description: description.trim() || null,
-                    color: binderColor,
+                    color: coverColor,
+                    spineColor: spineColor,
+                    pageColor: pageColor,
                     game: selectedGame === "all" ? null : selectedGame, // Store null for "all" (favorites)
                     size: size,
                 }),
@@ -79,8 +85,6 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
             setSaving(false);
         }
     }
-
-    const colors = ["white", "black", "slate", "stone", "red", "rose", "orange", "amber", "blue", "sky", "cyan", "teal", "green", "emerald", "lime", "purple", "violet", "pink", "gold"];
 
     if (!open) return null;
 
@@ -206,26 +210,100 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
                             />
                         </label>
 
-                        {/* Color */}
+                        {/* Cover Color */}
                         <label className="text-sm block">
-                            <span className="opacity-80">Color</span>
-                            <select
-                                value={binderColor}
-                                onChange={(e) => setBinderColor(e.target.value)}
-                                className="
-                    mt-1 w-full rounded-md px-3 py-2 text-sm
-                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                    border border-[#42c99c] dark:border-[#82664e]
-                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                    dark:focus:ring-[#82664e]
-                  "
-                            >
-                                {colors.map((color) => (
-                                    <option key={color} value={color}>
-                                        {color.charAt(0).toUpperCase() + color.slice(1)}
-                                    </option>
-                                ))}
-                            </select>
+                            <span className="opacity-80">Cover Color</span>
+                            <div className="mt-1 flex items-center gap-3">
+                                <input
+                                    type="color"
+                                    value={coverColor}
+                                    onChange={(e) => setCoverColor(e.target.value)}
+                                    className="
+                                        w-16 h-10 rounded-md
+                                        border border-[#42c99c] dark:border-[#82664e]
+                                        cursor-pointer
+                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                        dark:focus:ring-[#82664e]
+                                    "
+                                />
+                                <input
+                                    type="text"
+                                    value={coverColor}
+                                    onChange={(e) => setCoverColor(e.target.value)}
+                                    placeholder="#ffffff"
+                                    className="
+                                        flex-1 rounded-md px-3 py-2 text-sm
+                                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                                        border border-[#42c99c] dark:border-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                        dark:focus:ring-[#82664e]
+                                    "
+                                />
+                            </div>
+                        </label>
+
+                        {/* Spine Color */}
+                        <label className="text-sm block">
+                            <span className="opacity-80">Spine Color</span>
+                            <div className="mt-1 flex items-center gap-3">
+                                <input
+                                    type="color"
+                                    value={spineColor}
+                                    onChange={(e) => setSpineColor(e.target.value)}
+                                    className="
+                                        w-16 h-10 rounded-md
+                                        border border-[#42c99c] dark:border-[#82664e]
+                                        cursor-pointer
+                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                        dark:focus:ring-[#82664e]
+                                    "
+                                />
+                                <input
+                                    type="text"
+                                    value={spineColor}
+                                    onChange={(e) => setSpineColor(e.target.value)}
+                                    placeholder="#1f2937"
+                                    className="
+                                        flex-1 rounded-md px-3 py-2 text-sm
+                                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                                        border border-[#42c99c] dark:border-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                        dark:focus:ring-[#82664e]
+                                    "
+                                />
+                            </div>
+                        </label>
+
+                        {/* Page Background Color */}
+                        <label className="text-sm block">
+                            <span className="opacity-80">Page Background Color</span>
+                            <div className="mt-1 flex items-center gap-3">
+                                <input
+                                    type="color"
+                                    value={pageColor}
+                                    onChange={(e) => setPageColor(e.target.value)}
+                                    className="
+                                        w-16 h-10 rounded-md
+                                        border border-[#42c99c] dark:border-[#82664e]
+                                        cursor-pointer
+                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                        dark:focus:ring-[#82664e]
+                                    "
+                                />
+                                <input
+                                    type="text"
+                                    value={pageColor}
+                                    onChange={(e) => setPageColor(e.target.value)}
+                                    placeholder="#f6ead6"
+                                    className="
+                                        flex-1 rounded-md px-3 py-2 text-sm
+                                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                                        border border-[#42c99c] dark:border-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                        dark:focus:ring-[#82664e]
+                                    "
+                                />
+                            </div>
                         </label>
                     </div>
 

@@ -34,7 +34,9 @@ type Binder = {
     id: string;
     name: string;
     description: string | null;
-    color: string | null;
+    color: string | null; // Cover color (hex)
+    spineColor: string | null; // Spine color (hex)
+    pageColor: string | null; // Page background color (hex)
     game: string | null; // "all" (favorites), "mtg", "pokemon", "yugioh" - null means favorites/all games
     createdAt: string;
     updatedAt: string;
@@ -45,100 +47,6 @@ type Binder = {
         cardId: string;
     }>;
 };
-
-// Small helper: map your simple color names to nicer “binder cover” tints.
-// If you already store hex values, those will still work (we pass them through).
-function binderCoverColor(color: string | null): string {
-    if (!color) return "#ffffff";
-
-    const c = color.toLowerCase();
-    const map: Record<string, string> = {
-        white: "#ffffff",
-        black: "#111827",
-        slate: "#475569",
-        stone: "#78716c",
-        red: "#ef4444",
-        rose: "#f43f5e",
-        orange: "#f97316",
-        amber: "#f59e0b",
-        blue: "#3b82f6",
-        sky: "#0ea5e9",
-        cyan: "#06b6d4",
-        teal: "#14b8a6",
-        green: "#22c55e",
-        emerald: "#10b981",
-        lime: "#84cc16",
-        purple: "#8b5cf6",
-        violet: "#7c3aed",
-        pink: "#ec4899",
-        gold: "#d4af37",
-    };
-
-    return map[c] ?? color; // if it's already a hex/rgb, use it
-}
-
-function BinderPreview({
-    coverColor,
-    pocketCount = 9,
-}: {
-    coverColor: string;
-    pocketCount?: number;
-}) {
-    return (
-        <div
-            className="
-        relative overflow-hidden
-        rounded-xl
-        border border-black/10 dark:border-white/10
-        bg-white/60 dark:bg-black/10
-      "
-        >
-            {/* “Binder cover” tint */}
-            <div
-                className="absolute inset-0 opacity-[0.16]"
-                style={{ backgroundColor: coverColor }}
-            />
-
-            {/* Left spine + rings */}
-            <div className="absolute inset-y-0 left-0 w-10 border-r border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
-                <div className="absolute left-1/2 top-6 -translate-x-1/2 flex flex-col gap-5">
-                    {[0, 1, 2].map((i) => (
-                        <div key={i} className="relative">
-                            {/* hole */}
-                            <div className="h-3.5 w-3.5 rounded-full border border-black/20 dark:border-white/20 bg-[#f6ead6] dark:bg-[#0f2a2c]" />
-                            {/* ring shadow hint */}
-                            <div className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/10 dark:border-white/10" />
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Pocket page */}
-            <div className="relative pl-12 pr-3 py-3">
-                <div className="grid grid-cols-3 gap-2">
-                    {Array.from({ length: pocketCount }).map((_, idx) => (
-                        <div
-                            key={idx}
-                            className="
-                aspect-[2.5/3.5]
-                rounded-md
-                border border-black/10 dark:border-white/10
-                bg-white/70 dark:bg-white/5
-                shadow-sm
-              "
-                        >
-                            {/* subtle “card back” pattern */}
-                            <div className="h-full w-full rounded-md bg-black/0 dark:bg-black/0" />
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* glossy sleeve highlight */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
-        </div>
-    );
-}
 
 export default function BindersPage() {
     const user = useUser();
@@ -303,18 +211,18 @@ export default function BindersPage() {
             {binders.length > 0 ? (
                 <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10">
                     {binders.map((binder) => {
-                        // Use the binderCoverColor function to get the hex color
-                        const coverColor = binderCoverColor(binder.color);
+                        // Use hex colors from database, with fallbacks
+                        const coverColor = binder.color || "#ffffff";
+                        const spineColor = binder.spineColor || "#1f2937";
                         
-                        // Determine text color based on brightness (light colors need dark text)
-                        const isLightColor = binder.color === "yellow" || 
-                                            binder.color === "white" || 
-                                            binder.color === "lime" ||
-                                            binder.color === "amber" ||
-                                            binder.color === "orange" ||
-                                            binder.color === "sky" ||
-                                            binder.color === "cyan";
-                        const coverTextClass = isLightColor ? "text-neutral-900" : "text-white";
+                        // Determine text color based on brightness of cover color
+                        // Convert hex to RGB and calculate brightness
+                        const hex = coverColor.replace("#", "");
+                        const r = parseInt(hex.substring(0, 2), 16);
+                        const g = parseInt(hex.substring(2, 4), 16);
+                        const b = parseInt(hex.substring(4, 6), 16);
+                        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+                        const coverTextClass = brightness > 128 ? "text-neutral-900" : "text-white";
 
                         return (
                             <button
@@ -348,7 +256,10 @@ export default function BindersPage() {
                                     <div className="pointer-events-none absolute inset-0 opacity-25 bg-gradient-to-br from-white/40 via-transparent to-black/30" />
 
                                     {/* spine (left strip) - subtle binding edge */}
-                                    <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-black/15" />
+                                    <div 
+                                        className="pointer-events-none absolute inset-y-0 left-0 w-6" 
+                                        style={{ backgroundColor: spineColor, opacity: 0.85 }}
+                                    />
                                     <div className="pointer-events-none absolute inset-y-0 left-6 w-px bg-white/10" />
 
                                     {/* Centered content on cover */}

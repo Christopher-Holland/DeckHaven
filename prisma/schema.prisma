@@ -117,7 +117,9 @@ model Binder {
   userId      String
   name        String
   description String?
-  color       String?     // Optional color tag for organization
+  color       String?     // Cover color (hex)
+  spineColor  String?     // Spine color (hex)
+  pageColor   String?     // Page background color (hex)
   size        String?     // for 3x3 or 4x4 grid layouts
   game        String?    // "all" (favorites), "mtg", "pokemon", "yugioh" - null means favorites/all games
   createdAt   DateTime    @default(now())

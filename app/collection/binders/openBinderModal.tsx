@@ -9,7 +9,9 @@ type Binder = {
     game?: string | null; // "mtg" | "pokemon" | "yugioh" | null
     name: string;
     description?: string | null;
-    color?: string | null; // "white" | "black" | "red" | etc, or hex
+    color?: string | null; // Cover color (hex)
+    spineColor?: string | null; // Spine color (hex)
+    pageColor?: string | null; // Page background color (hex)
     size?: string | null; // "2x2" | "3x3" | "4x4"
     _count?: { binderCards: number };
 };
@@ -28,35 +30,6 @@ type Props = {
     onSuccess?: () => void;
 };
 
-function normalizeBinderColor(color?: string | null) {
-    if (!color) return "#2a4b4f"; // default cover tone
-
-    // allow named colors from your modal: white/black/red/blue/green/yellow
-    const named: Record<string, string> = {
-        white: "#ffffff",
-        black: "#111827",
-        slate: "#475569",
-        stone: "#78716c",
-        red: "#ef4444",
-        rose: "#f43f5e",
-        orange: "#f97316",
-        amber: "#f59e0b",
-        blue: "#3b82f6",
-        sky: "#0ea5e9",
-        cyan: "#06b6d4",
-        teal: "#14b8a6",
-        green: "#22c55e",
-        emerald: "#10b981",
-        lime: "#84cc16",
-        purple: "#8b5cf6",
-        violet: "#7c3aed",
-        pink: "#ec4899",
-        gold: "#d4af37",
-    };
-
-    return named[color] ?? color; // supports hex strings too
-}
-
 export default function OpenBinderModal({ open, binder, cards = [], onClose, onSuccess }: Props) {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -70,7 +43,10 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
         return () => window.removeEventListener("keydown", onKeyDown);
     }, [open, onClose]);
 
-    const coverColor = useMemo(() => normalizeBinderColor(binder?.color), [binder?.color]);
+    // Use hex colors from database, with fallbacks
+    const coverColor = useMemo(() => binder?.color || "#ffffff", [binder?.color]);
+    const spineColor = useMemo(() => binder?.spineColor || "#1f2937", [binder?.spineColor]);
+    const pageColor = useMemo(() => binder?.pageColor || "#f6ead6", [binder?.pageColor]);
 
     // Determine grid size from binder size (default to 3x3 if not set)
     const gridSize = useMemo(() => {
@@ -288,9 +264,9 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                     relative h-full w-full
                     rounded-2xl
                     border border-black/10 dark:border-white/10
-                    bg-black/5 dark:bg-white/5
                     overflow-hidden
                   "
+                                    style={{ backgroundColor: spineColor }}
                                 >
                                     {/* spine highlight */}
                                     <div
@@ -302,7 +278,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                         }}
                                     />
 
-                                    {/* inner “hinge” line */}
+                                    {/* inner "hinge" line */}
                                     <div className="absolute inset-y-0 left-1/2 w-px bg-black/15 dark:bg-white/15" />
                                 </div>
                             </div>
@@ -312,11 +288,11 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                 className="
                   relative rounded-2xl
                   border border-black/10 dark:border-white/10
-                  bg-[#f6ead6] dark:bg-[#0f2a2c]
                   shadow-xl
                   overflow-hidden
                   min-h-[260px]
                 "
+                                style={{ backgroundColor: pageColor }}
                             >
                                 {/* paper grain */}
                                 <div

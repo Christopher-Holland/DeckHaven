@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { name, description, color, game, size } = body;
+        const { name, description, color, spineColor, pageColor, game, size } = body;
 
         if (!name || typeof name !== "string" || name.trim().length === 0) {
             return NextResponse.json(
@@ -99,6 +99,18 @@ export async function POST(request: NextRequest) {
         if (color !== undefined && typeof color !== "string" && color !== null) {
             return NextResponse.json(
                 { error: "Invalid request. color must be a string or null." },
+                { status: 400 }
+            );
+        }
+        if (spineColor !== undefined && typeof spineColor !== "string" && spineColor !== null) {
+            return NextResponse.json(
+                { error: "Invalid request. spineColor must be a string or null." },
+                { status: 400 }
+            );
+        }
+        if (pageColor !== undefined && typeof pageColor !== "string" && pageColor !== null) {
+            return NextResponse.json(
+                { error: "Invalid request. pageColor must be a string or null." },
                 { status: 400 }
             );
         }
@@ -153,6 +165,8 @@ export async function POST(request: NextRequest) {
                 name: name.trim(),
                 description: description?.trim() || null,
                 color: color || null,
+                spineColor: spineColor || null,
+                pageColor: pageColor || null,
                 game: game || null, // null means "all" (favorites)
                 size: size || null,
             },
