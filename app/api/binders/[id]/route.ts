@@ -13,6 +13,72 @@ import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
 
+// Get a single binder with its cards
+export async function GET(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const user = await stackServerApp.getUser();
+        
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
+        const { id: binderId } = await params;
+
+        // Get user in database
+        const dbUser = await prisma.user.findUnique({
+            where: { stackUserId: user.id },
+        });
+
+        if (!dbUser) {
+            return NextResponse.json(
+                { error: "User not found. Please sync your account." },
+                { status: 404 }
+            );
+        }
+
+        // Get binder with its cards
+        const binder = await prisma.binder.findFirst({
+            where: {
+                id: binderId,
+                userId: dbUser.id,
+            },
+            include: {
+                _count: {
+                    select: { binderCards: true },
+                },
+                binderCards: {
+                    select: {
+                        id: true,
+                        cardId: true,
+                    },
+                    orderBy: { createdAt: "asc" },
+                },
+            },
+        });
+
+        if (!binder) {
+            return NextResponse.json(
+                { error: "Binder not found" },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json({ binder });
+    } catch (error) {
+        console.error("Error fetching binder:", error);
+        return NextResponse.json(
+            { error: "Failed to fetch binder" },
+            { status: 500 }
+        );
+    }
+}
+
 // Update a binder
 export async function PATCH(
     request: NextRequest,
