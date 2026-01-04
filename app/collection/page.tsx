@@ -10,18 +10,12 @@
  */
 
 // TODO: Add filters, sorting, and grouping options
-// TODO: Add ability to add cards to binders/decks
-// TODO: Add ability to delete cards
-// TODO: Add ability to export collection as CSV
-// TODO: Add ability to import collection from CSV
-// TODO: Add ability to export collection as JSON
-// TODO: Add ability to import collection from JSON
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@stackframe/stack";
-import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Minus, Plus, ChevronDown } from "lucide-react";
 import Loading from "@/app/components/Loading";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import EditCardListModal, { type EditableCard } from "./editCardListModal";
@@ -37,6 +31,8 @@ type CollectionItem = {
     isFoil: boolean;
     tags?: string | null;
     notes?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
 };
 
 type CollectionData = {
@@ -61,6 +57,11 @@ export default function CollectionPage() {
     const [editCardListModalOpen, setEditCardListModalOpen] = useState(false);
     const [editCardList, setEditCardList] = useState<CollectionItem | null>(null);
     const [updatingQuantities, setUpdatingQuantities] = useState<Set<string>>(new Set());
+    const [searchQuery, setSearchQuery] = useState("");
+    const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "newest" | "oldest" | "quantity">("newest");
+    const [selectedSet, setSelectedSet] = useState<string>("all");
+    const [selectedTag, setSelectedTag] = useState<string>("all");
+    const [filterMenuOpen, setFilterMenuOpen] = useState(false);
     const { game } = useGameFilter();
 
     // Reset to page 1 when game filter changes
@@ -221,6 +222,101 @@ export default function CollectionPage() {
         }
     };
 
+    // Get all available sets and tags for filtering
+    const availableSets = useMemo(() => {
+        if (!collectionData) return [];
+        const sets = new Set<string>();
+        collectionData.items.forEach(item => {
+            const card = cards.get(item.cardId);
+            if (card?.set_name) {
+                sets.add(card.set_name);
+            }
+        });
+        return Array.from(sets).sort();
+    }, [collectionData, cards]);
+
+    const availableTags = useMemo(() => {
+        if (!collectionData) return [];
+        const tags = new Set<string>();
+        collectionData.items.forEach(item => {
+            if (item.isFoil) tags.add("Foil");
+            if (item.condition) tags.add(item.condition);
+            if (item.language && item.language !== "en") tags.add(item.language.toUpperCase());
+            if (item.tags) {
+                const customTags = item.tags.split(",").map((t: string) => t.trim()).filter((t: string) => t.length > 0);
+                customTags.forEach(tag => tags.add(tag));
+            }
+        });
+        return Array.from(tags).sort();
+    }, [collectionData]);
+
+    // Filter and sort items
+    const filteredAndSortedItems = useMemo(() => {
+        if (!collectionData) return [];
+        
+        let items = [...collectionData.items];
+
+        // Apply search filter
+        if (searchQuery.trim()) {
+            const query = searchQuery.trim().toLowerCase();
+            items = items.filter(item => {
+                const card = cards.get(item.cardId);
+                const cardName = card?.name?.toLowerCase() || "";
+                return cardName.includes(query);
+            });
+        }
+
+        // Apply set filter
+        if (selectedSet !== "all") {
+            items = items.filter(item => {
+                const card = cards.get(item.cardId);
+                return card?.set_name === selectedSet;
+            });
+        }
+
+        // Apply tag filter
+        if (selectedTag !== "all") {
+            items = items.filter(item => {
+                const tags: string[] = [];
+                if (item.isFoil) tags.push("Foil");
+                if (item.condition) tags.push(item.condition);
+                if (item.language && item.language !== "en") tags.push(item.language.toUpperCase());
+                if (item.tags) {
+                    const customTags = item.tags.split(",").map((t: string) => t.trim()).filter((t: string) => t.length > 0);
+                    tags.push(...customTags);
+                }
+                return tags.includes(selectedTag);
+            });
+        }
+
+        // Apply sorting
+        items.sort((a, b) => {
+            const cardA = cards.get(a.cardId);
+            const cardB = cards.get(b.cardId);
+            
+            switch (sortBy) {
+                case "name-asc":
+                    const nameA = cardA?.name?.toLowerCase() || "";
+                    const nameB = cardB?.name?.toLowerCase() || "";
+                    return nameA.localeCompare(nameB);
+                case "name-desc":
+                    const nameA2 = cardA?.name?.toLowerCase() || "";
+                    const nameB2 = cardB?.name?.toLowerCase() || "";
+                    return nameB2.localeCompare(nameA2);
+                case "newest":
+                    return new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
+                case "oldest":
+                    return new Date(a.updatedAt || a.createdAt || 0).getTime() - new Date(b.updatedAt || b.createdAt || 0).getTime();
+                case "quantity":
+                    return b.quantity - a.quantity;
+                default:
+                    return 0;
+            }
+        });
+
+        return items;
+    }, [collectionData, cards, searchQuery, selectedSet, selectedTag, sortBy]);
+
     // Calculate stats by game
     // Note: Stats are based on the total collection, not just the current page
     // Since all cards currently come from Scryfall (MTG), all cards are MTG
@@ -377,7 +473,10 @@ export default function CollectionPage() {
         "
             >
                 <input
+                    type="text"
                     placeholder="Search your collection…"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="
             w-full lg:max-w-sm
             rounded-md px-3 py-2 text-sm
@@ -388,18 +487,119 @@ export default function CollectionPage() {
           "
                 />
 
-                <div className="flex flex-wrap items-center gap-2">
-                    <button
-                        className="
-              px-3 py-1.5 rounded-md text-sm font-medium
-              bg-[#e8d5b8] dark:bg-[#173c3f]
-              border border-[#42c99c] dark:border-[#82664e]
-              hover:bg-black/10 dark:hover:bg-white/10
-              transition-colors
-            "
-                    >
-                        Filters
-                    </button>
+                <div className="flex flex-wrap items-center gap-2 relative">
+                    <div className="relative">
+                        <button
+                            type="button"
+                            onClick={() => setFilterMenuOpen(!filterMenuOpen)}
+                            className="
+                  px-3 py-1.5 rounded-md text-sm font-medium
+                  bg-[#e8d5b8] dark:bg-[#173c3f]
+                  border border-[#42c99c] dark:border-[#82664e]
+                  hover:bg-black/10 dark:hover:bg-white/10
+                  transition-colors
+                  flex items-center gap-1
+                "
+                        >
+                            Filters
+                            <ChevronDown className={`w-4 h-4 transition-transform ${filterMenuOpen ? "rotate-180" : ""}`} />
+                        </button>
+                        
+                        {filterMenuOpen && (
+                            <>
+                                <div 
+                                    className="fixed inset-0 z-10" 
+                                    onClick={() => setFilterMenuOpen(false)}
+                                />
+                                <div className="absolute right-0 mt-2 z-20 w-56 rounded-lg border border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#173c3f] shadow-lg p-3 space-y-3">
+                                    {/* Sort Options */}
+                                    <div>
+                                        <label className="text-xs font-semibold opacity-80 mb-2 block">Sort By</label>
+                                        <select
+                                            value={sortBy}
+                                            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                                            className="
+                                    w-full rounded-md px-2 py-1.5 text-sm
+                                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                                    border border-[#42c99c] dark:border-[#82664e]
+                                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                    dark:focus:ring-[#82664e]
+                                  "
+                                        >
+                                            <option value="newest">Newest</option>
+                                            <option value="oldest">Oldest</option>
+                                            <option value="name-asc">A-Z</option>
+                                            <option value="name-desc">Z-A</option>
+                                            <option value="quantity">Quantity</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Set Filter */}
+                                    <div>
+                                        <label className="text-xs font-semibold opacity-80 mb-2 block">Set</label>
+                                        <select
+                                            value={selectedSet}
+                                            onChange={(e) => setSelectedSet(e.target.value)}
+                                            className="
+                                    w-full rounded-md px-2 py-1.5 text-sm
+                                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                                    border border-[#42c99c] dark:border-[#82664e]
+                                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                    dark:focus:ring-[#82664e]
+                                  "
+                                        >
+                                            <option value="all">All Sets</option>
+                                            {availableSets.map(set => (
+                                                <option key={set} value={set}>{set}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Tag Filter */}
+                                    <div>
+                                        <label className="text-xs font-semibold opacity-80 mb-2 block">Tag</label>
+                                        <select
+                                            value={selectedTag}
+                                            onChange={(e) => setSelectedTag(e.target.value)}
+                                            className="
+                                    w-full rounded-md px-2 py-1.5 text-sm
+                                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                                    border border-[#42c99c] dark:border-[#82664e]
+                                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                    dark:focus:ring-[#82664e]
+                                  "
+                                        >
+                                            <option value="all">All Tags</option>
+                                            {availableTags.map(tag => (
+                                                <option key={tag} value={tag}>{tag}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSearchQuery("");
+                                                setSortBy("newest");
+                                                setSelectedSet("all");
+                                                setSelectedTag("all");
+                                            }}
+                                            className="
+                                            w-full rounded-md px-2 py-1.5 text-sm
+                                            bg-[#f6ead6] dark:bg-[#0f2a2c]
+                                            border border-[#42c99c] dark:border-[#82664e]
+                                            hover:bg-black/10 dark:hover:bg-white/10
+                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                            dark:focus:ring-[#82664e]
+                                            transition-colors
+                                            ">
+                                            Clear Filters
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </section>
 
@@ -420,8 +620,8 @@ export default function CollectionPage() {
                 </div>
 
                 {/* Collection rows */}
-                {collectionData && collectionData.items.length > 0 ? (
-                    collectionData.items.map((item) => {
+                {filteredAndSortedItems.length > 0 ? (
+                    filteredAndSortedItems.map((item) => {
                         const card = cards.get(item.cardId);
                         const cardImage = card?.image_uris?.small || card?.image_uris?.normal || card?.card_faces?.[0]?.image_uris?.small;
                         const cardName = card?.name || "Loading...";
@@ -516,7 +716,10 @@ export default function CollectionPage() {
                     })
                 ) : (
                     <div className="px-4 py-8 text-center text-sm opacity-70">
-                        No cards in your collection yet. Start adding cards from sets!
+                        {searchQuery || selectedSet !== "all" || selectedTag !== "all"
+                            ? "No cards match your filters. Try adjusting your search or filters."
+                            : "No cards in your collection yet. Start adding cards from sets!"
+                        }
                     </div>
                 )}
             </section>
