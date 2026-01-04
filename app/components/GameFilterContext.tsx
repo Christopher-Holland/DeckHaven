@@ -1,7 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, ReactNode } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, { createContext, useContext, useMemo, ReactNode, useState, useEffect } from "react";
 
 export type GameKey = "all" | "mtg" | "pokemon" | "yugioh";
 
@@ -12,31 +11,54 @@ type GameFilterContextValue = {
 
 const GameFilterContext = createContext<GameFilterContextValue | null>(null);
 
-export function GameFilterProvider({ children }: { children: ReactNode }) {
-    const router = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
+const STORAGE_KEY = "deckhaven_game_filter";
 
-    const gameParam = (searchParams.get("game") || "all") as GameKey;
-    const game: GameKey =
-        gameParam === "mtg" || gameParam === "pokemon" || gameParam === "yugioh"
-            ? gameParam
-            : "all";
+function getStoredGame(): GameKey {
+    if (typeof window === "undefined") return "all";
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored === "mtg" || stored === "pokemon" || stored === "yugioh") {
+            return stored;
+        }
+    } catch (e) {
+        // localStorage might not be available
+    }
+    return "all";
+}
+
+function setStoredGame(game: GameKey) {
+    if (typeof window === "undefined") return;
+    try {
+        if (game === "all") {
+            localStorage.removeItem(STORAGE_KEY);
+        } else {
+            localStorage.setItem(STORAGE_KEY, game);
+        }
+    } catch (e) {
+        // localStorage might not be available
+    }
+}
+
+export function GameFilterProvider({ children }: { children: ReactNode }) {
+    const [mounted, setMounted] = useState(false);
+    const [gameState, setGameState] = useState<GameKey>("all");
+
+    useEffect(() => {
+        setMounted(true);
+        // Initialize from localStorage
+        setGameState(getStoredGame());
+    }, []);
+
+    const game: GameKey = mounted ? gameState : "all";
 
     const setGame = (next: GameKey) => {
-        const params = new URLSearchParams(searchParams.toString());
-
-        if (next === "all") params.delete("game");
-        else params.set("game", next);
-
-        // Optional: reset pagination/sorting when switching games
-        params.delete("page");
-
-        const qs = params.toString();
-        router.push(qs ? `${pathname}?${qs}` : pathname);
+        // Update localStorage
+        setStoredGame(next);
+        // Update state (this triggers re-render without navigation)
+        setGameState(next);
     };
 
-    const value = useMemo(() => ({ game, setGame }), [game, searchParams]);
+    const value = useMemo(() => ({ game, setGame }), [game]);
 
     return (
         <GameFilterContext.Provider value={value}>

@@ -11,8 +11,10 @@
 
 "use client";
 
+import { useEffect } from "react";
 import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useGameFilter } from "@/app/components/GameFilterContext";
 
 type CardGame = {
     id: string;
@@ -42,8 +44,29 @@ const demoGames: CardGame[] = [
     },
 ];
 
+// Map game filter from BrandNav to sets page game IDs
+const gameIdMap: Record<string, string> = {
+    mtg: "mtg",
+    pokemon: "ptcg",
+    yugioh: "ytcg",
+};
+
 export default function Sets() {
     const router = useRouter();
+    const { game } = useGameFilter();
+
+    // Redirect to browse page if a specific game is selected
+    useEffect(() => {
+        if (game !== "all") {
+            const gameId = gameIdMap[game] || game;
+            router.push(`/sets/browse?game=${gameId}`);
+        }
+    }, [game, router]);
+
+    // Don't render the page if redirecting
+    if (game !== "all") {
+        return null;
+    }
 
     return (
         <main
