@@ -21,7 +21,7 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@stackframe/stack";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
 import Loading from "@/app/components/Loading";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import EditCardListModal, { type EditableCard } from "./editCardListModal";
@@ -60,13 +60,14 @@ export default function CollectionPage() {
     const itemsPerPage = 10;
     const [editCardListModalOpen, setEditCardListModalOpen] = useState(false);
     const [editCardList, setEditCardList] = useState<CollectionItem | null>(null);
+    const [updatingQuantities, setUpdatingQuantities] = useState<Set<string>>(new Set());
     const { game } = useGameFilter();
-    
+
     // Reset to page 1 when game filter changes
     useEffect(() => {
         setCurrentPage(1);
     }, [game]);
-    
+
     // Fetch collection data
     useEffect(() => {
         if (!user) return;
@@ -84,7 +85,7 @@ export default function CollectionPage() {
                 }
 
                 const data: CollectionData = await response.json();
-                
+
                 // Fetch card details from Scryfall for each card
                 const cardsMap = new Map<string, ScryfallCard>();
                 for (const item of data.items) {
@@ -107,7 +108,7 @@ export default function CollectionPage() {
                 // - If game is "pokemon" or "yugioh": show empty (no cards from those games yet)
                 let filteredItems = data.items;
                 let filteredTotal = data.pagination.total;
-                
+
                 if (game === "pokemon" || game === "yugioh") {
                     // No cards from these games yet (all cards are from Scryfall/MTG)
                     filteredItems = [];
@@ -136,6 +137,89 @@ export default function CollectionPage() {
 
         fetchCollection();
     }, [user, currentPage, game]);
+
+    // Handle quantity update
+    const handleQuantityUpdate = async (item: CollectionItem, newQuantity: number) => {
+        if (newQuantity < 0) return; // Don't allow negative quantities
+        
+        setUpdatingQuantities(prev => new Set(prev).add(item.id));
+        try {
+            const requestBody = {
+                cardId: item.cardId,
+                quantity: newQuantity,
+                condition: item.condition || null,
+                language: item.language || null,
+                notes: item.notes || null,
+                tags: item.tags || null,
+                isFoil: item.isFoil ?? false,
+            };
+
+            const response = await fetch("/api/collection", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to update quantity" }));
+                throw new Error(errorData.error || "Failed to update quantity");
+            }
+
+            // Refresh collection data
+            const gameParam = game === "all" ? "" : `&game=${game}`;
+            const collectionResponse = await fetch(`/api/collection?page=${currentPage}&limit=${itemsPerPage}${gameParam}`);
+            if (collectionResponse.ok) {
+                const data: CollectionData = await collectionResponse.json();
+                
+                // Fetch card details for new items if needed
+                const cardsMap = new Map<string, ScryfallCard>(cards);
+                for (const newItem of data.items) {
+                    if (!cardsMap.has(newItem.cardId)) {
+                        try {
+                            const cardResponse = await fetch(`/api/scryfall/card/${newItem.cardId}`);
+                            if (cardResponse.ok) {
+                                const cardData = await cardResponse.json();
+                                cardsMap.set(newItem.cardId, cardData);
+                            }
+                        } catch (err) {
+                            console.warn(`Failed to fetch card ${newItem.cardId}:`, err);
+                        }
+                    }
+                }
+                setCards(cardsMap);
+                
+                // Filter items by game client-side
+                let filteredItems = data.items;
+                let filteredTotal = data.pagination.total;
+                
+                if (game === "pokemon" || game === "yugioh") {
+                    filteredItems = [];
+                    filteredTotal = 0;
+                } else if (game === "mtg" || game === "all") {
+                    filteredItems = data.items;
+                    filteredTotal = data.pagination.total;
+                }
+                
+                setCollectionData({
+                    items: filteredItems,
+                    pagination: {
+                        ...data.pagination,
+                        total: filteredTotal,
+                        totalPages: Math.ceil(filteredTotal / itemsPerPage),
+                    },
+                });
+            }
+        } catch (err) {
+            console.error("Error updating quantity:", err);
+            alert(err instanceof Error ? err.message : "Failed to update quantity");
+        } finally {
+            setUpdatingQuantities(prev => {
+                const next = new Set(prev);
+                next.delete(item.id);
+                return next;
+            });
+        }
+    };
 
     // Calculate stats by game
     // Note: Stats are based on the total collection, not just the current page
@@ -195,46 +279,92 @@ export default function CollectionPage() {
                     <h2 className="text-2xl font-semibold">Collection</h2>
                     <p className="text-sm opacity-70 mt-1">Inventory-first view of everything you own.</p>
                 </div>
-
-                <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => router.push("/collection/binders")}
-                        className="
-        px-3 py-1.5 rounded-md text-sm font-medium
-        bg-black/5 dark:bg-white/5
-        border border-[#42c99c] dark:border-[#82664e]
-        hover:bg-black/10 dark:hover:bg-white/10
-        transition-colors
-        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-        dark:focus:ring-[#82664e]
-      "
-                    >
-                        Binders
-                    </button>
-                </div>
             </section>
 
-            {/* Stat tiles */}
-            <section className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {[
-                    { label: "Total Cards", value: totalCards.toString() },
-                    { label: "Magic the Gathering", value: mtgCount.toString() },
-                    { label: "Pokémon", value: pokemonCount.toString() },
-                    { label: "Yu-Gi-Oh!", value: yugiohCount.toString() },
-                ].map((s) => (
-                    <div
-                        key={s.label}
-                        className="
-              rounded-lg p-4
-              border border-[#42c99c] dark:border-[#82664e]
-              bg-[#e8d5b8] dark:bg-[#173c3f]
-            "
-                    >
-                        <p className="text-xs opacity-70">{s.label}</p>
-                        <p className="text-xl font-semibold mt-1">{s.value}</p>
+            {/* Summary + Actions */}
+            <section className="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-3">
+                {/* Stat tile */}
+                <div
+                    className="
+                        rounded-lg p-4
+                        text-center
+                        border border-[#42c99c] dark:border-[#82664e]
+                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                        lg:col-span-1
+                        "
+                >
+                    <p className="text-xs opacity-70">
+                        {game === "all"
+                            ? "Total Cards Owned"
+                            : `Cards Owned (${game.toUpperCase()})`}
+                    </p>
+                    <p className="text-2xl font-semibold mt-1">{totalCards}</p>
+                    
+                </div>
+
+                {/* Action strip */}
+                <div
+                    className="
+                        rounded-lg p-4
+                        border border-[#42c99c] dark:border-[#82664e]
+                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                        lg:col-span-2
+                        "
+                >
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-sm opacity-70 text-center">Quick Actions</p>
+                        </div>
                     </div>
-                ))}
+
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => router.push("/collection/binders")}
+                            className="
+          w-full px-3 py-2 rounded-md text-sm font-medium
+          bg-black/5 dark:bg-white/5
+          border border-[#42c99c] dark:border-[#82664e]
+          hover:bg-black/10 dark:hover:bg-white/10
+          transition-colors
+          focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+          dark:focus:ring-[#82664e]
+        "
+                        >
+                            Open Binders
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => router.push("/sets")} // change if your add-flow lives elsewhere
+                            className="
+          w-full px-3 py-2 rounded-md text-sm font-medium
+          bg-black/5 dark:bg-white/5
+          border border-[#42c99c] dark:border-[#82664e]
+          hover:bg-black/10 dark:hover:bg-white/10
+          transition-colors
+          focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+          dark:focus:ring-[#82664e]
+        "
+                        >
+                            Add Cards
+                        </button>
+
+                        <button
+                            type="button"
+                            disabled
+                            title="Coming soon"
+                            className="
+          w-full px-3 py-2 rounded-md text-sm font-medium
+          bg-black/5 dark:bg-white/5
+          border border-[#42c99c] dark:border-[#82664e]
+          opacity-60 cursor-not-allowed
+        "
+                        >
+                            Import CSV
+                        </button>
+                    </div>
+                </div>
             </section>
 
             {/* Controls bar */}
@@ -335,7 +465,7 @@ export default function CollectionPage() {
                                 <div className="col-span-2 text-xs opacity-80">
                                     {tags.length > 0 ? tags.join(" • ") : "—"}
                                 </div>
-                                <div className="col-span-2 flex justify-end gap-2">
+                                <div className="col-span-2 flex justify-end items-center gap-2">
                                     <button
                                         className="text-xs underline opacity-80 hover:opacity-100"
                                         onClick={() => {
@@ -345,7 +475,41 @@ export default function CollectionPage() {
                                     >
                                         Edit
                                     </button>
-                                    <button className="text-xs underline opacity-80 hover:opacity-100">+1</button>
+                                    <div className="flex items-center gap-1 border border-[#42c99c] dark:border-[#82664e] rounded-md bg-[#e8d5b8] dark:bg-[#173c3f]">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleQuantityUpdate(item, item.quantity - 1)}
+                                            disabled={updatingQuantities.has(item.id) || item.quantity <= 0}
+                                            className="
+                                                p-1 rounded-l-md
+                                                hover:bg-black/10 dark:hover:bg-white/10
+                                                disabled:opacity-50 disabled:cursor-not-allowed
+                                                transition-colors
+                                                focus:outline-none
+                                            "
+                                            aria-label="Decrease quantity"
+                                        >
+                                            <Minus className="w-3 h-3" />
+                                        </button>
+                                        <span className="px-2 text-xs font-semibold min-w-[2ch] text-center">
+                                            {updatingQuantities.has(item.id) ? "..." : item.quantity}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleQuantityUpdate(item, item.quantity + 1)}
+                                            disabled={updatingQuantities.has(item.id)}
+                                            className="
+                                                p-1 rounded-r-md
+                                                hover:bg-black/10 dark:hover:bg-white/10
+                                                disabled:opacity-50 disabled:cursor-not-allowed
+                                                transition-colors
+                                                focus:outline-none
+                                            "
+                                            aria-label="Increase quantity"
+                                        >
+                                            <Plus className="w-3 h-3" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         );
