@@ -144,7 +144,6 @@ model BinderCard {
 
   binder Binder @relation(fields: [binderId], references: [id], onDelete: Cascade)
 
-  @@unique([binderId, cardId])
   @@map("binder_cards")
 }
 

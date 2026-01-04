@@ -51,7 +51,7 @@ export default function BinderPage() {
     const [loadingCards, setLoadingCards] = useState(false);
     const [addToBinderModalOpen, setAddToBinderModalOpen] = useState(false);
     const [pendingSlotNumber, setPendingSlotNumber] = useState<number | null>(null);
-    const [collectionCardIds, setCollectionCardIds] = useState<Set<string>>(new Set());
+    const [collectionCardQuantities, setCollectionCardQuantities] = useState<Map<string, number>>(new Map());
     const [draggedCard, setDraggedCard] = useState<{ id: string; cardId: string; slotNumber: number } | null>(null);
     const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
     const [dragOverTrash, setDragOverTrash] = useState(false);
@@ -82,13 +82,17 @@ export default function BinderPage() {
                 const cards = binderData.binder?.binderCards || [];
                 setBinderCards(cards);
 
-                // Fetch user's collection to check ownership
+                // Fetch user's collection to check ownership and quantities
                 try {
                     const collectionResponse = await fetch(`/api/collection?page=1&limit=10000`);
                     if (collectionResponse.ok) {
                         const collectionData = await collectionResponse.json();
-                        const cardIds = new Set<string>(collectionData.items?.map((item: { cardId: string }) => item.cardId) || []);
-                        setCollectionCardIds(cardIds);
+                        const quantitiesMap = new Map<string, number>();
+                        collectionData.items?.forEach((item: { cardId: string; quantity: number }) => {
+                            const currentQty = quantitiesMap.get(item.cardId) || 0;
+                            quantitiesMap.set(item.cardId, currentQty + item.quantity);
+                        });
+                        setCollectionCardQuantities(quantitiesMap);
                     }
                 } catch (err) {
                     console.warn("Failed to fetch collection:", err);
@@ -155,11 +159,26 @@ export default function BinderPage() {
         const startSlotNumber = (page - 1) * cardsPerPage;
         const endSlotNumber = startSlotNumber + cardsPerPage - 1;
 
-        // Filter cards that belong to this page based on slotNumber
-        const pageCards = binderCards.filter(bc => {
-            if (bc.slotNumber === null || bc.slotNumber === undefined) return false;
-            return bc.slotNumber >= startSlotNumber && bc.slotNumber <= endSlotNumber;
+        // Count instances of each cardId before this page
+        const instancesBeforePage = new Map<string, number>();
+        binderCards.forEach(card => {
+            if (card.slotNumber !== null && card.slotNumber !== undefined && card.slotNumber < startSlotNumber) {
+                const count = instancesBeforePage.get(card.cardId) || 0;
+                instancesBeforePage.set(card.cardId, count + 1);
+            }
         });
+
+        // Filter and sort cards that belong to this page
+        const pageCards = binderCards
+            .filter(bc => {
+                if (bc.slotNumber === null || bc.slotNumber === undefined) return false;
+                return bc.slotNumber >= startSlotNumber && bc.slotNumber <= endSlotNumber;
+            })
+            .sort((a, b) => {
+                const aSlot = a.slotNumber ?? Infinity;
+                const bSlot = b.slotNumber ?? Infinity;
+                return aSlot - bSlot;
+            });
 
         // Create a map of slot index within page -> card
         const slotMap = new Map<number, typeof binderCards[0]>();
@@ -170,12 +189,39 @@ export default function BinderPage() {
             }
         });
 
+        // Track instances within this page as we process in slot number order
+        const instancesInPage = new Map<string, number>();
+        
+        // First pass: process cards in slot number order to track instances correctly
+        const cardInstanceMap = new Map<number, { card: typeof binderCards[0]; isInCollection: boolean }>();
+        pageCards.forEach(card => {
+            if (card.slotNumber === null || card.slotNumber === undefined) return;
+            
+            const instancesBefore = instancesBeforePage.get(card.cardId) || 0;
+            const instancesSoFarInPage = instancesInPage.get(card.cardId) || 0;
+            const totalInstancesSeen = instancesBefore + instancesSoFarInPage;
+            
+            // Get collection quantity for this card
+            const collectionQuantity = collectionCardQuantities.get(card.cardId) || 0;
+            
+            // Mark as in collection only if we haven't exceeded the collection quantity
+            const isInCollection = totalInstancesSeen < collectionQuantity;
+            
+            // Store the result
+            const slotInPage = card.slotNumber % cardsPerPage;
+            cardInstanceMap.set(slotInPage, { card, isInCollection });
+            
+            // Increment the count for this card in this page
+            instancesInPage.set(card.cardId, instancesSoFarInPage + 1);
+        });
+
         // Fill slots array
         const slots = Array.from({ length: gridSize.total }, (_, i) => {
-            const card = slotMap.get(i);
-            if (!card) return null;
+            const entry = cardInstanceMap.get(i);
+            if (!entry) return null;
+            
+            const { card, isInCollection } = entry;
             const cardDetail = cardDetails.get(card.cardId);
-            const isInCollection = collectionCardIds.has(card.cardId);
 
             // Use higher resolution images for all grid sizes to prevent blurriness
             let imageUrl = null;
@@ -264,7 +310,7 @@ export default function BinderPage() {
         }
 
         return getPageSlots(leftPageNum);
-    }, [currentPage, targetPage, binderCards, cardDetails, gridSize.total, collectionCardIds, isFlipping, flipDirection]);
+    }, [currentPage, targetPage, binderCards, cardDetails, gridSize.total, collectionCardQuantities, isFlipping, flipDirection]);
 
     // Right page: Page 1 on view 1, then Page 3, 5, 7, etc., back cover on view 16
     const rightPageSlots = useMemo(() => {
@@ -291,7 +337,7 @@ export default function BinderPage() {
         }
 
         return getPageSlots(rightPageNum);
-    }, [currentPage, targetPage, binderCards, cardDetails, gridSize.total, totalPages, collectionCardIds, isFlipping, flipDirection]);
+    }, [currentPage, targetPage, binderCards, cardDetails, gridSize.total, totalPages, collectionCardQuantities, isFlipping, flipDirection]);
 
     // Handle moving a card to a new slot
     const handleMoveCard = async (binderCardId: string, newSlotNumber: number) => {

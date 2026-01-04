@@ -130,31 +130,22 @@ export async function POST(
             );
         }
 
-        // Check if card already exists in binder
-        const existingBinderCard = await prisma.binderCard.findFirst({
+        // Check if target slot is already occupied
+        const existingCardInSlot = await prisma.binderCard.findFirst({
             where: {
                 binderId: binderId,
-                cardId: cardId,
+                slotNumber: targetSlotNumber,
             },
         });
 
-        if (existingBinderCard) {
-            // Update existing card's position if slot is specified
-            if (targetSlotNumber !== null) {
-                await prisma.binderCard.update({
-                    where: { id: existingBinderCard.id },
-                    data: {
-                        slotNumber: targetSlotNumber,
-                    },
-                });
-            }
-            return NextResponse.json({ 
-                binderCard: existingBinderCard,
-                message: "Card already in binder, position updated" 
-            });
+        if (existingCardInSlot) {
+            return NextResponse.json(
+                { error: "This slot is already occupied. Please choose a different slot." },
+                { status: 400 }
+            );
         }
 
-        // Create new binder card
+        // Create new binder card (allow multiple copies of the same card)
         const binderCard = await prisma.binderCard.create({
             data: {
                 binderId: binderId,
