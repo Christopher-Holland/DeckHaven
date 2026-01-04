@@ -25,9 +25,12 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     
     // Auth routes that should not show sidebar/navbar
     const isAuthRoute = pathname.startsWith("/auth/") || pathname.startsWith("/handler/");
+    
+    // Binder page route - full screen without navigation
+    const isBinderPage = pathname.startsWith("/collection/binders/") && pathname !== "/collection/binders";
 
-    // Render minimal layout for landing page and auth routes
-    if (isLandingPage || isAuthRoute) {
+    // Render minimal layout for landing page, auth routes, and binder pages
+    if (isLandingPage || isAuthRoute || isBinderPage) {
         return (
             <div className="flex-1 w-full">
                 {children}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Edit, Plus, Trash, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, Plus, Trash, X, ChevronLeft, ChevronRight, Trash2, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 import EditBinderModal from "./editBinderModal";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import AddToBinderModal from "./addToBinderModal";
@@ -21,6 +21,7 @@ type Binder = {
 type BinderCard = {
     id: string;
     cardId: string; // Scryfall card ID
+    slotNumber?: number | null; // Global slot number
     imageUrl?: string | null; // optional for later
     title?: string | null;    // optional for tooltip
     isInCollection?: boolean; // whether card is in user's collection
@@ -51,6 +52,9 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
     const [addToBinderModalOpen, setAddToBinderModalOpen] = useState(false);
     const [pendingSlotNumber, setPendingSlotNumber] = useState<number | null>(null);
     const [collectionCardIds, setCollectionCardIds] = useState<Set<string>>(new Set());
+    const [draggedCard, setDraggedCard] = useState<{ id: string; cardId: string; slotNumber: number } | null>(null);
+    const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
+    const [dragOverTrash, setDragOverTrash] = useState(false);
 
     // Fetch binder cards when modal opens
     useEffect(() => {
@@ -137,9 +141,11 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
         return (page - 1) * cardsPerPage + slot;
     };
 
-    // Calculate total pages - always allow up to 20 pages for navigation
+    // Calculate total pages - page 30 is the last left page, then back cover
+    // View 1: Cover | Page 1
+    // View 16: Page 30 | Back Cover
     const totalPages = useMemo(() => {
-        return 20; // Always allow navigation through 20 pages
+        return 16; // 15 views of content pages + 1 view with back cover
     }, []);
 
     // Fill slots for a page based on slotNumber
@@ -172,6 +178,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
             return {
                 id: card.id,
                 cardId: card.cardId,
+                slotNumber: card.slotNumber,
                 imageUrl: cardDetail?.image_uris?.small || cardDetail?.image_uris?.normal || null,
                 title: cardDetail?.name || null,
                 isInCollection,
@@ -227,6 +234,9 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
     const getRightPageNumber = (viewNumber: number) => {
         if (viewNumber === 1) return 1; // Page 1
+        const leftPage = getLeftPageNumber(viewNumber);
+        // When left page is 30, show back cover
+        if (leftPage === 30) return null; // null means back cover
         return 2 * (viewNumber - 1) + 1; // Page 3, 5, 7, etc.
     };
 
@@ -248,13 +258,16 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
         return getPageSlots(leftPageNum);
     }, [currentPage, targetPage, binderCards, cardDetails, gridSize.total, collectionCardIds, isFlipping, flipDirection]);
 
-    // Right page: Page 1 on view 1, then Page 3, 5, 7, etc.
+    // Right page: Page 1 on view 1, then Page 3, 5, 7, etc., back cover on view 16
     const rightPageSlots = useMemo(() => {
         // Use target page during animation to prevent flicker
         const displayView = targetPage ?? currentPage;
         const rightPageNum = getRightPageNumber(displayView);
 
-        if (rightPageNum > totalPages) {
+        // null means back cover
+        if (rightPageNum === null) return null;
+
+        if (rightPageNum > 30) {
             // Beyond max pages, show empty
             return Array.from({ length: gridSize.total }, () => null);
         }
@@ -262,7 +275,8 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
         // When flipping forward, show the new page that will appear on the right
         if (isFlipping && flipDirection === "forward" && targetPage !== null) {
             const newRightPageNum = getRightPageNumber(targetPage);
-            if (newRightPageNum > totalPages) {
+            if (newRightPageNum === null) return null; // Back cover
+            if (newRightPageNum > 30) {
                 return Array.from({ length: gridSize.total }, () => null);
             }
             return getPageSlots(newRightPageNum);
@@ -270,6 +284,62 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
         return getPageSlots(rightPageNum);
     }, [currentPage, targetPage, binderCards, cardDetails, gridSize.total, totalPages, collectionCardIds, isFlipping, flipDirection]);
+
+    // Handle moving a card to a new slot
+    const handleMoveCard = async (binderCardId: string, newSlotNumber: number) => {
+        if (!binder) return;
+
+        try {
+            const response = await fetch(`/api/binders/${binder.id}/cards/${binderCardId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ newSlotNumber }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to move card" }));
+                throw new Error(errorData.error || "Failed to move card");
+            }
+
+            // Refresh binder cards
+            const binderResponse = await fetch(`/api/binders/${binder.id}`);
+            if (binderResponse.ok) {
+                const data = await binderResponse.json();
+                const cards = data.binder?.binderCards || [];
+                setBinderCards(cards);
+            }
+        } catch (error) {
+            console.error("Error moving card:", error);
+            alert(error instanceof Error ? error.message : "Failed to move card");
+        }
+    };
+
+    // Handle deleting a card from the binder
+    const handleDeleteCard = async (binderCardId: string) => {
+        if (!binder) return;
+
+        try {
+            const response = await fetch(`/api/binders/${binder.id}/cards/${binderCardId}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to delete card" }));
+                throw new Error(errorData.error || "Failed to delete card");
+            }
+
+            // Refresh binder cards
+            const binderResponse = await fetch(`/api/binders/${binder.id}`);
+            if (binderResponse.ok) {
+                const data = await binderResponse.json();
+                const cards = data.binder?.binderCards || [];
+                setBinderCards(cards);
+            }
+        } catch (error) {
+            console.error("Error deleting card:", error);
+            alert(error instanceof Error ? error.message : "Failed to delete card");
+        }
+    };
 
     // Render a single page component
     const renderPage = (slots: (BinderCard | null)[], pageNumber: number) => (
@@ -280,7 +350,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 shadow-xl
                 overflow-hidden
                 w-full h-full
-                min-h-[400px]
+                min-h-[500px]
             "
             style={{ backgroundColor: pageColor }}
         >
@@ -294,38 +364,74 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 }}
             />
 
-            <div className="relative p-4 sm:p-5">
+            <div className="relative p-3 sm:p-4">
                 {/* pocket grid */}
                 <div
-                    className={`grid gap-3 sm:gap-4 ${gridSize.cols === 2 ? "grid-cols-2" :
-                        gridSize.cols === 4 ? "grid-cols-4" :
-                            "grid-cols-3"
+                    className={`grid ${gridSize.cols === 2 ? "grid-cols-2 gap-2 sm:gap-3" :
+                        gridSize.cols === 4 ? "grid-cols-4 gap-1.5 sm:gap-2" :
+                            "grid-cols-3 gap-2 sm:gap-3"
                         }`}
                 >
-                    {slots.map((slot, idx) => (
-                        <div
-                            key={idx}
-                            className="
-                                aspect-[2.5/3.5]
-                                rounded-lg
-                                border border-black/10 dark:border-white/10
-                                bg-black/5 dark:bg-white/5
-                                overflow-hidden
-                                relative
-                                shadow-sm
-                            "
-                            title={slot?.title ?? (slot ? "Card" : "Empty slot")}
-                        >
-                            {/* pocket "lip" */}
-                            <div className="absolute inset-x-0 top-0 h-3 bg-white/25 dark:bg-black/20" />
+                    {slots.map((slot, idx) => {
+                        const slotNumber = pageAndSlotToSlotNumber(pageNumber, idx, gridSize.total);
+                        const isDragOver = dragOverSlot === slotNumber;
 
-                            {slot?.imageUrl ? (
-                                <img
-                                    src={slot.imageUrl}
-                                    alt={slot.title ?? "Card"}
-                                    className={`h-full w-full object-cover ${slot.isInCollection === false ? "opacity-60 grayscale" : ""}`}
-                                />
-                            ) : (
+        return (
+                            <div
+                                key={idx}
+                                className={`
+                                    aspect-[2.5/3.5]
+                                    rounded-md
+                                    border border-black/10 dark:border-white/10
+                                    bg-black/5 dark:bg-white/5
+                                    overflow-hidden
+                                    relative
+                                    shadow-sm
+                                    ${isDragOver ? "ring-2 ring-[#42c99c] dark:ring-[#82664e] bg-[#42c99c]/20 dark:bg-[#82664e]/20" : ""}
+                                `}
+                                title={slot?.title ?? (slot ? "Card" : "Empty slot")}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    setDragOverSlot(slotNumber);
+                                }}
+                                onDragLeave={() => {
+                                    setDragOverSlot(null);
+                                }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    setDragOverSlot(null);
+                                    
+                                    if (draggedCard) {
+                                        handleMoveCard(draggedCard.id, slotNumber);
+                                        setDraggedCard(null);
+                                    }
+                                }}
+                            >
+                                {/* pocket "lip" */}
+                                <div className="absolute inset-x-0 top-0 h-3 bg-white/25 dark:bg-black/20" />
+
+                                {slot?.imageUrl ? (
+                                    <img
+                                        src={slot.imageUrl}
+                                        alt={slot.title ?? "Card"}
+                                        className={`h-full w-full object-cover cursor-move ${slot.isInCollection === false ? "opacity-60 grayscale" : ""}`}
+                                        draggable
+                                        onDragStart={(e) => {
+                                            if (slot && slot.slotNumber !== null && slot.slotNumber !== undefined) {
+                                                setDraggedCard({
+                                                    id: slot.id,
+                                                    cardId: slot.cardId,
+                                                    slotNumber: slot.slotNumber,
+                                                });
+                                                e.dataTransfer.effectAllowed = "move";
+                                            }
+                                        }}
+                                        onDragEnd={() => {
+                                            setDraggedCard(null);
+                                            setDragOverSlot(null);
+                                        }}
+                                    />
+                                ) : (
                                 <div className="h-full w-full flex items-center justify-center">
                                     <div
                                         className="
@@ -337,21 +443,21 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                             flex items-center justify-center
                                         "
                                     >
-                                        <div className="text-xs opacity-60 px-2 text-center leading-snug">
+                                        <div className="text-[10px] sm:text-xs opacity-60 px-1.5 sm:px-2 text-center leading-snug">
                                             {slot ? (
                                                 "Card"
                                             ) : (
-                                                <button
-                                                    type="button"
+            <button
+                type="button"
                                                     onClick={() => {
                                                         const slotNumber = pageAndSlotToSlotNumber(pageNumber, idx, gridSize.total);
                                                         setPendingSlotNumber(slotNumber);
                                                         setAddToBinderModalOpen(true);
                                                     }}
-                                                    className="flex flex-col items-center justify-center gap-1 hover:opacity-90 transition-opacity cursor-pointer text-black/60 dark:text-white/60 border border-black/15 dark:border-white/15 rounded-md p-2"
+                                                    className="flex flex-col items-center justify-center gap-0.5 sm:gap-1 hover:opacity-90 transition-opacity cursor-pointer text-black/60 dark:text-white/60 border border-black/15 dark:border-white/15 rounded p-1.5 sm:p-2"
                                                 >
-                                                    <Plus className="w-4 h-4" />
-                                                    <span>Add Card</span>
+                                                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                    <span className="text-[10px] sm:text-xs">Add Card</span>
                                                 </button>
                                             )}
                                         </div>
@@ -359,16 +465,51 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                 </div>
                             )}
                         </div>
-                    ))}
+                    );
+                    })}
                 </div>
 
                 {/* Page number at bottom - subtle, no border or padding */}
-                <div className="text-center mt-1">
-                    <span className="text-[10px] opacity-40 text-black/50 dark:text-white/50">
+                <div className="text-center mt-0.5">
+                    <span className="text-[9px] sm:text-[10px] opacity-40 text-black/50 dark:text-white/50">
                         {pageNumber}
                     </span>
                 </div>
             </div>
+        </div>
+    );
+
+    // Render the back cover component (same as front but without label plate)
+    const renderBackCover = () => (
+        <div
+            className="
+                relative rounded-2xl
+                border border-black/10 dark:border-white/10
+                shadow-xl
+                overflow-hidden
+                w-full h-full
+                min-h-[500px]
+            "
+            style={{ backgroundColor: coverColor }}
+        >
+            {/* cover shine */}
+            <div
+                aria-hidden="true"
+                className="absolute inset-0 opacity-5"
+                style={{
+                    background:
+                        "linear-gradient(120deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 35%, rgba(0,0,0,0.10) 100%)",
+                }}
+            />
+
+            {/* faux "stitched" edge */}
+            <div
+                aria-hidden="true"
+                className="absolute inset-0 rounded-2xl"
+                style={{
+                    boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.12)",
+                }}
+            />
         </div>
     );
 
@@ -381,7 +522,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 shadow-xl
                 overflow-hidden
                 w-full h-full
-                min-h-[400px]
+                min-h-[500px]
             "
             style={{ backgroundColor: coverColor }}
         >
@@ -432,6 +573,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
             </div>
         </div>
     );
+    
 
     if (!open || !binder) return null;
 
@@ -448,7 +590,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
             {/* Modal Shell */}
             <div
                 className="
-          relative w-[min(1100px,96vw)] max-h-[98vh]
+          relative w-[min(1400px,98vw)] max-h-[95vh]
           overflow-hidden
           rounded-2xl
           border border-[#42c99c] dark:border-[#82664e]
@@ -541,19 +683,19 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                     >
                         <X className="w-5 h-5" />
                     </button>
-                </div>
+                    </div>
 
                 {/* Binder Scene */}
-                <div className="p-4 sm:p-6">
-                    {/* “Table” surface */}
+                <div className="p-3 sm:p-4">
+                    {/* "Table" surface */}
                     <div
                         className="
               relative
               rounded-2xl
               border border-black/10 dark:border-white/10
               bg-[#e8d5b8] dark:bg-[#173c3f]
-              p-4 sm:p-6
-              overflow-hidden
+              p-3 sm:p-4
+              overflow-visible
             "
                     >
                         {/* subtle diagonal texture */}
@@ -576,6 +718,58 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                             </div>
                         ) : (
                             <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_70px_1fr] items-stretch" style={{ perspective: "2000px" }}>
+                                {/* Previous Button - Positioned vertically in the middle on the left */}
+                                {!loadingCards && currentPage > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={isFlipping}
+                                        className="
+                                            absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-20
+                                            flex items-center justify-center
+                                            w-10 h-10 rounded-full
+                                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                                            border border-[#42c99c] dark:border-[#82664e]
+                                            text-[#193f44] dark:text-[#e8d5b8]
+                                            hover:bg-black/10 dark:hover:bg-white/10
+                                            disabled:opacity-50 disabled:cursor-not-allowed
+                                            transition-colors
+                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                            dark:focus:ring-[#82664e]
+                                            shadow-lg
+                                        "
+                                        aria-label="Previous page"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                )}
+
+                                {/* Next Button - Positioned vertically in the middle on the right */}
+                                {!loadingCards && currentPage < totalPages && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={isFlipping}
+                                        className="
+                                            absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-20
+                                            flex items-center justify-center
+                                            w-10 h-10 rounded-full
+                                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                                            border border-[#42c99c] dark:border-[#82664e]
+                                            text-[#193f44] dark:text-[#e8d5b8]
+                                            hover:bg-black/10 dark:hover:bg-white/10
+                                            disabled:opacity-50 disabled:cursor-not-allowed
+                                            transition-colors
+                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                            dark:focus:ring-[#82664e]
+                                            shadow-lg
+                                        "
+                                        aria-label="Next page"
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
+                                )}
+
                                 {/* LEFT SIDE - Cover on page 1, current page on page 2+ */}
                                 <div className="relative w-full h-full" style={{ transformStyle: "preserve-3d" }}>
                                     {(targetPage ?? currentPage) === 1 ? (
@@ -589,8 +783,8 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                             {renderCover()}
                                         </div>
                                     ) : leftPageSlots ? (
-                                        <div
-                                            className={`
+                        <div
+                            className={`
                                                 relative w-full h-full
                                                 transition-opacity duration-600 ease-in-out
                                                 ${isFlipping && flipDirection === "backward" ? "opacity-0" : "opacity-100"}
@@ -652,9 +846,13 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                                     transform: "scaleX(-1)", // Flip horizontally to show back
                                                 }}
                                             >
-                                                {renderPage(
-                                                    rightPageSlots || Array.from({ length: gridSize.total }, () => null),
-                                                    getRightPageNumber(targetPage)
+                                                {getRightPageNumber(targetPage) === null ? (
+                                                    renderBackCover()
+                                                ) : (
+                                                    renderPage(
+                                                        rightPageSlots || Array.from({ length: gridSize.total }, () => null),
+                                                        getRightPageNumber(targetPage) ?? 0
+                                                    )
                                                 )}
                                             </div>
                                         </div>
@@ -676,7 +874,14 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                             transformOrigin: "left center",
                                         }}
                                     >
-                                        {rightPageSlots ? renderPage(rightPageSlots, getRightPageNumber(targetPage ?? currentPage)) : renderPage(getPageSlots(getRightPageNumber(targetPage ?? currentPage)), getRightPageNumber(targetPage ?? currentPage))}
+                                        {rightPageSlots === null ? (
+                                            // Show back cover when rightPageSlots is null
+                                            renderBackCover()
+                                        ) : rightPageSlots ? (
+                                            renderPage(rightPageSlots, getRightPageNumber(targetPage ?? currentPage) ?? 0)
+                                        ) : (
+                                            renderPage(getPageSlots(getRightPageNumber(targetPage ?? currentPage) ?? 0), getRightPageNumber(targetPage ?? currentPage) ?? 0)
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -684,19 +889,20 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
 
 
-                        {/* bottom shadow to “lift” binder off table */}
+                        {/* bottom shadow to "lift" binder off table */}
                         <div
                             aria-hidden="true"
                             className="pointer-events-none absolute inset-x-10 bottom-4 h-10 blur-2xl opacity-25"
                             style={{ background: "radial-gradient(closest-side, rgba(0,0,0,0.55), transparent)" }}
                         />
                     </div>
+                    
                     {/* Pagination Controls */}
                     {!loadingCards && (
                         <div className="mt-4 flex items-center justify-between px-4">
                             <button
                                 type="button"
-                                onClick={() => handlePageChange(currentPage - 1)}
+                                onClick={() => handlePageChange(1)}
                                 disabled={currentPage === 1 || isFlipping}
                                 className="
                                         flex items-center gap-2
@@ -711,13 +917,58 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                         dark:focus:ring-[#82664e]
                                     "
                             >
-                                <ChevronLeft className="w-4 h-4" />
-                                Previous
+                                <SkipBack className="w-4 h-4" />
+                                To Beginning
                             </button>
+
+                            {/* Recycling Bin */}
+                            <div
+                                className={`
+                                    flex items-center justify-center
+                                    w-12 h-12 rounded-full
+                                    border-2 border-dashed
+                                    transition-all duration-200
+                                    ${dragOverTrash
+                                        ? "bg-red-500/20 border-red-500 scale-110"
+                                        : "bg-[#e8d5b8]/50 dark:bg-[#173c3f]/50 border-[#42c99c] dark:border-[#82664e]"
+                                    }
+                                    ${draggedCard ? "opacity-100" : "opacity-50"}
+                                `}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    setDragOverTrash(true);
+                                }}
+                                onDragLeave={() => {
+                                    setDragOverTrash(false);
+                                }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    setDragOverTrash(false);
+                                    
+                                    if (draggedCard) {
+                                        if (confirm("Are you sure you want to remove this card from the binder?")) {
+                                            handleDeleteCard(draggedCard.id);
+                                        }
+                                        setDraggedCard(null);
+                                    }
+                                }}
+                                title="Drop card here to remove from binder"
+                            >
+                                <Trash2
+                                    className={`
+                                        w-5 h-5
+                                        transition-colors
+                                        ${dragOverTrash
+                                            ? "text-red-500"
+                                            : "text-[#193f44] dark:text-[#e8d5b8]"
+                                        }
+                                    `}
+                                />
+                            </div>
 
                             <button
                                 type="button"
-                                onClick={() => handlePageChange(currentPage + 1)}
+                                onClick={() => handlePageChange(totalPages)}
                                 disabled={currentPage >= totalPages || isFlipping}
                                 className="
                                         flex items-center gap-2
@@ -732,8 +983,8 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                         dark:focus:ring-[#82664e]
                                     "
                             >
-                                Next
-                                <ChevronRight className="w-4 h-4" />
+                                To End
+                                <SkipForward className="w-4 h-4" />
                             </button>
                         </div>
                     )}

@@ -25,7 +25,6 @@ import { useState, useEffect } from "react";
 import { useUser } from "@stackframe/stack";
 import NewBinderModal from "./newBinderModal";
 import Loading from "@/app/components/Loading";
-import OpenBinderModal from "./openBinderModal";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGameFilter } from "@/app/components/GameFilterContext";
@@ -56,8 +55,6 @@ export default function BindersPage() {
     const [allBinders, setAllBinders] = useState<Binder[]>([]); // Store all binders for filtering
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [openBinderModal, setOpenBinderModal] = useState(false);
-    const [selectedBinder, setSelectedBinder] = useState<Binder | null>(null);
     const router = useRouter();
 
     // Fetch binders
@@ -119,13 +116,6 @@ export default function BindersPage() {
             const data = await response.json();
             setAllBinders(data.binders || []);
 
-            // Update selectedBinder if modal is open and binder was edited
-            if (selectedBinder && openBinderModal) {
-                const updatedBinder = data.binders?.find((b: Binder) => b.id === selectedBinder.id);
-                if (updatedBinder) {
-                    setSelectedBinder(updatedBinder);
-                }
-            }
         } catch (err) {
             console.error("Failed to refresh binders:", err);
         }
@@ -236,8 +226,7 @@ export default function BindersPage() {
         outline-none
       "
                                 onClick={() => {
-                                    setSelectedBinder(binder);
-                                    setOpenBinderModal(true);
+                                    router.push(`/collection/binders/${binder.id}`);
                                 }}
                             >
                                 {/* “Binder cover” */}
@@ -318,15 +307,6 @@ export default function BindersPage() {
             )}
 
             <NewBinderModal open={isOpen} onClose={() => setIsOpen(false)} onSuccess={handleBinderCreated} />
-            <OpenBinderModal
-                open={openBinderModal}
-                binder={selectedBinder}
-                onClose={() => {
-                    setOpenBinderModal(false);
-                    setSelectedBinder(null);
-                }}
-                onSuccess={handleBinderCreated}
-            />
         </main>
     );
 }
