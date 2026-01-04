@@ -39,6 +39,8 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
     const [deleting, setDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [isFlipping, setIsFlipping] = useState(false);
+    const [flipDirection, setFlipDirection] = useState<"forward" | "backward" | null>(null);
+    const [targetPage, setTargetPage] = useState<number | null>(null); // Track target page during animation
     const [binderCards, setBinderCards] = useState<Array<{
         id: string;
         cardId: string;
@@ -64,7 +66,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
             try {
                 setLoadingCards(true);
-                
+
                 // Fetch binder cards
                 const response = await fetch(`/api/binders/${binder.id}`);
                 if (!response.ok) throw new Error("Failed to fetch binder cards");
@@ -145,13 +147,13 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
         const cardsPerPage = gridSize.total;
         const startSlotNumber = (page - 1) * cardsPerPage;
         const endSlotNumber = startSlotNumber + cardsPerPage - 1;
-        
+
         // Filter cards that belong to this page based on slotNumber
         const pageCards = binderCards.filter(bc => {
             if (bc.slotNumber === null || bc.slotNumber === undefined) return false;
             return bc.slotNumber >= startSlotNumber && bc.slotNumber <= endSlotNumber;
         });
-        
+
         // Create a map of slot index within page -> card
         const slotMap = new Map<number, typeof binderCards[0]>();
         pageCards.forEach(card => {
@@ -160,7 +162,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 slotMap.set(slotInPage, card);
             }
         });
-        
+
         // Fill slots array
         const slots = Array.from({ length: gridSize.total }, (_, i) => {
             const card = slotMap.get(i);
@@ -182,13 +184,18 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
     const handlePageChange = (newPage: number) => {
         if (newPage < 1 || newPage > totalPages || isFlipping) return;
 
+        const direction = newPage > currentPage ? "forward" : "backward";
+        setFlipDirection(direction);
+        setTargetPage(newPage); // Set target page immediately
         setIsFlipping(true);
+
+        // After flip animation completes, update the current page
         setTimeout(() => {
             setCurrentPage(newPage);
-            setTimeout(() => {
-                setIsFlipping(false);
-            }, 50); // Small delay to ensure state update
-        }, 300); // Half of animation duration
+            setTargetPage(null); // Clear target page
+            setIsFlipping(false);
+            setFlipDirection(null);
+        }, 600); // Match animation duration
     };
 
     // Escape to close and keyboard navigation
@@ -208,25 +215,61 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
         return () => window.removeEventListener("keydown", onKeyDown);
     }, [open, onClose, editModalOpen, deleting, currentPage, totalPages, isFlipping]);
 
-    // Left page: Page N (or cover if page 1)
-    // Page 1: Cover | Page 1
-    // Page 2: Page 2 | Page 3
-    // Page 3: Page 4 | Page 5
-    // So when viewing page N: Left = Page N, Right = Page N+1 (or Page 1 if N=1)
+    // Calculate which physical pages to show based on view number
+    // View 1: Cover | Page 1
+    // View 2: Page 2 | Page 3
+    // View 3: Page 4 | Page 5
+    // View N: Page 2(N-1) | Page 2(N-1)+1 (or Cover | Page 1 if N=1)
+    const getLeftPageNumber = (viewNumber: number) => {
+        if (viewNumber === 1) return null; // Cover
+        return 2 * (viewNumber - 1); // Page 2, 4, 6, etc.
+    };
+
+    const getRightPageNumber = (viewNumber: number) => {
+        if (viewNumber === 1) return 1; // Page 1
+        return 2 * (viewNumber - 1) + 1; // Page 3, 5, 7, etc.
+    };
+
+    // Left page: Cover on view 1, then Page 2, 4, 6, etc.
     const leftPageSlots = useMemo(() => {
-        if (currentPage === 1) return null; // Will show cover
-        return getPageSlots(currentPage); // Show current page on left
-    }, [currentPage, binderCards, cardDetails, gridSize.total, collectionCardIds]);
-    
-    // Right page: Page N+1 (or Page 1 if viewing page 1)
+        // Use target page during animation to prevent flicker
+        const displayView = targetPage ?? currentPage;
+        const leftPageNum = getLeftPageNumber(displayView);
+
+        if (leftPageNum === null) return null; // Will show cover
+
+        // When flipping forward, the right page becomes the left page
+        if (isFlipping && flipDirection === "forward" && targetPage !== null) {
+            const newLeftPageNum = getLeftPageNumber(targetPage);
+            if (newLeftPageNum === null) return null;
+            return getPageSlots(newLeftPageNum);
+        }
+
+        return getPageSlots(leftPageNum);
+    }, [currentPage, targetPage, binderCards, cardDetails, gridSize.total, collectionCardIds, isFlipping, flipDirection]);
+
+    // Right page: Page 1 on view 1, then Page 3, 5, 7, etc.
     const rightPageSlots = useMemo(() => {
-        if (currentPage === 1) return getPageSlots(1); // Page 1 shows Page 1 on right
-        if (currentPage >= totalPages) {
-            // On last page, show empty page on right
+        // Use target page during animation to prevent flicker
+        const displayView = targetPage ?? currentPage;
+        const rightPageNum = getRightPageNumber(displayView);
+
+        if (rightPageNum > totalPages) {
+            // Beyond max pages, show empty
             return Array.from({ length: gridSize.total }, () => null);
         }
-        return getPageSlots(currentPage + 1); // Show next page
-    }, [currentPage, binderCards, cardDetails, gridSize.total, totalPages, collectionCardIds]);
+
+        // When flipping forward, show the new page that will appear on the right
+        if (isFlipping && flipDirection === "forward" && targetPage !== null) {
+            const newRightPageNum = getRightPageNumber(targetPage);
+            if (newRightPageNum > totalPages) {
+                return Array.from({ length: gridSize.total }, () => null);
+            }
+            return getPageSlots(newRightPageNum);
+        }
+
+        return getPageSlots(rightPageNum);
+    }, [currentPage, targetPage, binderCards, cardDetails, gridSize.total, totalPages, collectionCardIds, isFlipping, flipDirection]);
 
     // Render a single page component
     const renderPage = (slots: (BinderCard | null)[], pageNumber: number) => (
@@ -318,6 +361,13 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                         </div>
                     ))}
                 </div>
+
+                {/* Page number at bottom - subtle, no border or padding */}
+                <div className="text-center mt-1">
+                    <span className="text-[10px] opacity-40 text-black/50 dark:text-white/50">
+                        {pageNumber}
+                    </span>
+                </div>
             </div>
         </div>
     );
@@ -398,7 +448,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
             {/* Modal Shell */}
             <div
                 className="
-          relative w-[min(1100px,96vw)] max-h-[92vh]
+          relative w-[min(1100px,96vw)] max-h-[98vh]
           overflow-hidden
           rounded-2xl
           border border-[#42c99c] dark:border-[#82664e]
@@ -525,15 +575,15 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                 </div>
                             </div>
                         ) : (
-                            <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_70px_1fr] items-stretch">
+                            <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_70px_1fr] items-stretch" style={{ perspective: "2000px" }}>
                                 {/* LEFT SIDE - Cover on page 1, current page on page 2+ */}
-                                <div className="relative w-full h-full">
-                                    {currentPage === 1 ? (
+                                <div className="relative w-full h-full" style={{ transformStyle: "preserve-3d" }}>
+                                    {(targetPage ?? currentPage) === 1 ? (
                                         <div
                                             className={`
                                                 relative w-full h-full
-                                                transition-all duration-500 ease-in-out
-                                                ${isFlipping ? "opacity-0 scale-95" : "opacity-100 scale-100"}
+                                                transition-opacity duration-600 ease-in-out
+                                                ${isFlipping && flipDirection === "backward" ? "opacity-0" : "opacity-100"}
                                             `}
                                         >
                                             {renderCover()}
@@ -542,21 +592,21 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                         <div
                                             className={`
                                                 relative w-full h-full
-                                                transition-all duration-500 ease-in-out
-                                                ${isFlipping ? "opacity-0 scale-95" : "opacity-100 scale-100"}
+                                                transition-opacity duration-600 ease-in-out
+                                                ${isFlipping && flipDirection === "backward" ? "opacity-0" : "opacity-100"}
                                             `}
                                         >
-                                            {renderPage(leftPageSlots, currentPage)}
+                                            {renderPage(leftPageSlots, getLeftPageNumber(targetPage ?? currentPage) ?? 0)}
                                         </div>
                                     ) : (
                                         <div className="relative w-full h-full">
-                                            {renderPage(getPageSlots(currentPage), currentPage)}
+                                            {renderPage(getPageSlots(getLeftPageNumber(targetPage ?? currentPage) ?? 1), getLeftPageNumber(targetPage ?? currentPage) ?? 1)}
                                         </div>
                                     )}
                                 </div>
 
                                 {/* RINGS / SPINE */}
-                                <div className="relative flex items-center justify-center">
+                                <div className="relative flex items-center justify-center z-10">
                                     <div
                                         className="
                                             relative h-full w-full
@@ -582,108 +632,57 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                 </div>
 
                                 {/* RIGHT PAGE - Next page (or current page if page 1) */}
-                                <div className="relative w-full h-full">
+                                <div className="relative w-full h-full" style={{ transformStyle: "preserve-3d" }}>
+                                    {/* Flipping page - shows back side during forward flip */}
+                                    {isFlipping && flipDirection === "forward" && targetPage !== null && (
+                                        <div
+                                            className="absolute inset-0 w-full h-full"
+                                            style={{
+                                                transformOrigin: "left center",
+                                                transform: "rotateY(-180deg)",
+                                                transition: "transform 0.6s ease-in-out",
+                                                backfaceVisibility: "hidden",
+                                                zIndex: 20,
+                                            }}
+                                        >
+                                            {/* Back of the page (next page content, flipped horizontally) */}
+                                            <div
+                                                className="relative w-full h-full"
+                                                style={{
+                                                    transform: "scaleX(-1)", // Flip horizontally to show back
+                                                }}
+                                            >
+                                                {renderPage(
+                                                    rightPageSlots || Array.from({ length: gridSize.total }, () => null),
+                                                    getRightPageNumber(targetPage)
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Current right page - flips to become left page */}
                                     <div
                                         className={`
                                             relative w-full h-full
-                                            transition-all duration-500 ease-in-out
-                                            ${isFlipping ? "opacity-0 scale-95" : "opacity-100 scale-100"}
-                                        `}
-                                    >
-                                        {rightPageSlots ? renderPage(rightPageSlots, currentPage === 1 ? 1 : currentPage + 1) : renderPage(getPageSlots(currentPage), currentPage)}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Pagination Controls */}
-                        {!loadingCards && (
-                            <div className="mt-6 flex items-center justify-between px-4">
-                                <button
-                                    type="button"
-                                    onClick={() => handlePageChange(currentPage - 1)}
-                                    disabled={currentPage === 1 || isFlipping}
-                                    className="
-                                        flex items-center gap-2
-                                        px-4 py-2 rounded-md
-                                        bg-[#e8d5b8] dark:bg-[#173c3f]
-                                        border border-[#42c99c] dark:border-[#82664e]
-                                        text-[#193f44] dark:text-[#e8d5b8]
-                                        hover:bg-black/10 dark:hover:bg-white/10
-                                        disabled:opacity-50 disabled:cursor-not-allowed
-                                        transition-colors
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
-                                    "
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                    Previous
-                                </button>
-
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm opacity-70">
-                                        Page {currentPage} of {totalPages}
-                                    </span>
-                                    <div className="flex items-center gap-1">
-                                        {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                                            let pageNum: number;
-                                            if (totalPages <= 7) {
-                                                pageNum = i + 1;
-                                            } else if (currentPage <= 4) {
-                                                pageNum = i + 1;
-                                            } else if (currentPage >= totalPages - 3) {
-                                                pageNum = totalPages - 6 + i;
-                                            } else {
-                                                pageNum = currentPage - 3 + i;
+                                            ${isFlipping && flipDirection === "forward"
+                                                ? "transition-transform duration-600 ease-in-out transform rotateY(-180deg)"
+                                                : isFlipping && flipDirection === "backward"
+                                                    ? "transition-opacity duration-600 ease-in-out opacity-0"
+                                                    : "transition-opacity duration-600 ease-in-out opacity-100"
                                             }
-
-                                            return (
-                                                <button
-                                                    key={pageNum}
-                                                    type="button"
-                                                    onClick={() => handlePageChange(pageNum)}
-                                                    disabled={isFlipping}
-                                                    className={`
-                                                        px-3 py-1.5 rounded-md text-sm
-                                                        transition-colors
-                                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                                        dark:focus:ring-[#82664e]
-                                                        disabled:opacity-50 disabled:cursor-not-allowed
-                                                        ${currentPage === pageNum
-                                                            ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
-                                                            : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
-                                                        }
-                                                    `}
-                                                >
-                                                    {pageNum}
-                                                </button>
-                                            );
-                                        })}
+                                        `}
+                                        style={{
+                                            transformStyle: "preserve-3d",
+                                            transformOrigin: "left center",
+                                        }}
+                                    >
+                                        {rightPageSlots ? renderPage(rightPageSlots, getRightPageNumber(targetPage ?? currentPage)) : renderPage(getPageSlots(getRightPageNumber(targetPage ?? currentPage)), getRightPageNumber(targetPage ?? currentPage))}
                                     </div>
                                 </div>
-
-                                <button
-                                    type="button"
-                                    onClick={() => handlePageChange(currentPage + 1)}
-                                    disabled={currentPage >= totalPages || isFlipping}
-                                    className="
-                                        flex items-center gap-2
-                                        px-4 py-2 rounded-md
-                                        bg-[#e8d5b8] dark:bg-[#173c3f]
-                                        border border-[#42c99c] dark:border-[#82664e]
-                                        text-[#193f44] dark:text-[#e8d5b8]
-                                        hover:bg-black/10 dark:hover:bg-white/10
-                                        disabled:opacity-50 disabled:cursor-not-allowed
-                                        transition-colors
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
-                                    "
-                                >
-                                    Next
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
                             </div>
                         )}
+
+
 
                         {/* bottom shadow to “lift” binder off table */}
                         <div
@@ -692,6 +691,52 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                             style={{ background: "radial-gradient(closest-side, rgba(0,0,0,0.55), transparent)" }}
                         />
                     </div>
+                    {/* Pagination Controls */}
+                    {!loadingCards && (
+                        <div className="mt-4 flex items-center justify-between px-4">
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1 || isFlipping}
+                                className="
+                                        flex items-center gap-2
+                                        px-4 py-2 rounded-md
+                                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                                        border border-[#42c99c] dark:border-[#82664e]
+                                        text-[#193f44] dark:text-[#e8d5b8]
+                                        hover:bg-black/10 dark:hover:bg-white/10
+                                        disabled:opacity-50 disabled:cursor-not-allowed
+                                        transition-colors
+                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                        dark:focus:ring-[#82664e]
+                                    "
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                                Previous
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage >= totalPages || isFlipping}
+                                className="
+                                        flex items-center gap-2
+                                        px-4 py-2 rounded-md
+                                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                                        border border-[#42c99c] dark:border-[#82664e]
+                                        text-[#193f44] dark:text-[#e8d5b8]
+                                        hover:bg-black/10 dark:hover:bg-white/10
+                                        disabled:opacity-50 disabled:cursor-not-allowed
+                                        transition-colors
+                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                        dark:focus:ring-[#82664e]
+                                    "
+                            >
+                                Next
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -709,23 +754,23 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
             />
 
             {/* Add to Binder Modal */}
-                <AddToBinderModal
-                    open={addToBinderModalOpen}
-                    binderId={binder.id}
-                    binderGame={binder.game ?? "mtg"}
-                    cardsPerPage={gridSize.total}
-                    pendingSlotNumber={pendingSlotNumber}
-                    onClose={() => {
-                        setAddToBinderModalOpen(false);
-                        setPendingSlotNumber(null);
-                    }}
+            <AddToBinderModal
+                open={addToBinderModalOpen}
+                binderId={binder.id}
+                binderGame={binder.game ?? "mtg"}
+                cardsPerPage={gridSize.total}
+                pendingSlotNumber={pendingSlotNumber}
+                onClose={() => {
+                    setAddToBinderModalOpen(false);
+                    setPendingSlotNumber(null);
+                }}
                 onAdded={async () => {
                     // Refresh binder cards after adding
                     const response = await fetch(`/api/binders/${binder.id}`);
                     if (response.ok) {
                         const data = await response.json();
                         setBinderCards(data.binder?.binderCards || []);
-                        
+
                         // Refetch card details for new cards
                         const newCards = data.binder?.binderCards || [];
                         const detailsMap = new Map<string, ScryfallCard>();
