@@ -7,6 +7,7 @@ import type { ScryfallCard } from "@/app/lib/scryfall";
 import AddToBinderModal from "../addToBinderModal";
 import { useRouter, useParams } from "next/navigation";
 import { useUser } from "@stackframe/stack";
+import ConfirmDeleteModal from "@/app/components/confirmDeleteModal";
 
 type Binder = {
     id: string;
@@ -54,6 +55,8 @@ export default function BinderPage() {
     const [draggedCard, setDraggedCard] = useState<{ id: string; cardId: string; slotNumber: number } | null>(null);
     const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
     const [dragOverTrash, setDragOverTrash] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
 
     // Fetch binder data when page loads
     useEffect(() => {
@@ -173,11 +176,19 @@ export default function BinderPage() {
             if (!card) return null;
             const cardDetail = cardDetails.get(card.cardId);
             const isInCollection = collectionCardIds.has(card.cardId);
+
+            // Use higher resolution images for all grid sizes to prevent blurriness
+            let imageUrl = null;
+            if (cardDetail?.image_uris) {
+                // All grid sizes: use large or png for better quality
+                imageUrl = cardDetail.image_uris.large || cardDetail.image_uris.png || cardDetail.image_uris.normal || null;
+            }
+
             return {
                 id: card.id,
                 cardId: card.cardId,
                 slotNumber: card.slotNumber,
-                imageUrl: cardDetail?.image_uris?.small || cardDetail?.image_uris?.normal || null,
+                imageUrl,
                 title: cardDetail?.name || null,
                 isInCollection,
             };
@@ -373,7 +384,7 @@ export default function BinderPage() {
                         const slotNumber = pageAndSlotToSlotNumber(pageNumber, idx, gridSize.total);
                         const isDragOver = dragOverSlot === slotNumber;
 
-        return (
+                        return (
                             <div
                                 key={idx}
                                 className={`
@@ -397,7 +408,7 @@ export default function BinderPage() {
                                 onDrop={(e) => {
                                     e.preventDefault();
                                     setDragOverSlot(null);
-                                    
+
                                     if (draggedCard) {
                                         handleMoveCard(draggedCard.id, slotNumber);
                                         setDraggedCard(null);
@@ -429,9 +440,9 @@ export default function BinderPage() {
                                         }}
                                     />
                                 ) : (
-                                <div className="h-full w-full flex items-center justify-center">
-                                    <div
-                                        className="
+                                    <div className="h-full w-full flex items-center justify-center">
+                                        <div
+                                            className="
                                             w-[84%] h-[86%]
                                             rounded-md
                                             border border-black/15 dark:border-white/15
@@ -439,30 +450,30 @@ export default function BinderPage() {
                                             shadow-inner
                                             flex items-center justify-center
                                         "
-                                    >
-                                        <div className="text-[10px] sm:text-xs opacity-60 px-1.5 sm:px-2 text-center leading-snug">
-                                            {slot ? (
-                                                "Card"
-                                            ) : (
-            <button
-                type="button"
-                                                    onClick={() => {
-                                                        const slotNumber = pageAndSlotToSlotNumber(pageNumber, idx, gridSize.total);
-                                                        setPendingSlotNumber(slotNumber);
-                                                        setAddToBinderModalOpen(true);
-                                                    }}
-                                                    className="flex flex-col items-center justify-center gap-0.5 sm:gap-1 hover:opacity-90 transition-opacity cursor-pointer text-black/60 dark:text-white/60 border border-black/15 dark:border-white/15 rounded p-1.5 sm:p-2"
-                                                >
-                                                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                    <span className="text-[10px] sm:text-xs">Add Card</span>
-                                                </button>
-                                            )}
+                                        >
+                                            <div className="text-[10px] sm:text-xs opacity-60 px-1.5 sm:px-2 text-center leading-snug">
+                                                {slot ? (
+                                                    "Card"
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const slotNumber = pageAndSlotToSlotNumber(pageNumber, idx, gridSize.total);
+                                                            setPendingSlotNumber(slotNumber);
+                                                            setAddToBinderModalOpen(true);
+                                                        }}
+                                                        className="flex flex-col items-center justify-center gap-0.5 sm:gap-1 hover:opacity-90 transition-opacity cursor-pointer text-black/60 dark:text-white/60 border border-black/15 dark:border-white/15 rounded p-1.5 sm:p-2"
+                                                    >
+                                                        <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                        <span className="text-[10px] sm:text-xs">Add Card</span>
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
-                        </div>
-                    );
+                                )}
+                            </div>
+                        );
                     })}
                 </div>
 
@@ -570,7 +581,7 @@ export default function BinderPage() {
             </div>
         </div>
     );
-    
+
 
     if (!binder) {
         return (
@@ -585,15 +596,15 @@ export default function BinderPage() {
 
     return (
         <div className="min-h-screen bg-[#f6ead6] dark:bg-[#0f2a2c]">
-            <div className="container mx-auto px-4 py-2">
+            <div className="container mx-auto px-4 py-6">
                 {/* Header */}
-                <div className="flex items-start justify-between gap-3 mb-0.25 border-b border-black/10 dark:border-white/10 pb-2">
+                <div className="flex items-start justify-between gap-3 mb-6 border-b border-black/10 dark:border-white/10 pb-4">
                     <div className="min-w-0">
                         <h1 className="text-2xl font-semibold truncate text-center justify-center text-[#193f44] dark:text-[#e8d5b8]">{binder.name}</h1>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                className="
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            className="
                                     inline-flex items-center gap-2
                                     px-3 py-2 rounded-md text-sm
                                     bg-black/5 dark:bg-white/5
@@ -602,14 +613,14 @@ export default function BinderPage() {
                                     flex-shrink-0
                                     transition-colors
                                     "
-                                type="button"
-                                onClick={() => setEditModalOpen(true)}
-                            >
-                                <Edit className="w-5 h-5" />
-                                <span className="text-sm">Edit Binder</span>
-                            </button>
-                            <button
-                                className="
+                            type="button"
+                            onClick={() => setEditModalOpen(true)}
+                        >
+                            <Edit className="w-5 h-5" />
+                            <span className="text-sm">Edit Binder</span>
+                        </button>
+                        <button
+                            className="
                                     inline-flex items-center gap-2
                                     px-3 py-2 rounded-md text-sm
                                     bg-red-500/10 dark:bg-red-500/20
@@ -620,35 +631,21 @@ export default function BinderPage() {
                                     transition-colors
                                     disabled:opacity-50 disabled:cursor-not-allowed
                                     "
-                                type="button"
-                                onClick={async () => {
-                                    if (!binder || !confirm(`Are you sure you want to delete "${binder.name}"? This action cannot be undone.`)) {
-                                        return;
-                                    }
-                                    setDeleting(true);
-                                    try {
-                                        const response = await fetch(`/api/binders/${binder.id}`, {
-                                            method: "DELETE",
-                                        });
-                                        if (!response.ok) {
-                                            throw new Error("Failed to delete binder");
-                                        }
-                                        router.push("/collection/binders");
-                                    } catch (err) {
-                                        alert(err instanceof Error ? err.message : "Failed to delete binder");
-                                    } finally {
-                                        setDeleting(false);
-                                    }
-                                }}
-                                disabled={deleting}
-                            >
-                                <Trash className="w-5 h-5" />
-                                <span className="text-sm">{deleting ? "Deleting..." : "Delete Binder"}</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => router.push("/collection/binders")}
-                                className="
+                            type="button"
+                            onClick={() => {
+                                if (!binder) return;
+                                setDeleteCardId(null); // Clear card ID to indicate binder deletion
+                                setDeleteModalOpen(true);
+                            }}
+                            disabled={deleting}
+                        >
+                            <Trash className="w-5 h-5" />
+                            <span className="text-sm">{deleting ? "Deleting..." : "Delete Binder"}</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => router.push("/collection/binders")}
+                            className="
                                     p-2 rounded-md
                                     bg-black/5 dark:bg-white/5
                                     hover:bg-black/10 dark:hover:bg-white/10
@@ -656,53 +653,53 @@ export default function BinderPage() {
                                     focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                     dark:focus:ring-[#82664e]
                                 "
-                                aria-label="Close"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+                            aria-label="Close"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
+                </div>
 
-                    {/* Binder Scene */}
-                    <div className="p-1 sm:p-4">
-                        {/* "Table" surface */}
-                        <div
-                            className="
+                {/* Binder Scene */}
+                <div className="p-4 sm:p-6">
+                    {/* "Table" surface */}
+                    <div
+                        className="
                                 relative
                                 rounded-2xl
                                 border border-black/10 dark:border-white/10
                                 bg-[#e8d5b8] dark:bg-[#173c3f]
-                                p-2 sm:p-2
+                                p-4 sm:p-6
                                 overflow-visible
                             "
-                        >
-                            {/* subtle diagonal texture */}
-                            <div
-                                aria-hidden="true"
-                                className="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.10]"
-                                style={{
-                                    backgroundImage:
-                                        "repeating-linear-gradient(135deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 12px)",
-                                }}
-                            />
+                    >
+                        {/* subtle diagonal texture */}
+                        <div
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.10]"
+                            style={{
+                                backgroundImage:
+                                    "repeating-linear-gradient(135deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 12px)",
+                            }}
+                        />
 
-                            {/* Binder open layout */}
-                            {loadingCards ? (
-                                <div className="flex items-center justify-center min-h-[400px]">
-                                    <div className="text-center">
-                                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#42c99c] dark:border-[#82664e] mb-4"></div>
-                                        <p className="text-sm opacity-70">Loading binder cards...</p>
-                                    </div>
+                        {/* Binder open layout */}
+                        {loadingCards ? (
+                            <div className="flex items-center justify-center min-h-[400px]">
+                                <div className="text-center">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#42c99c] dark:border-[#82664e] mb-4"></div>
+                                    <p className="text-sm opacity-70">Loading binder cards...</p>
                                 </div>
-                            ) : (
-                                <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_70px_1fr] items-stretch" style={{ perspective: "2000px" }}>
-                                    {/* Previous Button - Positioned vertically in the middle on the left */}
-                                    {!loadingCards && currentPage > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handlePageChange(currentPage - 1)}
-                                            disabled={isFlipping}
-                                            className="
+                            </div>
+                        ) : (
+                            <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_70px_1fr] items-stretch" style={{ perspective: "2000px" }}>
+                                {/* Previous Button - Positioned vertically in the middle on the left */}
+                                {!loadingCards && currentPage > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={isFlipping}
+                                        className="
                                                 absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-20
                                                 flex items-center justify-center
                                                 w-10 h-10 rounded-full
@@ -716,19 +713,19 @@ export default function BinderPage() {
                                                 dark:focus:ring-[#82664e]
                                                 shadow-lg
                                             "
-                                            aria-label="Previous page"
-                                        >
-                                            <ChevronLeft className="w-5 h-5" />
-                                        </button>
-                                    )}
+                                        aria-label="Previous page"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                )}
 
-                                    {/* Next Button - Positioned vertically in the middle on the right */}
-                                    {!loadingCards && currentPage < totalPages && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handlePageChange(currentPage + 1)}
-                                            disabled={isFlipping}
-                                            className="
+                                {/* Next Button - Positioned vertically in the middle on the right */}
+                                {!loadingCards && currentPage < totalPages && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={isFlipping}
+                                        className="
                                                 absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-20
                                                 flex items-center justify-center
                                                 w-10 h-10 rounded-full
@@ -742,286 +739,334 @@ export default function BinderPage() {
                                                 dark:focus:ring-[#82664e]
                                                 shadow-lg
                                             "
-                                            aria-label="Next page"
-                                        >
-                                            <ChevronRight className="w-5 h-5" />
-                                        </button>
-                                    )}
+                                        aria-label="Next page"
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
+                                )}
 
-                                    {/* LEFT SIDE - Cover on page 1, current page on page 2+ */}
-                                    <div className="relative w-full h-full" style={{ transformStyle: "preserve-3d" }}>
-                                        {(targetPage ?? currentPage) === 1 ? (
-                                            <div
-                                                className={`
-                                                    relative w-full h-full
-                                                    transition-opacity duration-600 ease-in-out
-                                                    ${isFlipping && flipDirection === "backward" ? "opacity-0" : "opacity-100"}
-                                                `}
-                                            >
-                                                {renderCover()}
-                                            </div>
-                                        ) : leftPageSlots ? (
-                                            <div
-                                                className={`
-                                                    relative w-full h-full
-                                                    transition-opacity duration-600 ease-in-out
-                                                    ${isFlipping && flipDirection === "backward" ? "opacity-0" : "opacity-100"}
-                                                `}
-                                            >
-                                                {renderPage(leftPageSlots, getLeftPageNumber(targetPage ?? currentPage) ?? 0)}
-                                            </div>
-                                        ) : (
-                                            <div className="relative w-full h-full">
-                                                {renderPage(getPageSlots(getLeftPageNumber(targetPage ?? currentPage) ?? 1), getLeftPageNumber(targetPage ?? currentPage) ?? 1)}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* RINGS / SPINE */}
-                                    <div className="relative flex items-center justify-center z-10">
+                                {/* LEFT SIDE - Cover on page 1, current page on page 2+ */}
+                                <div className="relative w-full h-full" style={{ transformStyle: "preserve-3d" }}>
+                                    {(targetPage ?? currentPage) === 1 ? (
                                         <div
-                                            className="
+                                            className={`
+                                                    relative w-full h-full
+                                                    transition-opacity duration-600 ease-in-out
+                                                    ${isFlipping && flipDirection === "backward" ? "opacity-0" : "opacity-100"}
+                                                `}
+                                        >
+                                            {renderCover()}
+                                        </div>
+                                    ) : leftPageSlots ? (
+                                        <div
+                                            className={`
+                                                    relative w-full h-full
+                                                    transition-opacity duration-600 ease-in-out
+                                                    ${isFlipping && flipDirection === "backward" ? "opacity-0" : "opacity-100"}
+                                                `}
+                                        >
+                                            {renderPage(leftPageSlots, getLeftPageNumber(targetPage ?? currentPage) ?? 0)}
+                                        </div>
+                                    ) : (
+                                        <div className="relative w-full h-full">
+                                            {renderPage(getPageSlots(getLeftPageNumber(targetPage ?? currentPage) ?? 1), getLeftPageNumber(targetPage ?? currentPage) ?? 1)}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* RINGS / SPINE */}
+                                <div className="relative flex items-center justify-center z-10">
+                                    <div
+                                        className="
                                                 relative h-full w-full
                                                 rounded-2xl
                                                 border border-black/10 dark:border-white/10
                                                 overflow-hidden
                                             "
-                                            style={{ backgroundColor: spineColor }}
-                                        >
-                                            {/* spine highlight */}
-                                            <div
-                                                aria-hidden="true"
-                                                className="absolute inset-0 opacity-40"
-                                                style={{
-                                                    background:
-                                                        "linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.06), rgba(0,0,0,0.10))",
-                                                }}
-                                            />
-
-                                            {/* inner "hinge" line */}
-                                            <div className="absolute inset-y-0 left-1/2 w-px bg-black/15 dark:bg-white/15" />
-                                        </div>
-                                    </div>
-
-                                    {/* RIGHT PAGE - Next page (or current page if page 1) */}
-                                    <div className="relative w-full h-full" style={{ transformStyle: "preserve-3d" }}>
-                                        {/* Flipping page - shows back side during forward flip */}
-                                        {isFlipping && flipDirection === "forward" && targetPage !== null && (
-                                            <div
-                                                className="absolute inset-0 w-full h-full"
-                                                style={{
-                                                    transformOrigin: "left center",
-                                                    transform: "rotateY(-180deg)",
-                                                    transition: "transform 0.6s ease-in-out",
-                                                    backfaceVisibility: "hidden",
-                                                    zIndex: 20,
-                                                }}
-                                            >
-                                                {/* Back of the page (next page content, flipped horizontally) */}
-                                                <div
-                                                    className="relative w-full h-full"
-                                                    style={{
-                                                        transform: "scaleX(-1)", // Flip horizontally to show back
-                                                    }}
-                                                >
-                                                    {getRightPageNumber(targetPage) === null ? (
-                                                        renderBackCover()
-                                                    ) : (
-                                                        renderPage(
-                                                            rightPageSlots || Array.from({ length: gridSize.total }, () => null),
-                                                            getRightPageNumber(targetPage) ?? 0
-                                                        )
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Current right page - flips to become left page */}
+                                        style={{ backgroundColor: spineColor }}
+                                    >
+                                        {/* spine highlight */}
                                         <div
-                                            className={`
-                                                relative w-full h-full
-                                                ${isFlipping && flipDirection === "forward"
-                                                    ? "transition-transform duration-600 ease-in-out transform rotateY(-180deg)"
-                                                    : isFlipping && flipDirection === "backward"
-                                                        ? "transition-opacity duration-600 ease-in-out opacity-0"
-                                                        : "transition-opacity duration-600 ease-in-out opacity-100"
-                                                }
-                                            `}
+                                            aria-hidden="true"
+                                            className="absolute inset-0 opacity-40"
                                             style={{
-                                                transformStyle: "preserve-3d",
+                                                background:
+                                                    "linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.06), rgba(0,0,0,0.10))",
+                                            }}
+                                        />
+
+                                        {/* inner "hinge" line */}
+                                        <div className="absolute inset-y-0 left-1/2 w-px bg-black/15 dark:bg-white/15" />
+                                    </div>
+                                </div>
+
+                                {/* RIGHT PAGE - Next page (or current page if page 1) */}
+                                <div className="relative w-full h-full" style={{ transformStyle: "preserve-3d" }}>
+                                    {/* Flipping page - shows back side during forward flip */}
+                                    {isFlipping && flipDirection === "forward" && targetPage !== null && (
+                                        <div
+                                            className="absolute inset-0 w-full h-full"
+                                            style={{
                                                 transformOrigin: "left center",
+                                                transform: "rotateY(-180deg)",
+                                                transition: "transform 0.6s ease-in-out",
+                                                backfaceVisibility: "hidden",
+                                                zIndex: 20,
                                             }}
                                         >
-                                            {rightPageSlots === null ? (
-                                                // Show back cover when rightPageSlots is null
-                                                renderBackCover()
-                                            ) : rightPageSlots ? (
-                                                renderPage(rightPageSlots, getRightPageNumber(targetPage ?? currentPage) ?? 0)
-                                            ) : (
-                                                renderPage(getPageSlots(getRightPageNumber(targetPage ?? currentPage) ?? 0), getRightPageNumber(targetPage ?? currentPage) ?? 0)
-                                            )}
+                                            {/* Back of the page (next page content, flipped horizontally) */}
+                                            <div
+                                                className="relative w-full h-full"
+                                                style={{
+                                                    transform: "scaleX(-1)", // Flip horizontally to show back
+                                                }}
+                                            >
+                                                {getRightPageNumber(targetPage) === null ? (
+                                                    renderBackCover()
+                                                ) : (
+                                                    renderPage(
+                                                        rightPageSlots || Array.from({ length: gridSize.total }, () => null),
+                                                        getRightPageNumber(targetPage) ?? 0
+                                                    )
+                                                )}
+                                            </div>
                                         </div>
+                                    )}
+
+                                    {/* Current right page - flips to become left page */}
+                                    <div
+                                        className={`
+                                                relative w-full h-full
+                                                ${isFlipping && flipDirection === "forward"
+                                                ? "transition-transform duration-600 ease-in-out transform rotateY(-180deg)"
+                                                : isFlipping && flipDirection === "backward"
+                                                    ? "transition-opacity duration-600 ease-in-out opacity-0"
+                                                    : "transition-opacity duration-600 ease-in-out opacity-100"
+                                            }
+                                            `}
+                                        style={{
+                                            transformStyle: "preserve-3d",
+                                            transformOrigin: "left center",
+                                        }}
+                                    >
+                                        {rightPageSlots === null ? (
+                                            // Show back cover when rightPageSlots is null
+                                            renderBackCover()
+                                        ) : rightPageSlots ? (
+                                            renderPage(rightPageSlots, getRightPageNumber(targetPage ?? currentPage) ?? 0)
+                                        ) : (
+                                            renderPage(getPageSlots(getRightPageNumber(targetPage ?? currentPage) ?? 0), getRightPageNumber(targetPage ?? currentPage) ?? 0)
+                                        )}
                                     </div>
                                 </div>
-                            )}
-
-                            {/* bottom shadow to "lift" binder off table */}
-                            <div
-                                aria-hidden="true"
-                                className="pointer-events-none absolute inset-x-10 bottom-4 h-10 blur-2xl opacity-25"
-                                style={{ background: "radial-gradient(closest-side, rgba(0,0,0,0.55), transparent)" }}
-                            />
-                        </div>
-                        
-                        {/* Pagination Controls */}
-                        {!loadingCards && (
-                            <div className="mt-4 flex items-center justify-between px-4">
-                                <button
-                                    type="button"
-                                    onClick={() => handlePageChange(1)}
-                                    disabled={currentPage === 1 || isFlipping}
-                                    className="
-                                            flex items-center gap-2
-                                            px-4 py-2 rounded-md
-                                            bg-[#e8d5b8] dark:bg-[#173c3f]
-                                            border border-[#42c99c] dark:border-[#82664e]
-                                            text-[#193f44] dark:text-[#e8d5b8]
-                                            hover:bg-black/10 dark:hover:bg-white/10
-                                            disabled:opacity-50 disabled:cursor-not-allowed
-                                            transition-colors
-                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                            dark:focus:ring-[#82664e]
-                                        "
-                                >
-                                    <SkipBack className="w-4 h-4" />
-                                    To Beginning
-                                </button>
-
-                                {/* Recycling Bin */}
-                                <div
-                                    className={`
-                                        flex items-center justify-center
-                                        w-12 h-12 rounded-full
-                                        border-2 border-dashed
-                                        transition-all duration-200
-                                        ${dragOverTrash
-                                            ? "bg-red-500/20 border-red-500 scale-110"
-                                            : "bg-[#e8d5b8]/50 dark:bg-[#173c3f]/50 border-[#42c99c] dark:border-[#82664e]"
-                                        }
-                                        ${draggedCard ? "opacity-100" : "opacity-50"}
-                                    `}
-                                    onDragOver={(e) => {
-                                        e.preventDefault();
-                                        setDragOverTrash(true);
-                                    }}
-                                    onDragLeave={() => {
-                                        setDragOverTrash(false);
-                                    }}
-                                    onDrop={(e) => {
-                                        e.preventDefault();
-                                        setDragOverTrash(false);
-                                        
-                                        if (draggedCard) {
-                                            if (confirm("Are you sure you want to remove this card from the binder?")) {
-                                                handleDeleteCard(draggedCard.id);
-                                            }
-                                            setDraggedCard(null);
-                                        }
-                                    }}
-                                    title="Drop card here to remove from binder"
-                                >
-                                    <Trash2
-                                        className={`
-                                            w-5 h-5
-                                            transition-colors
-                                            ${dragOverTrash
-                                                ? "text-red-500"
-                                                : "text-[#193f44] dark:text-[#e8d5b8]"
-                                            }
-                                        `}
-                                    />
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={() => handlePageChange(totalPages)}
-                                    disabled={currentPage >= totalPages || isFlipping}
-                                    className="
-                                            flex items-center gap-2
-                                            px-4 py-2 rounded-md
-                                            bg-[#e8d5b8] dark:bg-[#173c3f]
-                                            border border-[#42c99c] dark:border-[#82664e]
-                                            text-[#193f44] dark:text-[#e8d5b8]
-                                            hover:bg-black/10 dark:hover:bg-white/10
-                                            disabled:opacity-50 disabled:cursor-not-allowed
-                                            transition-colors
-                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                            dark:focus:ring-[#82664e]
-                                        "
-                                >
-                                    To End
-                                    <SkipForward className="w-4 h-4" />
-                                </button>
                             </div>
                         )}
+
+                        {/* bottom shadow to "lift" binder off table */}
+                        <div
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-x-10 bottom-4 h-10 blur-2xl opacity-25"
+                            style={{ background: "radial-gradient(closest-side, rgba(0,0,0,0.55), transparent)" }}
+                        />
                     </div>
-                </div>
 
-                {/* Edit Binder Modal */}
-                <EditBinderModal
-                    open={editModalOpen}
-                    binder={binder}
-                    onClose={() => setEditModalOpen(false)}
-                    onSuccess={async () => {
-                        setEditModalOpen(false);
-                        // Refresh binder data
-                        const response = await fetch(`/api/binders/${binderId}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            setBinder(data.binder);
-                        }
-                    }}
-                />
+                    {/* Pagination Controls */}
+                    {!loadingCards && (
+                        <div
+                            className="
+                                sticky bottom-0 z-20
+                                mt-4 px-4 py-3
+                                flex items-center justify-between
+                                border-t border-black/10 dark:border-white/10
+                                bg-[#f6ead6]/95 dark:bg-[#0f2a2c]/95
+                                backdrop-blur
+                                "
+                        >
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(1)}
+                                disabled={currentPage === 1 || isFlipping}
+                                className="
+        flex items-center gap-2
+        px-4 py-2 rounded-md
+        bg-[#e8d5b8] dark:bg-[#173c3f]
+        border border-[#42c99c] dark:border-[#82664e]
+        text-[#193f44] dark:text-[#e8d5b8]
+        hover:bg-black/10 dark:hover:bg-white/10
+        disabled:opacity-50 disabled:cursor-not-allowed
+        transition-colors
+        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+        dark:focus:ring-[#82664e]
+      "
+                            >
+                                <SkipBack className="w-4 h-4" />
+                                To Beginning
+                            </button>
 
-                {/* Add to Binder Modal */}
-                <AddToBinderModal
-                    open={addToBinderModalOpen}
-                    binderId={binder.id}
-                    binderGame={binder.game ?? "mtg"}
-                    cardsPerPage={gridSize.total}
-                    pendingSlotNumber={pendingSlotNumber}
-                    onClose={() => {
-                        setAddToBinderModalOpen(false);
-                        setPendingSlotNumber(null);
-                    }}
-                    onAdded={async () => {
-                        // Refresh binder cards after adding
-                        const response = await fetch(`/api/binders/${binder.id}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            setBinderCards(data.binder?.binderCards || []);
-
-                            // Refetch card details for new cards
-                            const newCards = data.binder?.binderCards || [];
-                            const detailsMap = new Map<string, ScryfallCard>();
-                            for (const bc of newCards) {
-                                if (!cardDetails.has(bc.cardId)) {
-                                    try {
-                                        const cardResponse = await fetch(`/api/scryfall/card/${bc.cardId}`);
-                                        if (cardResponse.ok) {
-                                            const cardData = await cardResponse.json();
-                                            detailsMap.set(bc.cardId, cardData);
-                                        }
-                                    } catch (err) {
-                                        console.warn(`Failed to fetch card ${bc.cardId}:`, err);
+                            {/* Recycling Bin */}
+                            <div
+                                className={`
+        flex items-center justify-center
+        w-12 h-12 rounded-full
+        border-2 border-dashed
+        transition-all duration-200
+        ${dragOverTrash
+                                        ? "bg-red-500/20 border-red-500 scale-110"
+                                        : "bg-[#e8d5b8]/50 dark:bg-[#173c3f]/50 border-[#42c99c] dark:border-[#82664e]"
                                     }
+        ${draggedCard ? "opacity-100" : "opacity-50"}
+      `}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    setDragOverTrash(true);
+                                }}
+                                onDragLeave={() => {
+                                    setDragOverTrash(false);
+                                }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    setDragOverTrash(false);
+
+                                    if (draggedCard) {
+                                        setDeleteCardId(draggedCard.id);
+                                        setDeleteModalOpen(true);
+                                        setDraggedCard(null);
+                                    }
+                                }}
+                                title="Drop card here to remove from binder"
+                            >
+                                <Trash2
+                                    className={`
+          w-5 h-5 transition-colors
+          ${dragOverTrash ? "text-red-500" : "text-[#193f44] dark:text-[#e8d5b8]"}
+        `}
+                                />
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(totalPages)}
+                                disabled={currentPage >= totalPages || isFlipping}
+                                className="
+        flex items-center gap-2
+        px-4 py-2 rounded-md
+        bg-[#e8d5b8] dark:bg-[#173c3f]
+        border border-[#42c99c] dark:border-[#82664e]
+        text-[#193f44] dark:text-[#e8d5b8]
+        hover:bg-black/10 dark:hover:bg-white/10
+        disabled:opacity-50 disabled:cursor-not-allowed
+        transition-colors
+        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+        dark:focus:ring-[#82664e]
+      "
+                            >
+                                To End
+                                <SkipForward className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Edit Binder Modal */}
+            <EditBinderModal
+                open={editModalOpen}
+                binder={binder}
+                onClose={() => setEditModalOpen(false)}
+                onSuccess={async () => {
+                    setEditModalOpen(false);
+                    // Refresh binder data
+                    const response = await fetch(`/api/binders/${binderId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setBinder(data.binder);
+                    }
+                }}
+            />
+
+            {/* Add to Binder Modal */}
+            <AddToBinderModal
+                open={addToBinderModalOpen}
+                binderId={binder.id}
+                binderGame={binder.game ?? "mtg"}
+                cardsPerPage={gridSize.total}
+                pendingSlotNumber={pendingSlotNumber}
+                onClose={() => {
+                    setAddToBinderModalOpen(false);
+                    setPendingSlotNumber(null);
+                }}
+                onAdded={async () => {
+                    // Refresh binder cards after adding
+                    const response = await fetch(`/api/binders/${binder.id}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setBinderCards(data.binder?.binderCards || []);
+
+                        // Refetch card details for new cards
+                        const newCards = data.binder?.binderCards || [];
+                        const detailsMap = new Map<string, ScryfallCard>();
+                        for (const bc of newCards) {
+                            if (!cardDetails.has(bc.cardId)) {
+                                try {
+                                    const cardResponse = await fetch(`/api/scryfall/card/${bc.cardId}`);
+                                    if (cardResponse.ok) {
+                                        const cardData = await cardResponse.json();
+                                        detailsMap.set(bc.cardId, cardData);
+                                    }
+                                } catch (err) {
+                                    console.warn(`Failed to fetch card ${bc.cardId}:`, err);
                                 }
                             }
-                            setCardDetails(prev => new Map([...prev, ...detailsMap]));
                         }
-                    }}
-                />
-            </div>
+                        setCardDetails(prev => new Map([...prev, ...detailsMap]));
+                    }
+                }}
+            />
+            <ConfirmDeleteModal
+                open={deleteModalOpen}
+                title={deleteCardId ? "Remove Card from Binder" : "Delete Binder"}
+                message={
+                    deleteCardId
+                        ? "Are you sure you want to remove this card from the binder? This action cannot be undone."
+                        : `Are you sure you want to delete "${binder?.name}"? This cannot be undone.`
+                }
+                loading={deleting}
+                onCancel={() => {
+                    setDeleteModalOpen(false);
+                    setDeleteCardId(null);
+                }}
+                onConfirm={async () => {
+                    if (deleteCardId) {
+                        // Delete card from binder
+                        setDeleting(true);
+                        try {
+                            await handleDeleteCard(deleteCardId);
+                            setDeleteModalOpen(false);
+                            setDeleteCardId(null);
+                        } catch (err) {
+                            // Error is already handled in handleDeleteCard
+                        } finally {
+                            setDeleting(false);
+                        }
+                    } else {
+                        // Delete entire binder
+                        setDeleting(true);
+                        try {
+                            const response = await fetch(`/api/binders/${binder?.id}`, { method: "DELETE" });
+                            if (!response.ok) {
+                                throw new Error("Failed to delete binder");
+                            }
+                            router.push("/collection/binders");
+                        } catch (err) {
+                            alert(err instanceof Error ? err.message : "Failed to delete binder");
+                        } finally {
+                            setDeleting(false);
+                            setDeleteModalOpen(false);
+                        }
+                    }
+                }}
+            />
+        </div>
     );
 }
 
