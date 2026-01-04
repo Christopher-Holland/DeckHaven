@@ -42,14 +42,12 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
     const [binderCards, setBinderCards] = useState<Array<{
         id: string;
         cardId: string;
-        slotIndex?: number | null;
-        pageNumber?: number | null;
+        slotNumber?: number | null;
     }>>([]);
     const [cardDetails, setCardDetails] = useState<Map<string, ScryfallCard>>(new Map());
     const [loadingCards, setLoadingCards] = useState(false);
     const [addToBinderModalOpen, setAddToBinderModalOpen] = useState(false);
-    const [pendingSlotIndex, setPendingSlotIndex] = useState<number | null>(null);
-    const [pendingPageNumber, setPendingPageNumber] = useState<number | null>(null);
+    const [pendingSlotNumber, setPendingSlotNumber] = useState<number | null>(null);
     const [collectionCardIds, setCollectionCardIds] = useState<Set<string>>(new Set());
 
     // Fetch binder cards when modal opens
@@ -132,23 +130,34 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
         return { cols: 3, total: 9 }; // default 3x3
     }, [binder?.size]);
 
+    // Helper function to convert page and slot to global slot number
+    const pageAndSlotToSlotNumber = (page: number, slot: number, cardsPerPage: number) => {
+        return (page - 1) * cardsPerPage + slot;
+    };
+
     // Calculate total pages - always allow up to 20 pages for navigation
     const totalPages = useMemo(() => {
         return 20; // Always allow navigation through 20 pages
     }, []);
 
-    // Fill slots for a page based on slotIndex and pageNumber
+    // Fill slots for a page based on slotNumber
     const getPageSlots = (page: number) => {
-        // Filter cards for this page
-        const pageCards = binderCards.filter(bc => 
-            bc.pageNumber === page || (!bc.pageNumber && page === 1)
-        );
+        const cardsPerPage = gridSize.total;
+        const startSlotNumber = (page - 1) * cardsPerPage;
+        const endSlotNumber = startSlotNumber + cardsPerPage - 1;
         
-        // Create a map of slotIndex -> card
+        // Filter cards that belong to this page based on slotNumber
+        const pageCards = binderCards.filter(bc => {
+            if (bc.slotNumber === null || bc.slotNumber === undefined) return false;
+            return bc.slotNumber >= startSlotNumber && bc.slotNumber <= endSlotNumber;
+        });
+        
+        // Create a map of slot index within page -> card
         const slotMap = new Map<number, typeof binderCards[0]>();
         pageCards.forEach(card => {
-            if (card.slotIndex !== null && card.slotIndex !== undefined) {
-                slotMap.set(card.slotIndex, card);
+            if (card.slotNumber !== null && card.slotNumber !== undefined) {
+                const slotInPage = card.slotNumber % cardsPerPage;
+                slotMap.set(slotInPage, card);
             }
         });
         
@@ -292,8 +301,8 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        setPendingSlotIndex(idx);
-                                                        setPendingPageNumber(pageNumber);
+                                                        const slotNumber = pageAndSlotToSlotNumber(pageNumber, idx, gridSize.total);
+                                                        setPendingSlotNumber(slotNumber);
                                                         setAddToBinderModalOpen(true);
                                                     }}
                                                     className="flex flex-col items-center justify-center gap-1 hover:opacity-90 transition-opacity cursor-pointer text-black/60 dark:text-white/60 border border-black/15 dark:border-white/15 rounded-md p-2"
@@ -700,17 +709,15 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
             />
 
             {/* Add to Binder Modal */}
-            <AddToBinderModal
-                open={addToBinderModalOpen}
-                binderId={binder.id}
-                binderGame={binder.game ?? "mtg"}
-                currentPage={pendingPageNumber ?? currentPage}
-                cardsPerPage={gridSize.total}
-                pendingSlotIndex={pendingSlotIndex}
+                <AddToBinderModal
+                    open={addToBinderModalOpen}
+                    binderId={binder.id}
+                    binderGame={binder.game ?? "mtg"}
+                    cardsPerPage={gridSize.total}
+                    pendingSlotNumber={pendingSlotNumber}
                     onClose={() => {
                         setAddToBinderModalOpen(false);
-                        setPendingSlotIndex(null);
-                        setPendingPageNumber(null);
+                        setPendingSlotNumber(null);
                     }}
                 onAdded={async () => {
                     // Refresh binder cards after adding

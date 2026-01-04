@@ -28,7 +28,7 @@ export async function POST(
 
         const { id: binderId } = await params;
         const body = await request.json();
-        const { cardId, page, preferredSlotIndex } = body;
+        const { cardId, slotNumber } = body;
 
         if (!cardId || typeof cardId !== "string") {
             return NextResponse.json(
@@ -37,9 +37,9 @@ export async function POST(
             );
         }
 
-        if (page !== undefined && (typeof page !== "number" || page < 1)) {
+        if (slotNumber !== undefined && slotNumber !== null && (typeof slotNumber !== "number" || slotNumber < 0)) {
             return NextResponse.json(
-                { error: "Invalid request. page must be a positive number." },
+                { error: "Invalid request. slotNumber must be a non-negative number or null." },
                 { status: 400 }
             );
         }
@@ -76,17 +76,6 @@ export async function POST(
         const cardsPerPage = size === "2x2" ? 4 : size === "4x4" ? 16 : 9;
         const maxPages = 20;
         const maxCards = size === "2x2" ? 160 : size === "4x4" ? 480 : 360; // 3x3 default
-
-        // Calculate target page and slot
-        const targetPage = page || 1;
-        
-        // Validate page limit
-        if (targetPage > maxPages) {
-            return NextResponse.json(
-                { error: `Cannot add card to page ${targetPage}. Maximum pages allowed: ${maxPages}.` },
-                { status: 400 }
-            );
-        }
         
         // Check total card count
         const totalCards = await prisma.binderCard.count({
@@ -100,31 +89,45 @@ export async function POST(
             );
         }
         
-        let targetSlotIndex: number | null = preferredSlotIndex ?? null;
+        // Calculate target slot number
+        let targetSlotNumber: number | null = slotNumber ?? null;
 
-        // If no preferred slot, find first empty slot on the target page
-        if (targetSlotIndex === null) {
+        // If no preferred slot, find first empty slot
+        if (targetSlotNumber === null) {
             const existingCards = await prisma.binderCard.findMany({
                 where: {
                     binderId: binderId,
-                    pageNumber: targetPage,
+                },
+                select: {
+                    slotNumber: true,
                 },
             });
 
-            const usedSlots = new Set(existingCards.map(c => c.slotIndex).filter(idx => idx !== null));
+            const usedSlots = new Set(existingCards.map(c => c.slotNumber).filter(slot => slot !== null));
             
-            // Find first available slot
-            for (let i = 0; i < cardsPerPage; i++) {
+            // Find first available slot (0 to maxCards-1)
+            for (let i = 0; i < maxCards; i++) {
                 if (!usedSlots.has(i)) {
-                    targetSlotIndex = i;
+                    targetSlotNumber = i;
                     break;
                 }
             }
 
-            // If all slots are filled, add to the end
-            if (targetSlotIndex === null) {
-                targetSlotIndex = existingCards.length;
+            // If all slots are filled (shouldn't happen due to maxCards check above)
+            if (targetSlotNumber === null) {
+                return NextResponse.json(
+                    { error: "Binder is full. No available slots." },
+                    { status: 400 }
+                );
             }
+        }
+        
+        // Validate slot number is within bounds
+        if (targetSlotNumber < 0 || targetSlotNumber >= maxCards) {
+            return NextResponse.json(
+                { error: `Invalid slot number. Must be between 0 and ${maxCards - 1}.` },
+                { status: 400 }
+            );
         }
 
         // Check if card already exists in binder
@@ -137,12 +140,11 @@ export async function POST(
 
         if (existingBinderCard) {
             // Update existing card's position if slot is specified
-            if (targetSlotIndex !== null && targetPage) {
+            if (targetSlotNumber !== null) {
                 await prisma.binderCard.update({
                     where: { id: existingBinderCard.id },
                     data: {
-                        slotIndex: targetSlotIndex,
-                        pageNumber: targetPage,
+                        slotNumber: targetSlotNumber,
                     },
                 });
             }
@@ -157,8 +159,7 @@ export async function POST(
             data: {
                 binderId: binderId,
                 cardId: cardId,
-                slotIndex: targetSlotIndex,
-                pageNumber: targetPage,
+                slotNumber: targetSlotNumber,
             },
         });
 

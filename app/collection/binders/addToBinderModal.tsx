@@ -22,9 +22,8 @@ type Props = {
     open: boolean;
     binderId: string;
     binderGame: string; // "mtg" right now
-    currentPage: number;
     cardsPerPage: number;
-    pendingSlotIndex?: number | null; // future use
+    pendingSlotNumber?: number | null; // Global slot number (0-based)
     onClose: () => void;
     onAdded?: () => void;
 };
@@ -33,9 +32,8 @@ export default function AddToBinderModal({
     open,
     binderId,
     binderGame,
-    currentPage,
     cardsPerPage,
-    pendingSlotIndex = null,
+    pendingSlotNumber = null,
     onClose,
     onAdded,
 }: Props) {
@@ -159,21 +157,14 @@ export default function AddToBinderModal({
         return () => clearTimeout(timeoutId);
     }, [query, open, binderGame]);
 
-    // Calculate slot index - pendingSlotIndex is already the slot index on the current page
-    const calculateSlotIndex = () => {
-        return pendingSlotIndex ?? null;
-    };
-
     async function handleAdd(cardId: string) {
         try {
             setAdding(cardId);
             setError(null);
 
-            const slotIndex = calculateSlotIndex();
             const body = {
                 cardId: cardId,
-                page: currentPage,
-                preferredSlotIndex: slotIndex,
+                slotNumber: pendingSlotNumber,
             };
 
             const res = await fetch(`/api/binders/${binderId}/cards`, {
@@ -220,9 +211,11 @@ export default function AddToBinderModal({
                 <div className="flex items-start justify-between gap-3 p-4 border-b border-black/10 dark:border-white/10">
                     <div className="min-w-0">
                         <h3 className="text-lg font-semibold truncate">Add a card to binder</h3>
-                        <p className="text-sm opacity-70 truncate">
-                            Adding to Page {currentPage}
-                        </p>
+                        {pendingSlotNumber !== null && (
+                            <p className="text-sm opacity-70 truncate">
+                                Adding to slot {pendingSlotNumber + 1}
+                            </p>
+                        )}
                     </div>
 
                     <button

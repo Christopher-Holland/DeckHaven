@@ -137,8 +137,7 @@ model BinderCard {
   binderId String
   cardId   String   // Scryfall card ID
   quantity Int      @default(1)
-  slotIndex Int?    // Position on the page (0-based index within the page)
-  pageNumber Int?   // Which page the card is on (1-based)
+  slotNumber Int?   // Global slot index (0-based) - position across all pages, adjusts with binder size
   notes    String?  // User notes about this specific card
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
