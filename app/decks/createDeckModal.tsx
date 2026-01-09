@@ -423,10 +423,12 @@ export default function OpenDeckModal({
                         {/* Quick presets */}
                         <div className="mt-3 flex flex-wrap gap-2">
                             {[
-                                { label: "Mint", box: "#f6ead6", trim: "#42c99c" },
-                                { label: "Night", box: "#0f2a2c", trim: "#e8d5b8" },
-                                { label: "Slate", box: "#1f2937", trim: "#94a3b8" },
-                                { label: "Ivory", box: "#fff7ed", trim: "#82664e" },
+                                { label: "Verdant Sigil", box: "#f6ead6", trim: "#42c99c" },
+                                { label: "Midnight Reliquary", box: "#0f2a2c", trim: "#e8d5b8" },
+                                { label: "Obsidian Archive", box: "#1f2937", trim: "#94a3b8" },
+                                { label: "Ivory Codex", box: "#fff7ed", trim: "#82664e" },
+                                { label: "Blood Oath", box: "#7a1f2b", trim: "#c9a24d" },
+                                { label: "Arcane Steel", box: "#2b3440", trim: "#3b82f6" },
                             ].map((p) => (
                                 <button
                                     key={p.label}
