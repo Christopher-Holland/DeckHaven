@@ -10,6 +10,7 @@
 "use client";
 
 import { useState } from "react";
+import CreateDeckModal from "../decks/createDeckModal";
 
 type DeckBoxProps = {
     title?: string;
@@ -221,9 +222,7 @@ export default function DecksPage() {
 
             {/* Create Deck Modal - TODO: Implement modal */}
             {isCreateModalOpen && (
-                <div>
-                    {/* Modal implementation will go here */}
-                </div>
+                <CreateDeckModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
             )}
         </main>
     );

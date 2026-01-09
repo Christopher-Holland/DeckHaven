@@ -1,10 +1,516 @@
 "use client";
 
-export default function CreateDeckModal() {
+import { useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
+
+type FormatKey =
+    | "Standard"
+    | "Pioneer"
+    | "Modern"
+    | "Legacy"
+    | "Vintage"
+    | "Pauper"
+    | "Commander"
+    | "Brawl"
+    | "Historic Brawl"
+    | "Oathbreaker"
+    | "Draft"
+    | "Sealed"
+    | "Two-Headed Giant"
+    | "Planechase"
+    | "Archenemy";
+
+type FormatRules = {
+    name: FormatKey;
+    category: "Constructed" | "Commander-style" | "Limited" | "Variant";
+    deckSize: string; // human-readable
+    minCards?: number;
+    maxCards?: number;
+    exactCards?: number;
+
+    sideboard: "Up to 15" | "All unused cards" | "Depends on underlying format" | "None/Not typical";
+    copies: string; // human-readable
+    notes?: string[];
+
+    // helpful flags for DeckHaven validation later
+    singleton?: boolean;
+    hasCommander?: boolean;
+    restrictedListPossible?: boolean;
+
+    // Deck box details
+    deckBoxColor?: string;
+    trimColor?: string;
+};
+
+const FORMAT_RULES: Record<FormatKey, FormatRules> = {
+    // Constructed (60+)
+    Standard: {
+        name: "Standard",
+        category: "Constructed",
+        deckSize: "60 cards minimum",
+        minCards: 60,
+        sideboard: "Up to 15",
+        copies: "Up to 4 copies (except basic lands)",
+        notes: ["Rotating format (card pool changes over time)."],
+    },
+    Pioneer: {
+        name: "Pioneer",
+        category: "Constructed",
+        deckSize: "60 cards minimum",
+        minCards: 60,
+        sideboard: "Up to 15",
+        copies: "Up to 4 copies (except basic lands)",
+    },
+    Modern: {
+        name: "Modern",
+        category: "Constructed",
+        deckSize: "60 cards minimum",
+        minCards: 60,
+        sideboard: "Up to 15",
+        copies: "Up to 4 copies (except basic lands)",
+    },
+    Legacy: {
+        name: "Legacy",
+        category: "Constructed",
+        deckSize: "60 cards minimum",
+        minCards: 60,
+        sideboard: "Up to 15",
+        copies: "Up to 4 copies (except basic lands); banned list applies",
+        notes: ["Some formats have a restricted list—Vintage is the main one."],
+    },
+    Vintage: {
+        name: "Vintage",
+        category: "Constructed",
+        deckSize: "60 cards minimum",
+        minCards: 60,
+        sideboard: "Up to 15",
+        copies: "Up to 4 copies (except basic lands); some cards restricted to 1",
+        restrictedListPossible: true,
+    },
+    Pauper: {
+        name: "Pauper",
+        category: "Constructed",
+        deckSize: "60 cards minimum",
+        minCards: 60,
+        sideboard: "Up to 15",
+        copies: "Up to 4 copies (except basic lands)",
+        notes: ["Card pool restriction: commons only (per format legality)."],
+    },
+
+    // Commander-style / Singleton
+    Commander: {
+        name: "Commander",
+        category: "Commander-style",
+        deckSize: "Exactly 100 cards (including Commander)",
+        exactCards: 100,
+        sideboard: "None/Not typical",
+        copies: "Singleton (1 of each, except basic lands)",
+        singleton: true,
+        hasCommander: true,
+        notes: ["Includes 1 Commander.", "Commander color identity rules apply."],
+    },
+    Brawl: {
+        name: "Brawl",
+        category: "Commander-style",
+        deckSize: "60 cards (including Commander)",
+        exactCards: 60,
+        sideboard: "None/Not typical",
+        copies: "Singleton (1 of each, except basic lands)",
+        singleton: true,
+        hasCommander: true,
+        notes: ["Uses a Standard-legal card pool (in paper)."],
+    },
+    "Historic Brawl": {
+        name: "Historic Brawl",
+        category: "Commander-style",
+        deckSize: "100 cards (including Commander)",
+        exactCards: 100,
+        sideboard: "None/Not typical",
+        copies: "Singleton (1 of each, except basic lands)",
+        singleton: true,
+        hasCommander: true,
+        notes: ["Arena format (digital)."],
+    },
+    Oathbreaker: {
+        name: "Oathbreaker",
+        category: "Commander-style",
+        deckSize: "60 cards (includes Oathbreaker + Signature Spell)",
+        exactCards: 60,
+        sideboard: "None/Not typical",
+        copies: "Singleton (1 of each, except basic lands)",
+        singleton: true,
+        notes: ["Includes 1 Oathbreaker (a planeswalker) + 1 Signature Spell."],
+    },
+
+    // Limited (40+)
+    Draft: {
+        name: "Draft",
+        category: "Limited",
+        deckSize: "40 cards minimum",
+        minCards: 40,
+        sideboard: "All unused cards",
+        copies: "No copy limit (you can play any number you drafted)",
+        notes: ["Built during the event from drafted cards."],
+    },
+    Sealed: {
+        name: "Sealed",
+        category: "Limited",
+        deckSize: "40 cards minimum",
+        minCards: 40,
+        sideboard: "All unused cards",
+        copies: "No copy limit (any number from your sealed pool)",
+        notes: ["Built during the event from your sealed pool."],
+    },
+
+    // Variants / uses underlying format rules
+    "Two-Headed Giant": {
+        name: "Two-Headed Giant",
+        category: "Variant",
+        deckSize: "Depends on underlying format (often 60+ Constructed or 40+ Limited)",
+        sideboard: "Depends on underlying format",
+        copies: "Depends on underlying format",
+        notes: ["Team format—deck rules come from the format being played."],
+    },
+    Planechase: {
+        name: "Planechase",
+        category: "Variant",
+        deckSize: "Uses underlying format rules",
+        sideboard: "Depends on underlying format",
+        copies: "Depends on underlying format",
+        notes: ["Planes deck is separate from your main deck."],
+    },
+    Archenemy: {
+        name: "Archenemy",
+        category: "Variant",
+        deckSize: "Uses underlying format rules",
+        sideboard: "Depends on underlying format",
+        copies: "Depends on underlying format",
+        notes: ["Scheme deck is separate from your main deck."],
+    },
+};
+
+type OpenDeckModalProps = {
+    open: boolean;
+    title?: string;
+    description?: string;
+
+    /** Optional: if you want the modal to show a specific format’s rules */
+    format?: FormatKey;
+
+    // Deck box details
+    deckBoxColor?: string;
+    trimColor?: string;
+
+    onClose: () => void;
+    children?: React.ReactNode;
+};
+
+export default function OpenDeckModal({
+    open,
+    title = "Create Deck",
+    description = "Choose a format and review the deck rules.",
+    format = "Standard",
+    deckBoxColor: initialDeckBoxColor = "#ffffff",
+    trimColor: initialTrimColor = "#1f2937",
+    onClose,
+    children,
+}: OpenDeckModalProps) {
+    const [selectedFormat, setSelectedFormat] = useState<FormatKey>(format);
+    const [deckBoxColor, setDeckBoxColor] = useState<string>(initialDeckBoxColor);
+    const [trimColor, setTrimColor] = useState<string>(initialTrimColor);
+
+    // keep internal selection in sync if parent changes format
+    useEffect(() => {
+        setSelectedFormat(format);
+        setDeckBoxColor(initialDeckBoxColor);
+        setTrimColor(initialTrimColor);
+    }, [format, initialDeckBoxColor, initialTrimColor]);
+
+    // Close on ESC
+    useEffect(() => {
+        if (!open) return;
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [open, onClose]);
+
+    const rules = useMemo(() => FORMAT_RULES[selectedFormat], [selectedFormat]);
+
+    if (!open) return null;
+
     return (
-        <div
-            className="aspect-[2.5/3.5] rounded-md border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 overflow-hidden relative shadow-sm">
-            <h1>Create Deck</h1>
+        <div className="fixed inset-0 z-50">
+            {/* Backdrop */}
+            <button
+                aria-label="Close modal"
+                onClick={onClose}
+                className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+            />
+
+            {/* Modal */}
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={title}
+                    className="
+            w-full max-w-2xl overflow-hidden
+            rounded-2xl border
+            bg-[#f6ead6] dark:bg-[#0f2a2c]
+            border-black/10 dark:border-white/10
+            text-[#193f44] dark:text-[#e8d5b8]
+            shadow-[0_30px_80px_-35px_rgba(0,0,0,0.60)]
+          "
+                >
+                    {/* Header */}
+                    <div className="flex items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 p-4">
+                        <div className="min-w-0">
+                            <h3 className="text-base font-semibold truncate">{title}</h3>
+                            <p className="text-xs opacity-70 truncate">{description}</p>
+                        </div>
+
+                        <button
+                            onClick={onClose}
+                            className="
+                rounded-md px-3 py-1.5 text-sm font-medium
+                bg-black/5 dark:bg-white/5
+                hover:bg-[#42c99c] dark:hover:bg-[#82664e]
+                border border-[#42c99c] dark:border-[#82664e]
+                transition-colors
+                focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                dark:focus:ring-[#82664e]
+              "
+                            aria-label="Close"
+                            title="Close"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    {/* Body */}
+                    <div className="p-4">
+                        {/* Format picker */}
+                        <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                            <div className="flex-1">
+                                <label className="block text-xs font-medium opacity-80 mb-1">
+                                    Format
+                                </label>
+                                <select
+                                    value={selectedFormat}
+                                    onChange={(e) => setSelectedFormat(e.target.value as FormatKey)}
+                                    className="
+                    w-full rounded-md border px-3 py-2 text-sm
+                    bg-white/70 dark:bg-white/5
+                    border-black/10 dark:border-white/10
+                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                    dark:focus:ring-[#82664e]
+                  "
+                                >
+                                    {Object.keys(FORMAT_RULES).map((k) => (
+                                        <option key={k} value={k}>
+                                            {k}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="sm:w-[240px]">
+                                <div className="text-xs font-medium opacity-80 mb-1">Category</div>
+                                <div
+                                    className="
+                    rounded-md border px-3 py-2 text-sm
+                    bg-black/5 dark:bg-white/5
+                    border-black/10 dark:border-white/10
+                  "
+                                >
+                                    {rules.category}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Rules summary */}
+                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <RuleCard label="Deck size" value={rules.deckSize} />
+                            <RuleCard label="Sideboard" value={rules.sideboard} />
+                            <RuleCard label="Copies" value={rules.copies} />
+                            <RuleCard
+                                label="Flags"
+                                value={[
+                                    rules.singleton ? "Singleton" : null,
+                                    rules.hasCommander ? "Has Commander" : null,
+                                    rules.restrictedListPossible ? "Restricted list possible" : null,
+                                ]
+                                    .filter(Boolean)
+                                    .join(" • ") || "—"}
+                            />
+                        </div>
+
+                        {/* Notes */}
+                        {rules.notes?.length ? (
+                            <div className="mt-4 rounded-xl border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 p-4">
+                                <div className="text-xs font-semibold uppercase tracking-wide opacity-70">
+                                    Notes
+                                </div>
+                                <ul className="mt-2 list-disc pl-5 text-sm opacity-80 space-y-1">
+                                    {rules.notes.map((n) => (
+                                        <li key={n}>{n}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ) : null}
+
+                        {/* Slot for your future form fields */}
+                        {children ? <div className="mt-4">{children}</div> : null}
+
+                        {/* Appearance */}
+                        <div className="mt-4 rounded-xl border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 p-4">
+                        <div className="text-xs font-semibold uppercase tracking-wide opacity-70">
+                            Appearance
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Deck Box Color */}
+                            <div className="flex items-center justify-between gap-3 rounded-lg border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 px-3 py-2">
+                                <div className="min-w-0">
+                                    <div className="text-xs font-medium opacity-80">Deck Box</div>
+                                    <div className="text-xs opacity-60 truncate">{deckBoxColor}</div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <span
+                                        className="h-7 w-7 rounded-md border border-black/10 dark:border-white/10"
+                                        style={{ backgroundColor: deckBoxColor }}
+                                        aria-hidden
+                                    />
+                                    <input
+                                        aria-label="Deck box color"
+                                        type="color"
+                                        value={deckBoxColor}
+                                        onChange={(e) => setDeckBoxColor(e.target.value)}
+                                        className="h-9 w-12 cursor-pointer bg-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Trim Color */}
+                            <div className="flex items-center justify-between gap-3 rounded-lg border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 px-3 py-2">
+                                <div className="min-w-0">
+                                    <div className="text-xs font-medium opacity-80">Trim</div>
+                                    <div className="text-xs opacity-60 truncate">{trimColor}</div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <span
+                                        className="h-7 w-7 rounded-md border border-black/10 dark:border-white/10"
+                                            style={{ backgroundColor: trimColor }}
+                                        aria-hidden
+                                    />
+                                    <input
+                                        aria-label="Trim color"
+                                        type="color"
+                                        value={trimColor}
+                                        onChange={(e) => setTrimColor(e.target.value)}
+                                        className="h-9 w-12 cursor-pointer bg-transparent"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Quick presets */}
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {[
+                                { label: "Mint", box: "#f6ead6", trim: "#42c99c" },
+                                { label: "Night", box: "#0f2a2c", trim: "#e8d5b8" },
+                                { label: "Slate", box: "#1f2937", trim: "#94a3b8" },
+                                { label: "Ivory", box: "#fff7ed", trim: "#82664e" },
+                            ].map((p) => (
+                                <button
+                                    key={p.label}
+                                    type="button"
+                                    onClick={() => {
+                                        setDeckBoxColor(p.box);
+                                        setTrimColor(p.trim);
+                                    }}
+                                    className="
+          inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium
+          border border-black/10 dark:border-white/10
+          bg-black/5 dark:bg-white/5
+          hover:bg-black/10 dark:hover:bg-white/10
+          transition-colors
+        "
+                                >
+                                    <span className="flex items-center gap-1.5">
+                                        <span
+                                            className="h-3 w-3 rounded-sm border border-black/10 dark:border-white/10"
+                                            style={{ backgroundColor: p.box }}
+                                            aria-hidden
+                                        />
+                                        <span
+                                            className="h-3 w-3 rounded-sm border border-black/10 dark:border-white/10"
+                                            style={{ backgroundColor: p.trim }}
+                                            aria-hidden
+                                        />
+                                    </span>
+                                    {p.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Tiny preview strip */}
+                        <div className="mt-3 rounded-lg border border-black/10 dark:border-white/10 overflow-hidden">
+                            <div className="h-10" style={{ backgroundColor: deckBoxColor }} />
+                            <div className="h-2" style={{ backgroundColor: trimColor }} />
+                        </div>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-end gap-2 border-t border-black/10 dark:border-white/10 p-4">
+                        <button
+                            onClick={onClose}
+                            className="
+                rounded-md px-4 py-2 text-sm font-medium
+                bg-black/5 dark:bg-white/5
+                hover:bg-black/10 dark:hover:bg-white/10
+                border border-black/10 dark:border-white/10
+                transition-colors
+              "
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                // TODO: hook this up to your create-deck flow
+                                // Example: createDeck({ format: selectedFormat, ... })
+                                onClose();
+                            }}
+                            className="
+                rounded-md px-4 py-2 text-sm font-medium text-white
+                bg-[#42c99c] dark:bg-[#82664e]
+                hover:opacity-95 transition-opacity
+              "
+                        >
+                            Create Deck
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function RuleCard({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide opacity-70">
+                {label}
+            </div>
+            <div className="mt-1 text-sm opacity-90">{value}</div>
         </div>
     );
 }
