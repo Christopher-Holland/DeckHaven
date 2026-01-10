@@ -67,12 +67,16 @@ model Wishlist {
 
 // Decks
 model Deck {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
-  game      String   // mtg, ptcg, ytcg
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  description  String?
+  format       String?  // e.g., "Standard", "Commander", "Pioneer", etc.
+  game         String   // mtg, ptcg, ytcg
+  deckBoxColor String?  // Hex color for deck box
+  trimColor    String?  // Hex color for trim
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   deckCards DeckCard[]

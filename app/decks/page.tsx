@@ -9,20 +9,66 @@
 
 "use client";
 
-import { useState } from "react";
-import CreateDeckModal from "../decks/createDeckModal";
+import { useState, useEffect } from "react";
+import { useUser } from "@stackframe/stack";
+import CreateDeckModal from "./createDeckModal";
+import Loading from "@/app/components/Loading";
+
+type Deck = {
+    id: string;
+    name: string;
+    description: string | null;
+    format: string | null;
+    game: string;
+    deckBoxColor: string | null;
+    trimColor: string | null;
+    createdAt: string;
+    updatedAt: string;
+    _count: {
+        deckCards: number;
+    };
+};
 
 type DeckBoxProps = {
-    title?: string;
-    subtitle?: string;
+    deck: Deck;
     onClick?: () => void;
 };
 
+/**
+ * Helper function to determine if a hex color is dark or light
+ * Returns true if the color is dark, false if light
+ */
+function isDarkColor(hex: string): boolean {
+    // Remove # if present
+    const cleanHex = hex.replace("#", "");
+    
+    // Convert to RGB
+    const r = parseInt(cleanHex.substring(0, 2), 16);
+    const g = parseInt(cleanHex.substring(2, 4), 16);
+    const b = parseInt(cleanHex.substring(4, 6), 16);
+    
+    // Calculate relative luminance using the formula from WCAG
+    // https://www.w3.org/WAI/GL/wiki/Relative_luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // Return true if luminance is less than 0.5 (dark), false if light
+    return luminance < 0.5;
+}
+
 function DeckBox({
-    title = "Mono Black Vampires",
-    subtitle = "Commander • 100 cards",
+    deck,
     onClick,
 }: DeckBoxProps) {
+    const deckBoxColor = deck.deckBoxColor || "#ffffff";
+    const trimColor = deck.trimColor || "#1f2937";
+    const cardCount = deck._count.deckCards;
+    const formatText = deck.format || "Unknown Format";
+    const subtitle = `${formatText} • ${cardCount} card${cardCount !== 1 ? "s" : ""}`;
+    
+    // Determine text color based on box color
+    const isDark = isDarkColor(deckBoxColor);
+    const textColorClass = isDark ? "text-white" : "text-[#193f44] dark:text-[#193f44]";
+
     return (
         <div
             className="group relative w-full deck-box-container"
@@ -48,12 +94,12 @@ function DeckBox({
                 <div
                     className={[
                         "relative rounded-2xl border min-h-[280px]",
-                        "bg-white/90 dark:bg-[#113033]/90",
                         "border-black/10 dark:border-white/10",
                         "shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)]",
                         "transition-transform duration-300 ease-out",
                         "group-hover:-translate-y-1",
                     ].join(" ")}
+                    style={{ backgroundColor: `${deckBoxColor}E6` }}
                 >
                     {/* Inner cavity (becomes visible when lid opens) */}
                     <div
@@ -73,18 +119,18 @@ function DeckBox({
                         <div
                             className={[
                                 "mt-5 rounded-xl border px-4 py-3",
-                                "border-black/10 dark:border-white/10",
-                                "bg-white/70 dark:bg-white/5",
-                                "shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]",
+                                isDark ? "border-white/20" : "border-black/10 dark:border-white/10",
+                                isDark ? "bg-black/30 backdrop-blur-sm" : "bg-white/70 dark:bg-white/5",
+                                isDark ? "shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" : "shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]",
                             ].join(" ")}
                         >
-                            <div className="text-sm uppercase tracking-wide opacity-70">
-                                Deck ID: DH-001
+                            <div className={`text-sm uppercase tracking-wide ${textColorClass} ${isDark ? "opacity-90" : "opacity-70"}`}>
+                                Deck ID: {deck.id.slice(0, 8)}
                             </div>
-                            <div className="mt-1 text-lg font-semibold opacity-80">
-                                {title}
+                            <div className={`mt-1 text-lg font-semibold ${textColorClass} ${isDark ? "opacity-95" : "opacity-80"}`}>
+                                {deck.name}
                             </div>
-                            <div className="mt-1 text-sm opacity-80">
+                            <div className={`mt-1 text-sm ${textColorClass} ${isDark ? "opacity-90" : "opacity-80"}`}>
                                 {subtitle}
                             </div>
                         </div>
@@ -108,15 +154,20 @@ function DeckBox({
                         "absolute left-0 right-0 top-0 h-20",
                         "rounded-t-2xl border",
                         "border-black/10 dark:border-white/10",
-                        "bg-white dark:bg-[#0f2a2c]",
                         "shadow-[0_14px_30px_-16px_rgba(0,0,0,0.55)]",
                         "origin-[50%_100%]", // hinge at bottom of lid
                         "transition-transform duration-500 ease-[cubic-bezier(.2,.9,.2,1)]",
                     ].join(" ")}
                     style={{
                         transformStyle: "preserve-3d",
+                        backgroundColor: deckBoxColor,
                     }}
                 >
+                    {/* Trim accent */}
+                    <div
+                        className="absolute inset-x-0 bottom-0 h-2 rounded-b-2xl"
+                        style={{ backgroundColor: trimColor }}
+                    />
                     {/* Lid underside (shows when open) */}
                     <div
                         className="absolute inset-0 rounded-t-2xl"
@@ -139,13 +190,106 @@ function DeckBox({
 }
 
 export default function DecksPage() {
+    const user = useUser();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    
-    // TODO: Fetch decks from API
-    const decks = [
-        { id: "1", title: "Mono Black Vampires", subtitle: "Commander • 100 cards" },
-        { id: "2", title: "Red Deck Wins", subtitle: "Standard • 60 cards" },
-    ];
+    const [decks, setDecks] = useState<Deck[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Fetch decks from API
+    useEffect(() => {
+        if (!user) return;
+
+        async function fetchDecks() {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const response = await fetch("/api/decks");
+                if (!response.ok) {
+                    throw new Error("Failed to fetch decks");
+                }
+
+                const data = await response.json();
+                setDecks(data.decks || []);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Failed to load decks");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchDecks();
+    }, [user]);
+
+    // Handle deck creation
+    const handleDeckCreated = async (deckData: {
+        name: string;
+        description?: string;
+        format: string;
+        game: "mtg" | "pokemon" | "yugioh";
+        deckBoxColor: string;
+        trimColor: string;
+    }) => {
+        try {
+            const response = await fetch("/api/decks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(deckData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to create deck" }));
+                throw new Error(errorData.error || "Failed to create deck");
+            }
+
+            const data = await response.json();
+            
+            // Refresh decks list
+            const decksResponse = await fetch("/api/decks");
+            if (decksResponse.ok) {
+                const decksData = await decksResponse.json();
+                setDecks(decksData.decks || []);
+            }
+        } catch (err) {
+            console.error("Error creating deck:", err);
+            alert(err instanceof Error ? err.message : "Failed to create deck");
+        }
+    };
+
+    if (loading) {
+        return (
+            <main
+                className="
+                    min-h-[calc(100vh-8rem)]
+                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    px-6 py-6
+                    text-[#193f44] dark:text-[#e8d5b8]
+                    transition-all duration-300
+                "
+            >
+                <Loading />
+            </main>
+        );
+    }
+
+    if (error) {
+        return (
+            <main
+                className="
+                    min-h-[calc(100vh-8rem)]
+                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    px-6 py-6
+                    text-[#193f44] dark:text-[#e8d5b8]
+                    transition-all duration-300
+                "
+            >
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <p className="text-lg text-red-500">Error: {error}</p>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main
@@ -187,8 +331,7 @@ export default function DecksPage() {
                     {decks.map((deck) => (
                         <DeckBox
                             key={deck.id}
-                            title={deck.title}
-                            subtitle={deck.subtitle}
+                            deck={deck}
                             onClick={() => {
                                 // TODO: Navigate to deck detail page
                                 console.log("Navigate to deck:", deck.id);
@@ -220,9 +363,13 @@ export default function DecksPage() {
                 </section>
             )}
 
-            {/* Create Deck Modal - TODO: Implement modal */}
+            {/* Create Deck Modal */}
             {isCreateModalOpen && (
-                <CreateDeckModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+                <CreateDeckModal 
+                    open={isCreateModalOpen} 
+                    onClose={() => setIsCreateModalOpen(false)}
+                    onSuccess={handleDeckCreated}
+                />
             )}
         </main>
     );
