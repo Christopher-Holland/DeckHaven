@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@stackframe/stack";
 import CreateDeckModal from "./createDeckModal";
 import Loading from "@/app/components/Loading";
+import { useRouter } from "next/navigation";
 
 type Deck = {
     id: string;
@@ -105,7 +106,7 @@ function DeckBox({
                     <div
                         className={[
                             "absolute inset-3 rounded-xl",
-                            "bg-black/5 dark:bg-black/30",
+                            `bg-[${trimColor}]`,
                             "shadow-[inset_0_10px_18px_rgba(0,0,0,0.25)]",
                             "transition-opacity duration-300",
                             "opacity-0 group-hover:opacity-100",
@@ -191,6 +192,7 @@ function DeckBox({
 
 export default function DecksPage() {
     const user = useUser();
+    const router = useRouter();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [decks, setDecks] = useState<Deck[]>([]);
     const [loading, setLoading] = useState(true);
@@ -333,8 +335,7 @@ export default function DecksPage() {
                             key={deck.id}
                             deck={deck}
                             onClick={() => {
-                                // TODO: Navigate to deck detail page
-                                console.log("Navigate to deck:", deck.id);
+                                router.push(`/decks/${deck.id}`);
                             }}
                         />
                     ))}
