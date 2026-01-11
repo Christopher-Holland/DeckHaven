@@ -55,6 +55,7 @@ export default function SetCardFiltersModal({
         };
         setFilters(clearedFilters);
         onClear();
+        onClose();
     };
 
     const handleApply = () => {
@@ -228,6 +229,7 @@ export default function SetCardFiltersModal({
                             "
                         >
                             Clear Filters
+                            
                         </button>
 
                         <button
