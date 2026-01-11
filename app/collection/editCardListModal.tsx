@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 
 export type EditableCard = {
@@ -29,7 +30,18 @@ type Props = {
  * Same API as before (open/card/onClose/onSave), but rendered as a right-side drawer.
  * Keeping the filename makes it easy to find/edit without chasing imports.
  */
+type DeckInfo = {
+    id: string;
+    name: string;
+};
+
+type BinderInfo = {
+    id: string;
+    name: string;
+};
+
 export default function EditCardListModal({ open, card, onClose, onSave }: Props) {
+    const router = useRouter();
     const [quantity, setQuantity] = useState(0);
     const [isFoil, setIsFoil] = useState(false);
     const [condition, setCondition] = useState("");
@@ -38,6 +50,10 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
     const [notes, setNotes] = useState("");
     const [cardImage, setCardImage] = useState<string | null>(null);
     const [loadingImage, setLoadingImage] = useState(false);
+    const [decksWithCard, setDecksWithCard] = useState<DeckInfo[]>([]);
+    const [bindersWithCard, setBindersWithCard] = useState<BinderInfo[]>([]);
+    const [loadingDecks, setLoadingDecks] = useState(false);
+    const [loadingBinders, setLoadingBinders] = useState(false);
 
     // local "saving" UI state (optional, but nice)
     const [saving, setSaving] = useState(false);
@@ -73,6 +89,77 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
         }
 
         fetchCardImage();
+    }, [open, card]);
+
+    // Fetch decks and binders containing this card
+    useEffect(() => {
+        if (!open || !card || !card.cardId) {
+            setDecksWithCard([]);
+            setBindersWithCard([]);
+            return;
+        }
+
+        const cardId = card.cardId; // Capture cardId to avoid null check issues
+
+        async function fetchDecksAndBinders() {
+
+            // Fetch decks
+            try {
+                setLoadingDecks(true);
+                const decksResponse = await fetch("/api/decks");
+                if (decksResponse.ok) {
+                    const decksData = await decksResponse.json();
+                    // For each deck, check if it contains this card
+                    const decksContainingCard: DeckInfo[] = [];
+                    for (const deck of decksData.decks || []) {
+                        try {
+                            const deckDetailResponse = await fetch(`/api/decks/${deck.id}`);
+                            if (deckDetailResponse.ok) {
+                                const deckDetail = await deckDetailResponse.json();
+                                const hasCard = (deckDetail.deck?.deckCards || []).some(
+                                    (dc: { cardId: string }) => dc.cardId === cardId
+                                );
+                                if (hasCard) {
+                                    decksContainingCard.push({ id: deck.id, name: deck.name });
+                                }
+                            }
+                        } catch (err) {
+                            console.warn(`Failed to fetch deck ${deck.id}:`, err);
+                        }
+                    }
+                    setDecksWithCard(decksContainingCard);
+                }
+            } catch (err) {
+                console.warn("Failed to fetch decks:", err);
+            } finally {
+                setLoadingDecks(false);
+            }
+
+            // Fetch binders
+            try {
+                setLoadingBinders(true);
+                const bindersResponse = await fetch("/api/binders");
+                if (bindersResponse.ok) {
+                    const bindersData = await bindersResponse.json();
+                    // Filter binders that contain this card
+                    const bindersContainingCard: BinderInfo[] = (bindersData.binders || [])
+                        .filter((binder: { binderCards: Array<{ cardId: string }> }) =>
+                            binder.binderCards?.some((bc: { cardId: string }) => bc.cardId === cardId)
+                        )
+                        .map((binder: { id: string; name: string }) => ({
+                            id: binder.id,
+                            name: binder.name,
+                        }));
+                    setBindersWithCard(bindersContainingCard);
+                }
+            } catch (err) {
+                console.warn("Failed to fetch binders:", err);
+            } finally {
+                setLoadingBinders(false);
+            }
+        }
+
+        fetchDecksAndBinders();
     }, [open, card]);
 
     // populate fields when opened / card changes
@@ -295,6 +382,70 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                 resize-none
               "
                         />
+                    </div>
+
+                    {/* Decks Section */}
+                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+                        <div className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-2">
+                            In Decks
+                        </div>
+                        {loadingDecks ? (
+                            <div className="text-xs opacity-70">Loading...</div>
+                        ) : decksWithCard.length > 0 ? (
+                            <div className="space-y-1">
+                                {decksWithCard.map((deck) => (
+                                    <button
+                                        key={deck.id}
+                                        onClick={() => {
+                                            router.push(`/decks/${deck.id}`);
+                                            onClose();
+                                        }}
+                                        className="
+                                            w-full text-left text-xs px-2 py-1 rounded
+                                            hover:bg-black/5 dark:hover:bg-white/5
+                                            transition-colors
+                                            truncate
+                                        "
+                                    >
+                                        {deck.name}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-xs opacity-70">Not in any decks</div>
+                        )}
+                    </div>
+
+                    {/* Binders Section */}
+                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+                        <div className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-2">
+                            In Binders
+                        </div>
+                        {loadingBinders ? (
+                            <div className="text-xs opacity-70">Loading...</div>
+                        ) : bindersWithCard.length > 0 ? (
+                            <div className="space-y-1">
+                                {bindersWithCard.map((binder) => (
+                                    <button
+                                        key={binder.id}
+                                        onClick={() => {
+                                            router.push(`/collection/binders/${binder.id}`);
+                                            onClose();
+                                        }}
+                                        className="
+                                            w-full text-left text-xs px-2 py-1 rounded
+                                            hover:bg-black/5 dark:hover:bg-white/5
+                                            transition-colors
+                                            truncate
+                                        "
+                                    >
+                                        {binder.name}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-xs opacity-70">Not in any binders</div>
+                        )}
                     </div>
                 </div>
 

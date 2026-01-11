@@ -4,12 +4,10 @@ import { useParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@stackframe/stack";
 import Loading from "@/app/components/Loading";
-import { ChevronLeft, ArrowLeft, Plus } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import EditDeckModal from "./editDeckModal";
 import type { ScryfallCard } from "@/app/lib/scryfall";
-import AddToCollectionControl from "@/app/components/AddToCollectionControl";
 
 type Deck = {
     id: string;
@@ -63,7 +61,7 @@ export default function DeckPage() {
     const [ownedCounts, setOwnedCounts] = useState<Map<string, number>>(new Map());
     const [loadingCards, setLoadingCards] = useState(false);
     const router = useRouter();
-    
+
     useEffect(() => {
         if (!user || !deckId) return;
 
@@ -114,7 +112,7 @@ export default function DeckPage() {
 
                 // Fetch card details from Scryfall
                 const cardDetailsMap = new Map<string, ScryfallCard>();
-                const uniqueCardIds = [...new Set(deckCards.map(dc => dc.cardId))];
+                const uniqueCardIds = [...new Set(deckCards.map((dc) => dc.cardId))];
 
                 for (const cardId of uniqueCardIds) {
                     try {
@@ -139,18 +137,22 @@ export default function DeckPage() {
         fetchCardDetails();
     }, [deckCards]);
 
-    // Group cards by type
+    // Calculate total card count (sum of quantities)
+    const totalCards = useMemo(() => {
+        return deckCards.reduce((sum, deckCard) => sum + deckCard.quantity, 0);
+    }, [deckCards]);
+
+    // Group cards by type (ONE tile per unique card, keep quantity on the deckCard)
     const cardsByType = useMemo(() => {
         const grouped = new Map<string, Array<{ deckCard: DeckCard; scryfallCard: ScryfallCard }>>();
 
-        deckCards.forEach(deckCard => {
+        deckCards.forEach((deckCard) => {
             const scryfallCard = cardDetails.get(deckCard.cardId);
             if (!scryfallCard) return;
 
             const typeLine = scryfallCard.type_line || "Other";
             let cardType = "Other";
 
-            // Extract primary type
             if (typeLine.toLowerCase().includes("creature")) {
                 cardType = "Creature";
             } else if (typeLine.toLowerCase().includes("land")) {
@@ -169,55 +171,51 @@ export default function DeckPage() {
                 cardType = "Battle";
             }
 
-            if (!grouped.has(cardType)) {
-                grouped.set(cardType, []);
-            }
-
-            // Add one entry per quantity
-            for (let i = 0; i < deckCard.quantity; i++) {
-                grouped.get(cardType)!.push({ deckCard, scryfallCard });
-            }
+            if (!grouped.has(cardType)) grouped.set(cardType, []);
+            grouped.get(cardType)!.push({ deckCard, scryfallCard });
         });
 
         // Sort types: Creatures, Lands, Instants, Sorceries, Artifacts, Enchantments, Planeswalkers, Battles, Other
         const typeOrder = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Battle", "Land", "Other"];
         const sorted = new Map<string, Array<{ deckCard: DeckCard; scryfallCard: ScryfallCard }>>();
-        
-        typeOrder.forEach(type => {
-            if (grouped.has(type)) {
-                sorted.set(type, grouped.get(type)!);
-            }
+
+        typeOrder.forEach((type) => {
+            if (grouped.has(type)) sorted.set(type, grouped.get(type)!);
         });
 
-        // Add any remaining types
         grouped.forEach((cards, type) => {
-            if (!sorted.has(type)) {
-                sorted.set(type, cards);
-            }
+            if (!sorted.has(type)) sorted.set(type, cards);
         });
 
         return sorted;
     }, [deckCards, cardDetails]);
 
-    const updateOwnedCount = async (cardId: string, count: number) => {
-        setOwnedCounts((prev) => {
-            const next = new Map(prev);
-            if (count === 0) {
-                next.delete(cardId);
-            } else {
-                next.set(cardId, count);
-            }
-            return next;
-        });
-
+    const updateDeckCardQuantity = async (deckCard: DeckCard, newQuantity: number) => {
         try {
-            await fetch("/api/collection", {
-                method: "POST",
+            const response = await fetch(`/api/decks/${deckId}/cards/${deckCard.id}`, {
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cardId, quantity: count }),
+                body: JSON.stringify({ quantity: newQuantity }),
             });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to update card quantity" }));
+                throw new Error(errorData.error || "Failed to update card quantity");
+            }
+
+            // Update local state
+            if (newQuantity === 0) {
+                // Remove from deck
+                setDeckCards((prev) => prev.filter((dc) => dc.id !== deckCard.id));
+            } else {
+                // Update quantity
+                setDeckCards((prev) =>
+                    prev.map((dc) => (dc.id === deckCard.id ? { ...dc, quantity: newQuantity } : dc))
+                );
+            }
         } catch (err) {
-            console.error("Error updating collection:", err);
+            console.error("Error updating card quantity:", err);
+            alert(err instanceof Error ? err.message : "Failed to update card quantity");
         }
     };
 
@@ -233,7 +231,7 @@ export default function DeckPage() {
             }
 
             // Remove from local state
-            setDeckCards((prev) => prev.filter(dc => dc.id !== deckCardId));
+            setDeckCards((prev) => prev.filter((dc) => dc.id !== deckCardId));
         } catch (err) {
             console.error("Error removing card from deck:", err);
             alert(err instanceof Error ? err.message : "Failed to remove card from deck");
@@ -244,12 +242,12 @@ export default function DeckPage() {
         return (
             <main
                 className="
-                    min-h-[calc(100vh-8rem)]
-                    bg-[#f6ead6] dark:bg-[#0f2a2c]
-                    px-6 py-6
-                    text-[#193f44] dark:text-[#e8d5b8]
-                    transition-all duration-300
-                "
+          min-h-[calc(100vh-8rem)]
+          bg-[#f6ead6] dark:bg-[#0f2a2c]
+          px-6 py-6
+          text-[#193f44] dark:text-[#e8d5b8]
+          transition-all duration-300
+        "
             >
                 <Loading />
             </main>
@@ -260,12 +258,12 @@ export default function DeckPage() {
         return (
             <main
                 className="
-                    min-h-[calc(100vh-8rem)]
-                    bg-[#f6ead6] dark:bg-[#0f2a2c]
-                    px-6 py-6
-                    text-[#193f44] dark:text-[#e8d5b8]
-                    transition-all duration-300
-                "
+          min-h-[calc(100vh-8rem)]
+          bg-[#f6ead6] dark:bg-[#0f2a2c]
+          px-6 py-6
+          text-[#193f44] dark:text-[#e8d5b8]
+          transition-all duration-300
+        "
             >
                 <div className="flex items-center justify-center min-h-[400px]">
                     <p className="text-lg text-red-500">Error: {error}</p>
@@ -278,12 +276,12 @@ export default function DeckPage() {
         return (
             <main
                 className="
-                    min-h-[calc(100vh-8rem)]
-                    bg-[#f6ead6] dark:bg-[#0f2a2c]
-                    px-6 py-6
-                    text-[#193f44] dark:text-[#e8d5b8]
-                    transition-all duration-300
-                "
+          min-h-[calc(100vh-8rem)]
+          bg-[#f6ead6] dark:bg-[#0f2a2c]
+          px-6 py-6
+          text-[#193f44] dark:text-[#e8d5b8]
+          transition-all duration-300
+        "
             >
                 <div className="flex items-center justify-center min-h-[400px]">
                     <p className="text-lg opacity-70">Deck not found</p>
@@ -295,62 +293,65 @@ export default function DeckPage() {
     return (
         <main
             className="
-                min-h-[calc(100vh-8rem)]
-                bg-[#f6ead6] dark:bg-[#0f2a2c]
-                px-6 py-6
-                text-[#193f44] dark:text-[#e8d5b8]
-                transition-all duration-300
-            "
+        min-h-[calc(100vh-8rem)]
+        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        px-6 py-6
+        text-[#193f44] dark:text-[#e8d5b8]
+        transition-all duration-300
+      "
         >
             {/* Header */}
             <section className="flex items-center gap-2 px-4 py-3 border-b border-black/10 dark:border-white/10">
                 <div className="flex-1 flex justify-start">
                     <button
                         className="
-                            inline-flex items-center gap-2
-                            text-sm opacity-70
-                            px-3 py-2 rounded-md
-                            border border-black/10 dark:border-[#82664e]
-                            hover:bg-black/10 dark:hover:bg-[#82664e]/10
-                            transition-colors
-                        "
+              inline-flex items-center gap-2
+              text-sm opacity-70
+              px-3 py-2 rounded-md
+              border border-black/10 dark:border-[#82664e]
+              hover:bg-black/10 dark:hover:bg-[#82664e]/10
+              transition-colors
+            "
                         onClick={() => router.back()}
                     >
                         <ArrowLeft className="w-4 h-4" />
                         <span>Back to Decks</span>
                     </button>
                 </div>
+
                 <div className="flex flex-col items-center text-center min-w-0">
                     <h2 className="text-3xl font-semibold truncate">{deck.name}</h2>
                     <p className="text-sm opacity-70 mt-1">
-                        {deck.format || "Unknown Format"} • {deck._count.deckCards} card{deck._count.deckCards !== 1 ? "s" : ""}
+                        {deck.format || "Unknown Format"} • {totalCards} card{totalCards !== 1 ? "s" : ""}
                     </p>
                 </div>
+
                 <div className="flex-1 flex justify-end gap-2">
                     <button
                         className="
-                            inline-flex items-center gap-2
-                            px-3 py-2 rounded-md text-sm
-                            bg-[#42c99c] dark:bg-[#82664e]
-                            text-white
-                            hover:opacity-95
-                            transition-colors
-                        "
+              inline-flex items-center gap-2
+              px-3 py-2 rounded-md text-sm
+              bg-[#42c99c] dark:bg-[#82664e]
+              text-white
+              hover:opacity-95
+              transition-colors
+            "
                         onClick={() => router.push(`/sets`)}
                     >
                         <Plus className="w-4 h-4" />
                         Add Card
                     </button>
+
                     <button
                         onClick={() => setIsEditModalOpen(true)}
                         className="
-                            inline-flex items-center gap-2
-                            px-3 py-2 rounded-md text-sm
-                            bg-[#42c99c] dark:bg-[#82664e]
-                            text-white
-                            hover:opacity-95
-                            transition-colors
-                        "
+              inline-flex items-center gap-2
+              px-3 py-2 rounded-md text-sm
+              bg-[#42c99c] dark:bg-[#82664e]
+              text-white
+              hover:opacity-95
+              transition-colors
+            "
                     >
                         Edit Deck
                     </button>
@@ -367,55 +368,119 @@ export default function DeckPage() {
                     ) : (
                         Array.from(cardsByType.entries()).map(([type, cards]) => (
                             <div key={type}>
-                                <h3 className="text-lg font-semibold mb-3">{type} ({cards.length})</h3>
+                                <h3 className="text-lg font-semibold mb-3">
+                                    {type} (
+                                    {cards.reduce((sum, x) => sum + (x.deckCard.quantity ?? 0), 0)}
+                                    )
+                                </h3>
+
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                    {cards.map(({ deckCard, scryfallCard }, index) => {
-                                        const cardImage = scryfallCard.image_uris?.normal ||
+                                    {cards.map(({ deckCard, scryfallCard }) => {
+                                        const cardImage =
+                                            scryfallCard.image_uris?.normal ||
                                             scryfallCard.image_uris?.large ||
                                             scryfallCard.image_uris?.small ||
                                             scryfallCard.card_faces?.[0]?.image_uris?.normal ||
                                             "/images/DeckHaven-Shield.png";
+
                                         const ownedCount = ownedCounts.get(deckCard.cardId) || 0;
-                                        const isInCollection = ownedCount > 0;
+                                        const missing = ownedCount === 0;
 
                                         return (
                                             <div
-                                                key={`${deckCard.id}-${index}`}
+                                                key={deckCard.id}
                                                 className={`
-                                                    rounded-lg border p-3
-                                                    border-[#42c99c] dark:border-[#82664e]
-                                                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                                                    flex flex-col gap-2
-                                                    ${!isInCollection ? "opacity-50" : ""}
-                                                `}
+                          rounded-lg border p-3
+                          border-[#42c99c] dark:border-[#82664e]
+                          bg-[#e8d5b8] dark:bg-[#173c3f]
+                          flex flex-col gap-2
+                          ${missing ? "opacity-80" : ""}
+                        `}
                                             >
                                                 <h4 className="text-sm font-semibold text-center truncate">
                                                     {scryfallCard.name}
                                                 </h4>
-                                                {cardImage && (
+
+                                                {/* Stacked visual + quantity badge */}
+                                                <div className="relative">
+                                                    {deckCard.quantity > 1 && (
+                                                        <div
+                                                            className="absolute -left-1 -top-1 w-full h-full rounded border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5"
+                                                            aria-hidden
+                                                        />
+                                                    )}
+                                                    {deckCard.quantity > 2 && (
+                                                        <div
+                                                            className="absolute -left-2 -top-2 w-full h-full rounded border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5"
+                                                            aria-hidden
+                                                        />
+                                                    )}
+
                                                     <img
                                                         src={cardImage}
                                                         alt={scryfallCard.name}
-                                                        className="w-full h-auto rounded"
+                                                        className="relative w-full h-auto rounded"
                                                     />
-                                                )}
-                                                <AddToCollectionControl
-                                                    quantity={ownedCount}
-                                                    onChange={(qty) => updateOwnedCount(deckCard.cardId, qty)}
-                                                />
+
+                                                    {deckCard.quantity > 1 && (
+                                                        <span
+                                                            className="
+                                                                absolute top-2 right-2
+                                                                inline-flex items-center
+                                                                px-2.5 py-1
+                                                                rounded-full
+                                                                text-md font-extrabold
+                                                                bg-[#f6ead6] dark:bg-[#0f2a2c]
+                                                                text-[#193f44] dark:text-[#e8d5b8]
+                                                                border border-black/20 dark:border-white/20
+                                                                shadow-md
+                                                            ">
+                                                            x{deckCard.quantity}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Owned indicator (no +/- control here) */}
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="text-xs font-semibold">
+                                                        In deck: <span className="text-sm">x{deckCard.quantity}</span>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-1 border border-black/10 dark:border-white/10 rounded-md overflow-hidden">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateDeckCardQuantity(deckCard, deckCard.quantity - 1)}
+                                                            className="px-2 py-1 hover:bg-black/10 dark:hover:bg-white/10"
+                                                            aria-label="Remove one copy"
+                                                        >
+                                                            –
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateDeckCardQuantity(deckCard, deckCard.quantity + 1)}
+                                                            className="px-2 py-1 hover:bg-black/10 dark:hover:bg-white/10"
+                                                            aria-label="Add one copy"
+                                                        >
+                                                            +
+                                                        </button>
+                                                         
+                                                    </div>
+                                                </div>
+
                                                 <button
-                                                    className="rounded-lg border p-1
-                                                    text-sm opacity-70
-                                                    border-[#42c99c] dark:border-[#82664e]
-                                                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                                                    flex flex-col gap-2
-                                                    hover:opacity-95
-                                                    hover:text-red-500
-                                                    transition-colors
-                                                "
+                                                    className="
+                            rounded-lg border p-1
+                            text-sm opacity-70
+                            border-[#42c99c] dark:border-[#82664e]
+                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            flex flex-col gap-2
+                            hover:opacity-95
+                            hover:text-red-500
+                            transition-colors
+                          "
                                                     onClick={() => removeCardFromDeck(deckCard.id)}
                                                 >
-                                                    Remove from Deck
+                                                    Remove all copies from Deck
                                                 </button>
                                             </div>
                                         );

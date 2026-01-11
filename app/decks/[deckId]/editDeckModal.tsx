@@ -486,21 +486,27 @@ export default function EditDeckModal({
                                                 <div className="text-xs opacity-60 truncate">{deckBoxColor}</div>
                                             </div>
 
-                                            <div className="flex items-center gap-2">
-                                                <span
-                                                    className="h-7 w-7 rounded-md border border-black/10 dark:border-white/10"
-                                                    style={{ backgroundColor: deckBoxColor }}
-                                                    aria-hidden
-                                                />
-                                                <input
-                                                    aria-label="Deck box color"
-                                                    type="color"
-                                                    value={deckBoxColor}
-                                                    onChange={(e) => setDeckBoxColor(e.target.value)}
-                                                    disabled={saving}
-                                                    className="h-9 w-12 cursor-pointer bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                                                />
-                                            </div>
+                                            <input
+                                                aria-label="Deck box color"
+                                                type="color"
+                                                value={deckBoxColor}
+                                                onChange={(e) => setDeckBoxColor(e.target.value)}
+                                                disabled={saving}
+                                                className="
+                                                    h-7 w-7 rounded-md
+                                                    border border-black/10 dark:border-white/10
+                                                    overflow-hidden cursor-pointer
+                                                    bg-transparent p-0
+                                                    disabled:opacity-50 disabled:cursor-not-allowed
+
+                                                    [appearance:none]
+                                                    [&::-webkit-color-swatch-wrapper]:p-0
+                                                    [&::-webkit-color-swatch]:border-0
+                                                    [&::-webkit-color-swatch]:rounded-md
+                                                    [&::-moz-color-swatch]:border-0
+                                                    [&::-moz-color-swatch]:rounded-md
+                                                "
+                                            />
                                         </div>
 
                                         {/* Trim Color */}
@@ -511,18 +517,27 @@ export default function EditDeckModal({
                                             </div>
 
                                             <div className="flex items-center gap-2">
-                                                <span
-                                                    className="h-7 w-7 rounded-md border border-black/10 dark:border-white/10"
-                                                    style={{ backgroundColor: trimColor }}
-                                                    aria-hidden
-                                                />
+
                                                 <input
                                                     aria-label="Trim color"
                                                     type="color"
                                                     value={trimColor}
                                                     onChange={(e) => setTrimColor(e.target.value)}
                                                     disabled={saving}
-                                                    className="h-9 w-12 cursor-pointer bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="
+                                                    h-7 w-7 rounded-md
+                                                    border border-black/10 dark:border-white/10
+                                                    overflow-hidden cursor-pointer
+                                                    bg-transparent p-0
+                                                    disabled:opacity-50 disabled:cursor-not-allowed
+
+                                                    [appearance:none]
+                                                    [&::-webkit-color-swatch-wrapper]:p-0
+                                                    [&::-webkit-color-swatch]:border-0
+                                                    [&::-webkit-color-swatch]:rounded-md
+                                                    [&::-moz-color-swatch]:border-0
+                                                    [&::-moz-color-swatch]:rounded-md
+                                                "
                                                 />
                                             </div>
                                         </div>
