@@ -40,7 +40,8 @@ type CollectionData = {
     pagination: {
         page: number;
         limit: number;
-        total: number;
+        total: number; // Unique cards count
+        totalQuantity?: number; // Total cards owned (sum of quantities)
         totalPages: number;
     };
 };
@@ -109,15 +110,19 @@ export default function CollectionPage() {
                 // - If game is "pokemon" or "yugioh": show empty (no cards from those games yet)
                 let filteredItems = data.items;
                 let filteredTotal = data.pagination.total;
+                let filteredTotalQuantity = data.pagination.totalQuantity || 0;
 
                 if (game === "pokemon" || game === "yugioh") {
                     // No cards from these games yet (all cards are from Scryfall/MTG)
                     filteredItems = [];
                     filteredTotal = 0;
+                    filteredTotalQuantity = 0;
                 } else if (game === "mtg" || game === "all") {
                     // Show all cards (all are MTG)
                     filteredItems = data.items;
                     filteredTotal = data.pagination.total;
+                    // Use API's totalQuantity (sum of all quantities) for accurate count
+                    filteredTotalQuantity = data.pagination.totalQuantity || 0;
                 }
 
                 // Update collection data with filtered items
@@ -126,6 +131,7 @@ export default function CollectionPage() {
                     pagination: {
                         ...data.pagination,
                         total: filteredTotal,
+                        totalQuantity: filteredTotalQuantity,
                         totalPages: Math.ceil(filteredTotal / itemsPerPage),
                     },
                 });
@@ -192,20 +198,25 @@ export default function CollectionPage() {
                 // Filter items by game client-side
                 let filteredItems = data.items;
                 let filteredTotal = data.pagination.total;
+                let filteredTotalQuantity = data.pagination.totalQuantity || 0;
                 
                 if (game === "pokemon" || game === "yugioh") {
                     filteredItems = [];
                     filteredTotal = 0;
+                    filteredTotalQuantity = 0;
                 } else if (game === "mtg" || game === "all") {
                     filteredItems = data.items;
                     filteredTotal = data.pagination.total;
+                    // Use API's totalQuantity (sum of all quantities) for accurate count
+                    filteredTotalQuantity = data.pagination.totalQuantity || 0;
                 }
-                
+
                 setCollectionData({
                     items: filteredItems,
                     pagination: {
                         ...data.pagination,
                         total: filteredTotal,
+                        totalQuantity: filteredTotalQuantity,
                         totalPages: Math.ceil(filteredTotal / itemsPerPage),
                     },
                 });
@@ -320,7 +331,8 @@ export default function CollectionPage() {
     // Calculate stats by game
     // Note: Stats are based on the total collection, not just the current page
     // Since all cards currently come from Scryfall (MTG), all cards are MTG
-    const totalCards = collectionData?.pagination.total || 0;
+    // Use totalQuantity (sum of all quantities) instead of total (unique cards count)
+    const totalCards = collectionData?.pagination.totalQuantity || collectionData?.pagination.total || 0;
     const mtgCount = totalCards; // All Scryfall cards are MTG
     const pokemonCount = 0; // Not implemented yet - would need Pokemon API
     const yugiohCount = 0; // Not implemented yet - would need YuGiOh API

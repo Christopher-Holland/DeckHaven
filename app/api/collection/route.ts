@@ -52,10 +52,19 @@ export async function GET(request: NextRequest) {
         // Get all collection items (we'll filter by game client-side based on card data)
         const whereClause: { userId: string } = { userId: dbUser.id };
 
-        // Get total count
+        // Get total count (unique cards)
         const totalCount = await prisma.collection.count({
             where: whereClause,
         });
+
+        // Get total quantity (sum of all quantities)
+        const totalQuantityResult = await prisma.collection.aggregate({
+            where: whereClause,
+            _sum: {
+                quantity: true,
+            },
+        });
+        const totalQuantity = totalQuantityResult._sum.quantity || 0;
 
         // Get paginated collection items
         const collections = await prisma.collection.findMany({
@@ -77,7 +86,8 @@ export async function GET(request: NextRequest) {
             pagination: {
                 page,
                 limit,
-                total: totalCount,
+                total: totalCount, // Unique cards count
+                totalQuantity: totalQuantity, // Total cards owned (sum of quantities)
                 totalPages: Math.ceil(totalCount / limit),
             },
             gameFilter: game, // Return the game filter for client-side filtering
