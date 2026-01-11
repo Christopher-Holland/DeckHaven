@@ -10,14 +10,16 @@
 
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useMemo } from "react";
 import { useUser } from "@stackframe/stack";
 import Loading from "@/app/components/Loading";
 import AddToCollectionControl from "@/app/components/AddToCollectionControl";
 import type { ScryfallCard } from "@/app/lib/scryfall";
+import { useGameFilter } from "@/app/components/GameFilterContext";
 
 function WishlistContent() {
     const user = useUser();
+    const { game } = useGameFilter();
     const [wishlist, setWishlist] = useState<string[]>([]);
     const [cards, setCards] = useState<Map<string, ScryfallCard>>(new Map());
     const [ownedCounts, setOwnedCounts] = useState<Map<string, number>>(new Map());
@@ -76,6 +78,23 @@ function WishlistContent() {
 
         fetchData();
     }, [user]);
+
+    // Filter cards based on game filter
+    // Note: Scryfall cards are MTG only, so we only show cards when game is "all" or "mtg"
+    const filteredCards = useMemo(() => {
+        if (game === "all" || game === "mtg") {
+            return cards;
+        }
+        // For pokemon/yugioh, return empty map since Scryfall doesn't have those games
+        return new Map<string, ScryfallCard>();
+    }, [cards, game]);
+
+    const filteredWishlist = useMemo(() => {
+        if (game === "all" || game === "mtg") {
+            return wishlist;
+        }
+        return [];
+    }, [wishlist, game]);
 
     const removeFromWishlist = async (cardId: string) => {
         try {
@@ -165,23 +184,34 @@ function WishlistContent() {
             <section className="mb-6">
                 <h2 className="text-2xl font-semibold">Wishlist</h2>
                 <p className="text-sm opacity-70 mt-1">
-                    {wishlist.length} card{wishlist.length === 1 ? "" : "s"} in your wishlist
+                    {filteredWishlist.length} card{filteredWishlist.length === 1 ? "" : "s"} in your wishlist
                 </p>
             </section>
 
             {/* Cards Grid */}
-            {wishlist.length === 0 ? (
+            {filteredWishlist.length === 0 ? (
                 <section className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">
-                        <p className="text-lg opacity-80 mb-2">Your wishlist is empty</p>
-                        <p className="text-sm opacity-60">
-                            Add cards to your wishlist from any set page
-                        </p>
+                        {game !== "all" && game !== "mtg" ? (
+                            <>
+                                <p className="text-lg opacity-80 mb-2">No {game === "pokemon" ? "Pokémon" : "Yu-Gi-Oh!"} cards in your wishlist</p>
+                                <p className="text-sm opacity-60">
+                                    Wishlist currently only supports Magic: The Gathering cards
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-lg opacity-80 mb-2">Your wishlist is empty</p>
+                                <p className="text-sm opacity-60">
+                                    Add cards to your wishlist from any set page
+                                </p>
+                            </>
+                        )}
                     </div>
                 </section>
             ) : (
                 <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {Array.from(cards.entries()).map(([cardId, card]) => {
+                    {Array.from(filteredCards.entries()).map(([cardId, card]) => {
                         const cardImage = card.image_uris?.normal ||
                             card.image_uris?.large ||
                             card.image_uris?.small ||
