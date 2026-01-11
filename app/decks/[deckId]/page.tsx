@@ -4,9 +4,10 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useUser } from "@stackframe/stack";
 import Loading from "@/app/components/Loading";
-import { ChevronLeft, ArrowLeft } from "lucide-react";
+import { ChevronLeft, ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import EditDeckModal from "./editDeckModal";
 
 type Deck = {
     id: string;
@@ -55,7 +56,9 @@ export default function DeckPage() {
     const [deckSideboard, setDeckSideboard] = useState<DeckSideboard[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const router = useRouter();
+    
     useEffect(() => {
         if (!user || !deckId) return;
 
@@ -171,20 +174,56 @@ export default function DeckPage() {
                         {deck.format || "Unknown Format"} • {deck._count.deckCards} card{deck._count.deckCards !== 1 ? "s" : ""}
                     </p>
                 </div>
-                <div className="flex-1 flex justify-end">
+                <div className="flex-1 flex justify-end gap-2">
                     <button
                         className="
-                            rounded-md px-3 py-1.5 text-sm font-medium
+                            inline-flex items-center gap-2
+                            px-3 py-2 rounded-md text-sm
                             bg-[#42c99c] dark:bg-[#82664e]
                             text-white
                             hover:opacity-95
+                            transition-colors
                         "
                     >
-                        Edit
+                        <Plus className="w-4 h-4" />
+                        Add Card
+                    </button>
+                    <button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="
+                            inline-flex items-center gap-2
+                            px-3 py-2 rounded-md text-sm
+                            bg-[#42c99c] dark:bg-[#82664e]
+                            text-white
+                            hover:opacity-95
+                            transition-colors
+                        "
+                    >
+                        Edit Deck
                     </button>
                 </div>
-
             </section>
+
+            {/* Edit Deck Modal */}
+            <EditDeckModal
+                open={isEditModalOpen}
+                deck={deck}
+                onClose={() => setIsEditModalOpen(false)}
+                onSuccess={async () => {
+                    // Refresh deck data after successful update
+                    try {
+                        const response = await fetch(`/api/decks/${deckId}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.deck) {
+                                setDeck(data.deck);
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error refreshing deck:", err);
+                    }
+                }}
+            />
         </main>
     );
 }

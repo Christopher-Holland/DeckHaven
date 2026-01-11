@@ -106,11 +106,11 @@ function DeckBox({
                     <div
                         className={[
                             "absolute inset-3 rounded-xl",
-                            `bg-[${trimColor}]`,
                             "shadow-[inset_0_10px_18px_rgba(0,0,0,0.25)]",
                             "transition-opacity duration-300",
                             "opacity-0 group-hover:opacity-100",
                         ].join(" ")}
+                        style={{ backgroundColor: trimColor }}
                     />
 
                     {/* Content area */}

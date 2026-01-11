@@ -16,14 +16,16 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, Filter, FilterIcon } from "lucide-react";
 import SetCards from "./SetCards";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import Loading from "@/app/components/Loading";
 import CardModal from "./cardModal";
 import AddToCollectionControl from "@/app/components/AddToCollectionControl";
+import SetCardFiltersModal from "./setCardFiltersModal";
+import type { SetCardFilters } from "./setCardFilters";
 
 type PageProps = {
     params: Promise<{ setId: string }>;
@@ -40,7 +42,17 @@ export default function SetDetailPage({ params }: PageProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedCard, setSelectedCard] = useState<ScryfallCard | null>(null);
     const [wishlistedCards, setWishlistedCards] = useState<Set<string>>(new Set());
-
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [filters, setFilters] = useState<SetCardFilters>({
+        cardType: "all",
+        color: "all",
+        rarity: "all",
+        manaValue: "all",
+    });
+    const [allCards, setAllCards] = useState<ScryfallCard[]>([]); // Store all cards before filtering
+    const [filteredCards, setFilteredCards] = useState<ScryfallCard[]>([]); // Store filtered cards
+    const [displayedCount, setDisplayedCount] = useState(60); // Number of cards to display (10 rows × 6 cols)
+    const CARDS_PER_BATCH = 60; // Load 60 cards per batch (10 rows)
     // Resolve dynamic route param
     useEffect(() => {
         params.then((p) => setSetId(p.setId));
@@ -147,7 +159,10 @@ export default function SetDetailPage({ params }: PageProps) {
                     return numPartA - numPartB;
                 });
 
-                setCards(allCards);
+                setAllCards(allCards);
+                setFilteredCards(allCards);
+                setCards(allCards.slice(0, CARDS_PER_BATCH)); // Show first batch initially
+                setDisplayedCount(CARDS_PER_BATCH);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load set");
             } finally {
@@ -235,6 +250,137 @@ export default function SetDetailPage({ params }: PageProps) {
         setIsModalOpen(true);
     };
 
+    // Filter cards based on selected filters
+    const applyFilters = (newFilters: SetCardFilters) => {
+        setFilters(newFilters);
+        
+        let filtered = [...allCards];
+
+        // Filter by card type
+        if (newFilters.cardType !== "all") {
+            filtered = filtered.filter((card) => {
+                const typeLine = card.type_line?.toLowerCase() || "";
+                return typeLine.includes(newFilters.cardType.toLowerCase());
+            });
+        }
+
+        // Filter by color
+        if (newFilters.color !== "all") {
+            filtered = filtered.filter((card) => {
+                const colors = card.colors || [];
+                if (newFilters.color === "colorless") {
+                    return colors.length === 0;
+                } else if (newFilters.color === "multicolor") {
+                    return colors.length > 1;
+                } else {
+                    // Map filter color to Scryfall color code
+                    const colorMap: Record<string, string> = {
+                        white: "W",
+                        blue: "U",
+                        black: "B",
+                        red: "R",
+                        green: "G",
+                    };
+                    const colorCode = colorMap[newFilters.color];
+                    return colors.includes(colorCode);
+                }
+            });
+        }
+
+        // Filter by rarity
+        if (newFilters.rarity !== "all") {
+            filtered = filtered.filter((card) => {
+                return card.rarity?.toLowerCase() === newFilters.rarity.toLowerCase();
+            });
+        }
+
+        // Filter by mana value (CMC)
+        if (newFilters.manaValue !== "all") {
+            filtered = filtered.filter((card) => {
+                const cmc = card.cmc ?? 0;
+                if (newFilters.manaValue === "7+") {
+                    return cmc >= 7;
+                } else {
+                    const targetCmc = parseInt(newFilters.manaValue, 10);
+                    return cmc === targetCmc;
+                }
+            });
+        }
+
+        setFilteredCards(filtered);
+        setCards(filtered.slice(0, CARDS_PER_BATCH)); // Show first batch of filtered results
+        setDisplayedCount(CARDS_PER_BATCH);
+    };
+
+    const clearFilters = () => {
+        const clearedFilters: SetCardFilters = {
+            cardType: "all",
+            color: "all",
+            rarity: "all",
+            manaValue: "all",
+        };
+        setFilters(clearedFilters);
+        setFilteredCards(allCards);
+        setCards(allCards.slice(0, CARDS_PER_BATCH));
+        setDisplayedCount(CARDS_PER_BATCH);
+    };
+
+    // Intersection Observer for infinite scroll
+    const filteredCardsRef = useRef(filteredCards);
+    const observerRef = useRef<IntersectionObserver | null>(null);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+    
+    useEffect(() => {
+        filteredCardsRef.current = filteredCards;
+    }, [filteredCards]);
+
+    // Set up/recreate observer when sentinel element or displayedCount changes
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        if (!sentinel) return;
+
+        // Clean up existing observer
+        if (observerRef.current) {
+            observerRef.current.disconnect();
+            observerRef.current = null;
+        }
+
+        // Only set up observer if we have more cards to load
+        if (displayedCount >= filteredCardsRef.current.length) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    setDisplayedCount((currentCount) => {
+                        const currentFiltered = filteredCardsRef.current;
+                        const newCount = currentCount + CARDS_PER_BATCH;
+                        if (newCount <= currentFiltered.length) {
+                            setCards(currentFiltered.slice(0, newCount));
+                            return newCount;
+                        }
+                        return currentCount;
+                    });
+                }
+            },
+            {
+                rootMargin: "200px", // Start loading 200px before reaching the sentinel
+            }
+        );
+
+        observer.observe(sentinel);
+        observerRef.current = observer;
+
+        return () => {
+            observer.disconnect();
+            observerRef.current = null;
+        };
+    }, [displayedCount, filteredCards.length]);
+
+    // Callback ref to store sentinel element reference
+    const sentinelRefCallback = (node: HTMLDivElement | null) => {
+        sentinelRef.current = node;
+    };
+
     if (loading) {
         return (
             <main
@@ -282,40 +428,60 @@ export default function SetDetailPage({ params }: PageProps) {
       "
         >
             {/* Header */}
-            <section className="mb-6 flex items-center justify-between">
-                {/* Back Button - Left */}
-                <button
-                    type="button"
-                    onClick={() => router.push("/sets/browse")}
-                    className="
-              flex items-center gap-2
-              text-sm opacity-80
-              border border-[#42c99c] dark:border-[#82664e]
-              bg-[#e8d5b8] dark:bg-[#173c3f]
-              rounded-md p-2
-              hover:bg-black/10 dark:hover:bg-white/10
-              hover:opacity-100
-              transition-opacity
-            "
-                >
-                    <ArrowLeftIcon className="w-4 h-4" />
-                    Back to Sets
-                </button>
+            <section className="mb-6 flex items-center sticky top-0 border-b border-black/10 dark:border-[#82664e]/10 bg-white dark:bg-[#0f2a2c] z-10">
+                {/* Left: Back Button */}
+                <div className="flex-1 flex justify-start">
+                    <button
+                        type="button"
+                        onClick={() => router.push("/sets/browse")}
+                        className="
+        flex items-center gap-2
+        text-sm opacity-80
+        border border-[#42c99c] dark:border-[#82664e]
+        bg-[#e8d5b8] dark:bg-[#173c3f]
+        rounded-md p-2
+        hover:bg-black/10 dark:hover:bg-white/10
+        hover:opacity-100
+        transition-opacity
+      "
+                    >
+                        <ArrowLeftIcon className="w-4 h-4" />
+                        Back to Sets
+                    </button>
+                </div>
 
-                {/* Set Name and Card Count - Centered */}
-                <div className="flex-1 flex flex-col items-center">
-                    <h2 className="text-2xl font-semibold">
+                {/* Center: Set Name + Count */}
+                <div className="flex flex-col items-center text-center min-w-0 mt-2">
+                    <h2 className="text-2xl font-semibold truncate">
                         {setName || "Unknown Set"}
                     </h2>
-                    <p className="text-sm opacity-70 mt-2">
-                        {cards.length} card{cards.length === 1 ? "" : "s"} in this set
+                    <p className="text-sm opacity-70 mt-1">
+                        {filteredCards.length} card{filteredCards.length !== 1 ? "s" : ""} {filteredCards.length !== allCards.length ? "filtered" : "in this set"}
+                        {displayedCount < filteredCards.length && ` (showing ${displayedCount})`}
                     </p>
                 </div>
 
-                {/* Spacer for balance - same width as back button */}
-                <div className="w-[120px]"></div>
+                {/* Right: Filters Button */}
+                <div className="flex-1 flex justify-end">
+                    <button
+                        type="button"
+                        onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                        className="
+                            flex items-center gap-2
+                            text-sm opacity-80
+                            border border-[#42c99c] dark:border-[#82664e]
+                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            rounded-md p-2
+                            hover:bg-black/10 dark:hover:bg-white/10
+                            hover:opacity-100
+                            transition-opacity
+                        "
+                    >
+                        <FilterIcon className="w-4 h-4" />
+                        Filters
+                    </button>
+                </div>
             </section>
-
             {/* Cards Grid */}
             <section className="grid grid-cols-1 md:grid-cols-6 gap-6">
                 {cards.map((card) => {
@@ -348,6 +514,22 @@ export default function SetDetailPage({ params }: PageProps) {
                     );
                 })}
             </section>
+
+            {/* Scroll Sentinel for infinite scroll */}
+            {displayedCount < filteredCards.length && (
+                <div ref={sentinelRefCallback} className="h-10 flex items-center justify-center py-8">
+                    <div className="text-sm opacity-70">Loading more cards...</div>
+                </div>
+            )}
+
+            {/* Filters Modal */}
+            <SetCardFiltersModal
+                open={isFiltersOpen}
+                filters={filters}
+                onClose={() => setIsFiltersOpen(false)}
+                onApply={applyFilters}
+                onClear={clearFilters}
+            />
 
             {/* Card Modal */}
             <CardModal
