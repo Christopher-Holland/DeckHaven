@@ -628,7 +628,7 @@ export default function CollectionPage() {
                     <div className="col-span-2">Set</div>
                     <div className="col-span-1 text-center">Qty</div>
                     <div className="col-span-2">Tags</div>
-                    <div className="col-span-2 text-right">Actions</div>
+                    <div className="col-span-2 text-right">Quantity</div>
                 </div>
 
                 {/* Collection rows */}
@@ -652,7 +652,11 @@ export default function CollectionPage() {
                         return (
                             <div
                                 key={item.id}
-                                className="grid grid-cols-12 gap-2 px-4 py-3 text-sm border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                onClick={() => {
+                                    setEditCardListModalOpen(true);
+                                    setEditCardList(item);
+                                }}
+                                className="grid grid-cols-12 gap-2 px-4 py-3 text-sm border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                             >
                                 <div className="col-span-5 flex items-center gap-3">
                                     {cardImage ? (
@@ -677,20 +681,17 @@ export default function CollectionPage() {
                                 <div className="col-span-2 text-xs opacity-80">
                                     {tags.length > 0 ? tags.join(" • ") : "—"}
                                 </div>
-                                <div className="col-span-2 flex justify-end items-center gap-2">
-                                    <button
-                                        className="text-xs underline opacity-80 hover:opacity-100"
-                                        onClick={() => {
-                                            setEditCardListModalOpen(true);
-                                            setEditCardList(item);
-                                        }}
-                                    >
-                                        Edit
-                                    </button>
+                                <div 
+                                    className="col-span-2 flex justify-end items-center gap-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
                                     <div className="flex items-center gap-1 border border-[#42c99c] dark:border-[#82664e] rounded-md bg-[#e8d5b8] dark:bg-[#173c3f]">
                                         <button
                                             type="button"
-                                            onClick={() => handleQuantityUpdate(item, item.quantity - 1)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleQuantityUpdate(item, item.quantity - 1);
+                                            }}
                                             disabled={updatingQuantities.has(item.id) || item.quantity <= 0}
                                             className="
                                                 p-1 rounded-l-md
@@ -708,7 +709,10 @@ export default function CollectionPage() {
                                         </span>
                                         <button
                                             type="button"
-                                            onClick={() => handleQuantityUpdate(item, item.quantity + 1)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleQuantityUpdate(item, item.quantity + 1);
+                                            }}
                                             disabled={updatingQuantities.has(item.id)}
                                             className="
                                                 p-1 rounded-r-md
