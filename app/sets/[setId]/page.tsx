@@ -540,22 +540,25 @@ export default function SetDetailPage({ params }: PageProps) {
                 open={isSelectBinderModalOpen}
                 cardId={selectedCard?.id || ""}
                 onClose={() => setIsSelectBinderModalOpen(false)}
-                onSelect={async (binderId: string) => {
+                onSelect={async (binderId: string, quantity: number) => {
                     if (!selectedCard) return;
 
                     try {
-                        const response = await fetch(`/api/binders/${binderId}/cards`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                cardId: selectedCard.id,
-                                slotNumber: null, // Let API find first empty slot
-                            }),
-                        });
+                        // Add card multiple times for quantity > 1
+                        for (let i = 0; i < quantity; i++) {
+                            const response = await fetch(`/api/binders/${binderId}/cards`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    cardId: selectedCard.id,
+                                    slotNumber: null, // Let API find first empty slot
+                                }),
+                            });
 
-                        if (!response.ok) {
-                            const errorData = await response.json().catch(() => ({ error: "Failed to add card to binder" }));
-                            throw new Error(errorData.error || "Failed to add card to binder");
+                            if (!response.ok) {
+                                const errorData = await response.json().catch(() => ({ error: "Failed to add card to binder" }));
+                                throw new Error(errorData.error || "Failed to add card to binder");
+                            }
                         }
                     } catch (err) {
                         console.error("Error adding card to binder:", err);
@@ -570,7 +573,7 @@ export default function SetDetailPage({ params }: PageProps) {
                 open={isSelectDeckModalOpen}
                 cardId={selectedCard?.id || ""}
                 onClose={() => setIsSelectDeckModalOpen(false)}
-                onSelect={async (deckId: string) => {
+                onSelect={async (deckId: string, quantity: number) => {
                     if (!selectedCard) return;
 
                     try {
@@ -579,7 +582,7 @@ export default function SetDetailPage({ params }: PageProps) {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 cardId: selectedCard.id,
-                                quantity: 1,
+                                quantity: quantity,
                             }),
                         });
 

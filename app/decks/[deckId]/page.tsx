@@ -180,7 +180,7 @@ export default function DeckPage() {
         });
 
         // Sort types: Creatures, Lands, Instants, Sorceries, Artifacts, Enchantments, Planeswalkers, Battles, Other
-        const typeOrder = ["Creature", "Land", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Battle", "Other"];
+        const typeOrder = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Battle", "Land", "Other"];
         const sorted = new Map<string, Array<{ deckCard: DeckCard; scryfallCard: ScryfallCard }>>();
         
         typeOrder.forEach(type => {
@@ -218,6 +218,25 @@ export default function DeckPage() {
             });
         } catch (err) {
             console.error("Error updating collection:", err);
+        }
+    };
+
+    const removeCardFromDeck = async (deckCardId: string) => {
+        try {
+            const response = await fetch(`/api/decks/${deckId}/cards/${deckCardId}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to remove card from deck" }));
+                throw new Error(errorData.error || "Failed to remove card from deck");
+            }
+
+            // Remove from local state
+            setDeckCards((prev) => prev.filter(dc => dc.id !== deckCardId));
+        } catch (err) {
+            console.error("Error removing card from deck:", err);
+            alert(err instanceof Error ? err.message : "Failed to remove card from deck");
         }
     };
 
@@ -317,6 +336,7 @@ export default function DeckPage() {
                             hover:opacity-95
                             transition-colors
                         "
+                        onClick={() => router.push(`/sets`)}
                     >
                         <Plus className="w-4 h-4" />
                         Add Card
@@ -383,6 +403,20 @@ export default function DeckPage() {
                                                     quantity={ownedCount}
                                                     onChange={(qty) => updateOwnedCount(deckCard.cardId, qty)}
                                                 />
+                                                <button
+                                                    className="rounded-lg border p-1
+                                                    text-sm opacity-70
+                                                    border-[#42c99c] dark:border-[#82664e]
+                                                    bg-[#e8d5b8] dark:bg-[#173c3f]
+                                                    flex flex-col gap-2
+                                                    hover:opacity-95
+                                                    hover:text-red-500
+                                                    transition-colors
+                                                "
+                                                    onClick={() => removeCardFromDeck(deckCard.id)}
+                                                >
+                                                    Remove from Deck
+                                                </button>
                                             </div>
                                         );
                                     })}

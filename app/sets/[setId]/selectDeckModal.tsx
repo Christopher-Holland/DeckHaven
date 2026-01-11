@@ -18,7 +18,7 @@ type SelectDeckModalProps = {
     open: boolean;
     cardId: string;
     onClose: () => void;
-    onSelect: (deckId: string) => Promise<void>;
+    onSelect: (deckId: string, quantity: number) => Promise<void>;
 };
 
 export default function SelectDeckModal({
@@ -31,9 +31,13 @@ export default function SelectDeckModal({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [adding, setAdding] = useState<string | null>(null);
+    const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
-        if (!open) return;
+        if (!open) {
+            setQuantity(1); // Reset quantity when modal closes
+            return;
+        }
 
         async function fetchDecks() {
             try {
@@ -61,7 +65,7 @@ export default function SelectDeckModal({
         try {
             setAdding(deckId);
             setError(null);
-            await onSelect(deckId);
+            await onSelect(deckId, quantity);
             onClose();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to add card to deck");
@@ -134,6 +138,64 @@ export default function SelectDeckModal({
                                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                             </div>
                         )}
+
+                        {/* Quantity Selector */}
+                        <div className="mb-4">
+                            <label className="block text-xs font-medium opacity-80 mb-2">
+                                Quantity
+                            </label>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                    disabled={quantity <= 1 || !!adding}
+                                    className="
+                                        rounded-md px-3 py-1.5 text-sm font-medium
+                                        bg-black/5 dark:bg-white/5
+                                        hover:bg-black/10 dark:hover:bg-white/10
+                                        border border-black/10 dark:border-white/10
+                                        transition-colors
+                                        disabled:opacity-50 disabled:cursor-not-allowed
+                                    "
+                                >
+                                    −
+                                </button>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="99"
+                                    value={quantity}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value, 10) || 1;
+                                        setQuantity(Math.max(1, Math.min(99, val)));
+                                    }}
+                                    disabled={!!adding}
+                                    className="
+                                        w-20 text-center rounded-md border px-3 py-1.5 text-sm
+                                        bg-white/70 dark:bg-white/5
+                                        border-black/10 dark:border-white/10
+                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                        dark:focus:ring-[#82664e]
+                                        disabled:opacity-50 disabled:cursor-not-allowed
+                                    "
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setQuantity(Math.min(99, quantity + 1))}
+                                    disabled={quantity >= 99 || !!adding}
+                                    className="
+                                        rounded-md px-3 py-1.5 text-sm font-medium
+                                        bg-black/5 dark:bg-white/5
+                                        hover:bg-black/10 dark:hover:bg-white/10
+                                        border border-black/10 dark:border-white/10
+                                        transition-colors
+                                        disabled:opacity-50 disabled:cursor-not-allowed
+                                    "
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
 
                         {loading ? (
                             <div className="flex items-center justify-center py-12">
