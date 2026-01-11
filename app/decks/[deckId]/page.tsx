@@ -1,13 +1,15 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@stackframe/stack";
 import Loading from "@/app/components/Loading";
 import { ChevronLeft, ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import EditDeckModal from "./editDeckModal";
+import type { ScryfallCard } from "@/app/lib/scryfall";
+import AddToCollectionControl from "@/app/components/AddToCollectionControl";
 
 type Deck = {
     id: string;
@@ -57,6 +59,9 @@ export default function DeckPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [cardDetails, setCardDetails] = useState<Map<string, ScryfallCard>>(new Map());
+    const [ownedCounts, setOwnedCounts] = useState<Map<string, number>>(new Map());
+    const [loadingCards, setLoadingCards] = useState(false);
     const router = useRouter();
     
     useEffect(() => {
@@ -87,6 +92,134 @@ export default function DeckPage() {
 
         fetchDeck();
     }, [user, deckId]);
+
+    // Fetch card details and collection when deckCards change
+    useEffect(() => {
+        if (deckCards.length === 0) return;
+
+        async function fetchCardDetails() {
+            try {
+                setLoadingCards(true);
+
+                // Fetch collection
+                const collectionResponse = await fetch("/api/collection");
+                if (collectionResponse.ok) {
+                    const collectionData = await collectionResponse.json();
+                    const collectionMap = new Map<string, number>();
+                    Object.entries(collectionData.collection || {}).forEach(([cardId, qty]) => {
+                        collectionMap.set(cardId, qty as number);
+                    });
+                    setOwnedCounts(collectionMap);
+                }
+
+                // Fetch card details from Scryfall
+                const cardDetailsMap = new Map<string, ScryfallCard>();
+                const uniqueCardIds = [...new Set(deckCards.map(dc => dc.cardId))];
+
+                for (const cardId of uniqueCardIds) {
+                    try {
+                        const cardResponse = await fetch(`https://api.scryfall.com/cards/${cardId}`);
+                        if (cardResponse.ok) {
+                            const cardData = await cardResponse.json();
+                            cardDetailsMap.set(cardId, cardData);
+                        }
+                    } catch (err) {
+                        console.warn(`Failed to fetch card ${cardId}:`, err);
+                    }
+                }
+
+                setCardDetails(cardDetailsMap);
+            } catch (err) {
+                console.error("Error fetching card details:", err);
+            } finally {
+                setLoadingCards(false);
+            }
+        }
+
+        fetchCardDetails();
+    }, [deckCards]);
+
+    // Group cards by type
+    const cardsByType = useMemo(() => {
+        const grouped = new Map<string, Array<{ deckCard: DeckCard; scryfallCard: ScryfallCard }>>();
+
+        deckCards.forEach(deckCard => {
+            const scryfallCard = cardDetails.get(deckCard.cardId);
+            if (!scryfallCard) return;
+
+            const typeLine = scryfallCard.type_line || "Other";
+            let cardType = "Other";
+
+            // Extract primary type
+            if (typeLine.toLowerCase().includes("creature")) {
+                cardType = "Creature";
+            } else if (typeLine.toLowerCase().includes("land")) {
+                cardType = "Land";
+            } else if (typeLine.toLowerCase().includes("instant")) {
+                cardType = "Instant";
+            } else if (typeLine.toLowerCase().includes("sorcery")) {
+                cardType = "Sorcery";
+            } else if (typeLine.toLowerCase().includes("artifact")) {
+                cardType = "Artifact";
+            } else if (typeLine.toLowerCase().includes("enchantment")) {
+                cardType = "Enchantment";
+            } else if (typeLine.toLowerCase().includes("planeswalker")) {
+                cardType = "Planeswalker";
+            } else if (typeLine.toLowerCase().includes("battle")) {
+                cardType = "Battle";
+            }
+
+            if (!grouped.has(cardType)) {
+                grouped.set(cardType, []);
+            }
+
+            // Add one entry per quantity
+            for (let i = 0; i < deckCard.quantity; i++) {
+                grouped.get(cardType)!.push({ deckCard, scryfallCard });
+            }
+        });
+
+        // Sort types: Creatures, Lands, Instants, Sorceries, Artifacts, Enchantments, Planeswalkers, Battles, Other
+        const typeOrder = ["Creature", "Land", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Battle", "Other"];
+        const sorted = new Map<string, Array<{ deckCard: DeckCard; scryfallCard: ScryfallCard }>>();
+        
+        typeOrder.forEach(type => {
+            if (grouped.has(type)) {
+                sorted.set(type, grouped.get(type)!);
+            }
+        });
+
+        // Add any remaining types
+        grouped.forEach((cards, type) => {
+            if (!sorted.has(type)) {
+                sorted.set(type, cards);
+            }
+        });
+
+        return sorted;
+    }, [deckCards, cardDetails]);
+
+    const updateOwnedCount = async (cardId: string, count: number) => {
+        setOwnedCounts((prev) => {
+            const next = new Map(prev);
+            if (count === 0) {
+                next.delete(cardId);
+            } else {
+                next.set(cardId, count);
+            }
+            return next;
+        });
+
+        try {
+            await fetch("/api/collection", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cardId, quantity: count }),
+            });
+        } catch (err) {
+            console.error("Error updating collection:", err);
+        }
+    };
 
     if (loading) {
         return (
@@ -204,6 +337,62 @@ export default function DeckPage() {
                 </div>
             </section>
 
+            {/* Cards by Type */}
+            {deckCards.length > 0 && (
+                <section className="mt-6 space-y-6">
+                    {loadingCards ? (
+                        <div className="flex items-center justify-center py-12">
+                            <div className="text-sm opacity-70">Loading cards...</div>
+                        </div>
+                    ) : (
+                        Array.from(cardsByType.entries()).map(([type, cards]) => (
+                            <div key={type}>
+                                <h3 className="text-lg font-semibold mb-3">{type} ({cards.length})</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                    {cards.map(({ deckCard, scryfallCard }, index) => {
+                                        const cardImage = scryfallCard.image_uris?.normal ||
+                                            scryfallCard.image_uris?.large ||
+                                            scryfallCard.image_uris?.small ||
+                                            scryfallCard.card_faces?.[0]?.image_uris?.normal ||
+                                            "/images/DeckHaven-Shield.png";
+                                        const ownedCount = ownedCounts.get(deckCard.cardId) || 0;
+                                        const isInCollection = ownedCount > 0;
+
+                                        return (
+                                            <div
+                                                key={`${deckCard.id}-${index}`}
+                                                className={`
+                                                    rounded-lg border p-3
+                                                    border-[#42c99c] dark:border-[#82664e]
+                                                    bg-[#e8d5b8] dark:bg-[#173c3f]
+                                                    flex flex-col gap-2
+                                                    ${!isInCollection ? "opacity-50" : ""}
+                                                `}
+                                            >
+                                                <h4 className="text-sm font-semibold text-center truncate">
+                                                    {scryfallCard.name}
+                                                </h4>
+                                                {cardImage && (
+                                                    <img
+                                                        src={cardImage}
+                                                        alt={scryfallCard.name}
+                                                        className="w-full h-auto rounded"
+                                                    />
+                                                )}
+                                                <AddToCollectionControl
+                                                    quantity={ownedCount}
+                                                    onChange={(qty) => updateOwnedCount(deckCard.cardId, qty)}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </section>
+            )}
+
             {/* Edit Deck Modal */}
             <EditDeckModal
                 open={isEditModalOpen}
@@ -217,6 +406,7 @@ export default function DeckPage() {
                             const data = await response.json();
                             if (data.deck) {
                                 setDeck(data.deck);
+                                setDeckCards(data.deck.deckCards || []);
                             }
                         }
                     } catch (err) {

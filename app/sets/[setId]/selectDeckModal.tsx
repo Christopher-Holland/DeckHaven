@@ -1,0 +1,209 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+
+type Deck = {
+    id: string;
+    name: string;
+    description: string | null;
+    format: string | null;
+    game: string;
+    _count?: {
+        deckCards: number;
+    };
+};
+
+type SelectDeckModalProps = {
+    open: boolean;
+    cardId: string;
+    onClose: () => void;
+    onSelect: (deckId: string) => Promise<void>;
+};
+
+export default function SelectDeckModal({
+    open,
+    cardId,
+    onClose,
+    onSelect,
+}: SelectDeckModalProps) {
+    const [decks, setDecks] = useState<Deck[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [adding, setAdding] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!open) return;
+
+        async function fetchDecks() {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const response = await fetch("/api/decks");
+                if (!response.ok) {
+                    throw new Error("Failed to fetch decks");
+                }
+
+                const data = await response.json();
+                setDecks(data.decks || []);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Failed to load decks");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchDecks();
+    }, [open]);
+
+    const handleSelect = async (deckId: string) => {
+        try {
+            setAdding(deckId);
+            setError(null);
+            await onSelect(deckId);
+            onClose();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to add card to deck");
+        } finally {
+            setAdding(null);
+        }
+    };
+
+    if (!open) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100]">
+            {/* Backdrop */}
+            <button
+                aria-label="Close modal"
+                onClick={onClose}
+                disabled={!!adding}
+                className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+            />
+
+            {/* Modal */}
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Select Deck"
+                    className="
+                        w-full max-w-2xl
+                        max-h-[90vh]
+                        overflow-hidden
+                        rounded-2xl border
+                        bg-[#f6ead6] dark:bg-[#0f2a2c]
+                        border-black/10 dark:border-white/10
+                        text-[#193f44] dark:text-[#e8d5b8]
+                        shadow-[0_30px_80px_-35px_rgba(0,0,0,0.60)]
+                        flex flex-col
+                    "
+                >
+                    {/* Header */}
+                    <div className="flex items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 p-4">
+                        <div className="min-w-0">
+                            <h3 className="text-base font-semibold truncate">Select Deck</h3>
+                            <p className="text-xs opacity-70 truncate">Choose a deck to add this card to.</p>
+                        </div>
+
+                        <button
+                            onClick={onClose}
+                            disabled={!!adding}
+                            className="
+                                rounded-md px-3 py-1.5 text-sm font-medium
+                                bg-black/5 dark:bg-white/5
+                                hover:bg-[#42c99c] dark:hover:bg-[#82664e]
+                                border border-[#42c99c] dark:border-[#82664e]
+                                transition-colors
+                                focus:outline-none focus:ring-2 focus:ring-[#42c99c]
+                                dark:focus:ring-[#82664e]
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                            "
+                            aria-label="Close"
+                            title="Close"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    {/* Body */}
+                    <div className="p-4 overflow-y-auto">
+                        {error && (
+                            <div className="mb-4 rounded-md bg-red-500/10 border border-red-500/50 px-4 py-3">
+                                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                            </div>
+                        )}
+
+                        {loading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <div className="text-sm opacity-70">Loading decks...</div>
+                            </div>
+                        ) : decks.length === 0 ? (
+                            <div className="flex items-center justify-center py-12">
+                                <div className="text-center">
+                                    <p className="text-sm opacity-70 mb-2">No decks found</p>
+                                    <p className="text-xs opacity-60">Create a deck first to add cards.</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 gap-2">
+                                {decks.map((deck) => (
+                                    <button
+                                        key={deck.id}
+                                        onClick={() => handleSelect(deck.id)}
+                                        disabled={!!adding}
+                                        className="
+                                            text-left rounded-lg border p-4
+                                            border-black/10 dark:border-white/10
+                                            bg-white/70 dark:bg-white/5
+                                            hover:bg-black/5 dark:hover:bg-white/10
+                                            transition-colors
+                                            disabled:opacity-50 disabled:cursor-not-allowed
+                                        "
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="font-medium truncate">{deck.name}</div>
+                                                {deck.description && (
+                                                    <div className="text-sm opacity-70 mt-1 truncate">
+                                                        {deck.description}
+                                                    </div>
+                                                )}
+                                                <div className="text-xs opacity-60 mt-1">
+                                                    {deck.format || "No format"} • {deck._count?.deckCards || 0} card{deck._count?.deckCards !== 1 ? "s" : ""}
+                                                </div>
+                                            </div>
+                                            {adding === deck.id && (
+                                                <div className="ml-4 text-sm opacity-70">Adding...</div>
+                                            )}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-end gap-2 border-t border-black/10 dark:border-white/10 p-4">
+                        <button
+                            onClick={onClose}
+                            disabled={!!adding}
+                            className="
+                                rounded-md px-4 py-2 text-sm font-medium
+                                bg-black/5 dark:bg-white/5
+                                hover:bg-black/10 dark:hover:bg-white/10
+                                border border-black/10 dark:border-white/10
+                                transition-colors
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                            "
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+

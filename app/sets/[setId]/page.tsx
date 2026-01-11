@@ -26,6 +26,8 @@ import CardModal from "./cardModal";
 import AddToCollectionControl from "@/app/components/AddToCollectionControl";
 import SetCardFiltersModal from "./setCardFiltersModal";
 import type { SetCardFilters } from "./setCardFilters";
+import SelectBinderModal from "./selectBinderModal";
+import SelectDeckModal from "./selectDeckModal";
 
 type PageProps = {
     params: Promise<{ setId: string }>;
@@ -43,6 +45,8 @@ export default function SetDetailPage({ params }: PageProps) {
     const [selectedCard, setSelectedCard] = useState<ScryfallCard | null>(null);
     const [wishlistedCards, setWishlistedCards] = useState<Set<string>>(new Set());
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [isSelectBinderModalOpen, setIsSelectBinderModalOpen] = useState(false);
+    const [isSelectDeckModalOpen, setIsSelectDeckModalOpen] = useState(false);
     const [filters, setFilters] = useState<SetCardFilters>({
         cardType: "all",
         color: "all",
@@ -531,6 +535,66 @@ export default function SetDetailPage({ params }: PageProps) {
                 onClear={clearFilters}
             />
 
+            {/* Select Binder Modal */}
+            <SelectBinderModal
+                open={isSelectBinderModalOpen}
+                cardId={selectedCard?.id || ""}
+                onClose={() => setIsSelectBinderModalOpen(false)}
+                onSelect={async (binderId: string) => {
+                    if (!selectedCard) return;
+
+                    try {
+                        const response = await fetch(`/api/binders/${binderId}/cards`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                cardId: selectedCard.id,
+                                slotNumber: null, // Let API find first empty slot
+                            }),
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({ error: "Failed to add card to binder" }));
+                            throw new Error(errorData.error || "Failed to add card to binder");
+                        }
+                    } catch (err) {
+                        console.error("Error adding card to binder:", err);
+                        alert(err instanceof Error ? err.message : "Failed to add card to binder");
+                        throw err;
+                    }
+                }}
+            />
+
+            {/* Select Deck Modal */}
+            <SelectDeckModal
+                open={isSelectDeckModalOpen}
+                cardId={selectedCard?.id || ""}
+                onClose={() => setIsSelectDeckModalOpen(false)}
+                onSelect={async (deckId: string) => {
+                    if (!selectedCard) return;
+
+                    try {
+                        const response = await fetch(`/api/decks/${deckId}/cards`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                cardId: selectedCard.id,
+                                quantity: 1,
+                            }),
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({ error: "Failed to add card to deck" }));
+                            throw new Error(errorData.error || "Failed to add card to deck");
+                        }
+                    } catch (err) {
+                        console.error("Error adding card to deck:", err);
+                        alert(err instanceof Error ? err.message : "Failed to add card to deck");
+                        throw err;
+                    }
+                }}
+            />
+
             {/* Card Modal */}
             <CardModal
                 open={isModalOpen}
@@ -655,8 +719,9 @@ export default function SetDetailPage({ params }: PageProps) {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        // TODO: Implement add to deck functionality
-                                        console.log("Add to deck:", selectedCard?.name);
+                                        if (selectedCard) {
+                                            setIsSelectDeckModalOpen(true);
+                                        }
                                     }}
                                     className="
                                         px-4 py-2 rounded-md
@@ -677,8 +742,9 @@ export default function SetDetailPage({ params }: PageProps) {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        // TODO: Implement add to binder functionality
-                                        console.log("Add to binder:", selectedCard?.name);
+                                        if (selectedCard) {
+                                            setIsSelectBinderModalOpen(true);
+                                        }
                                     }}
                                     className="
                                         px-4 py-2 rounded-md
