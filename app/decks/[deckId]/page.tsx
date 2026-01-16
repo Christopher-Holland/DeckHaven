@@ -373,7 +373,31 @@ export default function DeckPage() {
                 </div>
             </section>
 
-            {/* Cards by Type */}
+            {/* Commander Section - Only show for Commander format decks */}
+            {deck.format === "Commander" && (
+                <section className="mt-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Commander</h3>
+                    </div>
+                    <div className="rounded-lg border border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#173c3f] p-6">
+                        {deckCards.filter((dc) => dc.cardId.startsWith("c:")).length > 0 ? (
+                            <div>
+                                {deckCards.filter((dc) => dc.cardId.startsWith("c:")).map((dc) => (
+                                    <div key={dc.id}>
+                                        <h4 className="text-sm font-semibold text-center truncate">
+                                            {dc.cardId}
+                                        </h4>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center text-sm opacity-70">
+                                No commander selected yet
+                            </div>
+                        )}
+                    </div>
+                </section>
+            )}
             {deckCards.length > 0 && (
                 <section className="mt-6 space-y-6">
                     {loadingCards ? (
