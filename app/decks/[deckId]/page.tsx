@@ -7,8 +7,8 @@ import Loading from "@/app/components/Loading";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import EditDeckModal from "./editDeckModal";
+import { FORMAT_RULES, type FormatKey, type FormatRules } from "@/app/lib/mtgFormatRules";
 import type { ScryfallCard } from "@/app/lib/scryfall";
-
 type Deck = {
     id: string;
     name: string;
@@ -141,6 +141,17 @@ export default function DeckPage() {
     const totalCards = useMemo(() => {
         return deckCards.reduce((sum, deckCard) => sum + deckCard.quantity, 0);
     }, [deckCards]);
+
+    // Get target card count based on format rules
+    const targetCards = useMemo(() => {
+        if (!deck?.format) return null;
+        
+        const formatKey = deck.format as FormatKey;
+        if (!FORMAT_RULES[formatKey]) return null;
+        
+        const rules = FORMAT_RULES[formatKey] as FormatRules;
+        return rules.exactCards ?? rules.minCards ?? null;
+    }, [deck]);
 
     // Group cards by type (ONE tile per unique card, keep quantity on the deckCard)
     const cardsByType = useMemo(() => {
@@ -322,7 +333,11 @@ export default function DeckPage() {
                 <div className="flex flex-col items-center text-center min-w-0">
                     <h2 className="text-3xl font-semibold truncate">{deck.name}</h2>
                     <p className="text-sm opacity-70 mt-1">
-                        {deck.format || "Unknown Format"} • {totalCards} card{totalCards !== 1 ? "s" : ""}
+                        {deck.format || "Unknown Format"} •{" "}
+                        {targetCards !== null 
+                            ? `${totalCards} out of ${targetCards} cards`
+                            : `${totalCards} card${totalCards !== 1 ? "s" : ""}`
+                        }
                     </p>
                 </div>
 
