@@ -2,192 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
-
-type FormatKey =
-    | "Standard"
-    | "Pioneer"
-    | "Modern"
-    | "Legacy"
-    | "Vintage"
-    | "Pauper"
-    | "Commander"
-    | "Brawl"
-    | "Historic Brawl"
-    | "Oathbreaker"
-    | "Draft"
-    | "Sealed"
-    | "Two-Headed Giant"
-    | "Planechase"
-    | "Archenemy";
-
-type FormatRules = {
-    name: FormatKey;
-    category: "Constructed" | "Commander-style" | "Limited" | "Variant";
-    deckSize: string; // human-readable
-    minCards?: number;
-    maxCards?: number;
-    exactCards?: number;
-
-    sideboard: "Up to 15" | "All unused cards" | "Depends on underlying format" | "None/Not typical";
-    copies: string; // human-readable
-    notes?: string[];
-
-    // helpful flags for DeckHaven validation later
-    singleton?: boolean;
-    hasCommander?: boolean;
-    restrictedListPossible?: boolean;
-
-    // Deck box details
-    deckBoxColor?: string;
-    trimColor?: string;
-};
-
-const FORMAT_RULES: Record<FormatKey, FormatRules> = {
-    // Constructed (60+)
-    Standard: {
-        name: "Standard",
-        category: "Constructed",
-        deckSize: "60 cards minimum",
-        minCards: 60,
-        sideboard: "Up to 15",
-        copies: "Up to 4 copies (except basic lands)",
-        notes: ["Rotating format (card pool changes over time)."],
-    },
-    Pioneer: {
-        name: "Pioneer",
-        category: "Constructed",
-        deckSize: "60 cards minimum",
-        minCards: 60,
-        sideboard: "Up to 15",
-        copies: "Up to 4 copies (except basic lands)",
-    },
-    Modern: {
-        name: "Modern",
-        category: "Constructed",
-        deckSize: "60 cards minimum",
-        minCards: 60,
-        sideboard: "Up to 15",
-        copies: "Up to 4 copies (except basic lands)",
-    },
-    Legacy: {
-        name: "Legacy",
-        category: "Constructed",
-        deckSize: "60 cards minimum",
-        minCards: 60,
-        sideboard: "Up to 15",
-        copies: "Up to 4 copies (except basic lands); banned list applies",
-        notes: ["Some formats have a restricted list—Vintage is the main one."],
-    },
-    Vintage: {
-        name: "Vintage",
-        category: "Constructed",
-        deckSize: "60 cards minimum",
-        minCards: 60,
-        sideboard: "Up to 15",
-        copies: "Up to 4 copies (except basic lands); some cards restricted to 1",
-        restrictedListPossible: true,
-    },
-    Pauper: {
-        name: "Pauper",
-        category: "Constructed",
-        deckSize: "60 cards minimum",
-        minCards: 60,
-        sideboard: "Up to 15",
-        copies: "Up to 4 copies (except basic lands)",
-        notes: ["Card pool restriction: commons only (per format legality)."],
-    },
-
-    // Commander-style / Singleton
-    Commander: {
-        name: "Commander",
-        category: "Commander-style",
-        deckSize: "Exactly 100 cards (including Commander)",
-        exactCards: 100,
-        sideboard: "None/Not typical",
-        copies: "Singleton (1 of each, except basic lands)",
-        singleton: true,
-        hasCommander: true,
-        notes: ["Includes 1 Commander.", "Commander color identity rules apply."],
-    },
-    Brawl: {
-        name: "Brawl",
-        category: "Commander-style",
-        deckSize: "60 cards (including Commander)",
-        exactCards: 60,
-        sideboard: "None/Not typical",
-        copies: "Singleton (1 of each, except basic lands)",
-        singleton: true,
-        hasCommander: true,
-        notes: ["Uses a Standard-legal card pool (in paper)."],
-    },
-    "Historic Brawl": {
-        name: "Historic Brawl",
-        category: "Commander-style",
-        deckSize: "100 cards (including Commander)",
-        exactCards: 100,
-        sideboard: "None/Not typical",
-        copies: "Singleton (1 of each, except basic lands)",
-        singleton: true,
-        hasCommander: true,
-        notes: ["Arena format (digital)."],
-    },
-    Oathbreaker: {
-        name: "Oathbreaker",
-        category: "Commander-style",
-        deckSize: "60 cards (includes Oathbreaker + Signature Spell)",
-        exactCards: 60,
-        sideboard: "None/Not typical",
-        copies: "Singleton (1 of each, except basic lands)",
-        singleton: true,
-        notes: ["Includes 1 Oathbreaker (a planeswalker) + 1 Signature Spell."],
-    },
-
-    // Limited (40+)
-    Draft: {
-        name: "Draft",
-        category: "Limited",
-        deckSize: "40 cards minimum",
-        minCards: 40,
-        sideboard: "All unused cards",
-        copies: "No copy limit (you can play any number you drafted)",
-        notes: ["Built during the event from drafted cards."],
-    },
-    Sealed: {
-        name: "Sealed",
-        category: "Limited",
-        deckSize: "40 cards minimum",
-        minCards: 40,
-        sideboard: "All unused cards",
-        copies: "No copy limit (any number from your sealed pool)",
-        notes: ["Built during the event from your sealed pool."],
-    },
-
-    // Variants / uses underlying format rules
-    "Two-Headed Giant": {
-        name: "Two-Headed Giant",
-        category: "Variant",
-        deckSize: "Depends on underlying format (often 60+ Constructed or 40+ Limited)",
-        sideboard: "Depends on underlying format",
-        copies: "Depends on underlying format",
-        notes: ["Team format—deck rules come from the format being played."],
-    },
-    Planechase: {
-        name: "Planechase",
-        category: "Variant",
-        deckSize: "Uses underlying format rules",
-        sideboard: "Depends on underlying format",
-        copies: "Depends on underlying format",
-        notes: ["Planes deck is separate from your main deck."],
-    },
-    Archenemy: {
-        name: "Archenemy",
-        category: "Variant",
-        deckSize: "Uses underlying format rules",
-        sideboard: "Depends on underlying format",
-        copies: "Depends on underlying format",
-        notes: ["Scheme deck is separate from your main deck."],
-    },
-};
+import { FORMAT_RULES, type FormatKey, type FormatRules } from "@/app/lib/mtgFormatRules";
 
 type DeckData = {
     name: string;
@@ -255,7 +70,7 @@ export default function OpenDeckModal({
         return () => window.removeEventListener("keydown", onKeyDown);
     }, [open, onClose]);
 
-    const rules = useMemo(() => FORMAT_RULES[selectedFormat], [selectedFormat]);
+    const rules = useMemo(() => FORMAT_RULES[selectedFormat] as FormatRules, [selectedFormat]);
 
     if (!open) return null;
 
@@ -421,13 +236,13 @@ export default function OpenDeckModal({
                                 </div>
 
                                 {/* Notes */}
-                                {rules.notes?.length ? (
+                                {rules.notes && rules.notes.length > 0 ? (
                                     <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 p-4">
                                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70">
                                             Notes
                                         </div>
                                         <ul className="mt-2 list-disc pl-5 text-sm opacity-80 space-y-1">
-                                            {rules.notes.map((n) => (
+                                            {rules.notes.map((n: string) => (
                                                 <li key={n}>{n}</li>
                                             ))}
                                         </ul>
