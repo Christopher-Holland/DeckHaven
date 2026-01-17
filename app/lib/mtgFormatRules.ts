@@ -106,7 +106,9 @@ export const FORMAT_RULES = {
         singleton: true,
         hasCommander: true,
         notes: [
-            "Includes 1 Commander.",
+            "Includes 1 Commander (shown separately from main deck).",
+            "Singleton format: Maximum 1 copy of each card except basic lands.",
+            "Basic lands (Plains, Island, Swamp, Mountain, Forest) can have multiple copies.",
             "Commander color identity rules apply.",
         ],
     },

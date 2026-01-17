@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
+import { FORMAT_RULES, type FormatKey } from "@/app/lib/mtgFormatRules";
 
 export async function PATCH(
     request: NextRequest,
@@ -88,6 +89,58 @@ export async function PATCH(
                 },
             });
             return NextResponse.json({ success: true, deckCard: null });
+        }
+
+        // Get format rules for this deck
+        const formatKey = deck.format as FormatKey;
+        const formatRules = formatKey && FORMAT_RULES[formatKey] ? FORMAT_RULES[formatKey] : null;
+        const isSingleton = formatRules?.singleton === true;
+        const isLimited = formatRules?.category === "Limited";
+
+        // Check copy limits if they apply (basic lands are always unlimited)
+        const basicLands = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
+        let isBasicLand = false;
+
+        // Check if it's a basic land by fetching from Scryfall
+        try {
+            // Strip "c:" prefix if present (for commander cards)
+            const actualCardId = deckCard.cardId.startsWith("c:") ? deckCard.cardId.replace(/^c:/, "") : deckCard.cardId;
+            const scryfallResponse = await fetch(`https://api.scryfall.com/cards/${actualCardId}`);
+            if (scryfallResponse.ok) {
+                const cardData = await scryfallResponse.json();
+                const cardName = cardData.name || "";
+                isBasicLand = basicLands.includes(cardName);
+            }
+        } catch (err) {
+            console.warn("Failed to fetch card from Scryfall for basic land check:", err);
+        }
+
+        // Determine copy limit based on format
+        let copyLimit: number | null = null;
+        if (!isBasicLand) {
+            if (isLimited) {
+                copyLimit = null; // No limit for Limited formats
+            } else if (isSingleton) {
+                copyLimit = 1; // Singleton for Commander-style formats
+            } else {
+                copyLimit = 4; // Standard 4 copy limit for Constructed formats
+            }
+        }
+
+        // Check if new quantity exceeds limit
+        if (copyLimit !== null && quantity > copyLimit) {
+            const formatName = formatRules?.name || deck.format || "this format";
+            if (isSingleton) {
+                return NextResponse.json(
+                    { error: `${formatName} only allows 1 copy of each card (except basic lands)` },
+                    { status: 400 }
+                );
+            } else {
+                return NextResponse.json(
+                    { error: `${formatName} only allows 4 copies of each card (except basic lands)` },
+                    { status: 400 }
+                );
+            }
         }
 
         // Update the quantity

@@ -14,8 +14,10 @@ import { stackClientApp } from "../stack/client";
 import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { SidebarProvider } from "./components/SidebarContext";
+import { ToastProvider } from "./components/ToastContext";
 import LayoutWrapper from "./components/LayoutWrapper";
 import { GameFilterProvider } from "./components/GameFilterContext";
+import ToastContainer from "./components/Toast";
 import type { Metadata } from "next";
 import { MedievalSharp } from "next/font/google";
 import Loading from "./components/Loading";
@@ -48,9 +50,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
                             <Suspense fallback={<Loading />}>
                                 <ThemeProvider>
                                     <SidebarProvider>
-                                        <LayoutWrapper>
-                                            {children}
-                                        </LayoutWrapper>
+                                        <ToastProvider>
+                                            <LayoutWrapper>
+                                                {children}
+                                            </LayoutWrapper>
+                                            <ToastContainer />
+                                        </ToastProvider>
                                     </SidebarProvider>
                                 </ThemeProvider>
                             </Suspense>

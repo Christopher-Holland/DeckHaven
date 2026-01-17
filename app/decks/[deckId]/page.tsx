@@ -8,6 +8,7 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import EditDeckModal from "./editDeckModal";
 import CommanderModal from "./commanderModal";
+import { useToast } from "@/app/components/ToastContext";
 import { FORMAT_RULES, type FormatKey, type FormatRules } from "@/app/lib/mtgFormatRules";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 type Deck = {
@@ -52,6 +53,7 @@ export default function DeckPage() {
     const user = useUser();
     const params = useParams();
     const deckId = params?.deckId as string;
+    const { showToast } = useToast();
     const [deck, setDeck] = useState<Deck | null>(null);
     const [deckCards, setDeckCards] = useState<DeckCard[]>([]);
     const [deckSideboard, setDeckSideboard] = useState<DeckSideboard[]>([]);
@@ -155,9 +157,11 @@ export default function DeckPage() {
         fetchCardDetails();
     }, [deckCards]);
 
-    // Calculate total card count (sum of quantities)
+    // Calculate total card count (sum of quantities, excluding commander)
     const totalCards = useMemo(() => {
-        return deckCards.reduce((sum, deckCard) => sum + deckCard.quantity, 0);
+        return deckCards
+            .filter((deckCard) => !deckCard.cardId.startsWith("c:"))
+            .reduce((sum, deckCard) => sum + deckCard.quantity, 0);
     }, [deckCards]);
 
     // Get target card count based on format rules
@@ -172,10 +176,14 @@ export default function DeckPage() {
     }, [deck]);
 
     // Group cards by type (ONE tile per unique card, keep quantity on the deckCard)
+    // Exclude commander cards (they're shown separately)
     const cardsByType = useMemo(() => {
         const grouped = new Map<string, Array<{ deckCard: DeckCard; scryfallCard: ScryfallCard }>>();
 
         deckCards.forEach((deckCard) => {
+            // Skip commander cards (they have "c:" prefix and are shown separately)
+            if (deckCard.cardId.startsWith("c:")) return;
+            
             const scryfallCard = cardDetails.get(deckCard.cardId);
             if (!scryfallCard) return;
 
@@ -229,7 +237,9 @@ export default function DeckPage() {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: "Failed to update card quantity" }));
-                throw new Error(errorData.error || "Failed to update card quantity");
+                const errorMessage = errorData.error || "Failed to update card quantity";
+                showToast(errorMessage, "error");
+                return;
             }
 
             // Update local state
@@ -244,7 +254,7 @@ export default function DeckPage() {
             }
         } catch (err) {
             console.error("Error updating card quantity:", err);
-            alert(err instanceof Error ? err.message : "Failed to update card quantity");
+            showToast(err instanceof Error ? err.message : "Failed to update card quantity", "error");
         }
     };
 
@@ -270,10 +280,43 @@ export default function DeckPage() {
     // Handle setting commander
     const handleSetCommander = async (cardId: string) => {
         try {
-            // First, remove existing commander(s)
+            // First, handle existing commander(s) - restore them to the deck as regular cards
             const existingCommanders = deckCards.filter((dc) => dc.cardId.startsWith("c:"));
             for (const commander of existingCommanders) {
+                // Strip "c:" prefix to get the actual card ID
+                const actualCardId = commander.cardId.replace(/^c:/, "");
+                
+                // Delete the commander entry
                 await fetch(`/api/decks/${deckId}/cards/${commander.id}`, {
+                    method: "DELETE",
+                });
+
+                // Check if this card already exists in the deck as a regular card
+                const existingRegularCard = deckCards.find(
+                    (dc) => dc.cardId === actualCardId && !dc.cardId.startsWith("c:")
+                );
+
+                // If it doesn't exist as a regular card, add it back to the deck
+                if (!existingRegularCard) {
+                    await fetch(`/api/decks/${deckId}/cards`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            cardId: actualCardId,
+                            quantity: 1,
+                        }),
+                    });
+                }
+            }
+
+            // Check if the new commander card already exists in the deck as a regular card
+            // If so, remove it first (since it's becoming the commander)
+            const existingNewCommanderCard = deckCards.find(
+                (dc) => dc.cardId === cardId && !dc.cardId.startsWith("c:")
+            );
+            
+            if (existingNewCommanderCard) {
+                await fetch(`/api/decks/${deckId}/cards/${existingNewCommanderCard.id}`, {
                     method: "DELETE",
                 });
             }
@@ -291,7 +334,9 @@ export default function DeckPage() {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: "Failed to set commander" }));
-                throw new Error(errorData.error || "Failed to set commander");
+                const errorMessage = errorData.error || "Failed to set commander";
+                showToast(errorMessage, "error");
+                return;
             }
 
             // Refresh deck cards

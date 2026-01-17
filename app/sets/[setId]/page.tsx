@@ -28,6 +28,7 @@ import SetCardFiltersModal from "./setCardFiltersModal";
 import type { SetCardFilters } from "./setCardFilters";
 import SelectBinderModal from "./selectBinderModal";
 import SelectDeckModal from "./selectDeckModal";
+import { useToast } from "@/app/components/ToastContext";
 
 type PageProps = {
     params: Promise<{ setId: string }>;
@@ -35,6 +36,7 @@ type PageProps = {
 
 export default function SetDetailPage({ params }: PageProps) {
     const router = useRouter();
+    const { showToast } = useToast();
     const [setId, setSetId] = useState<string | null>(null);
     const [setName, setSetName] = useState<string>("");
     const [cards, setCards] = useState<ScryfallCard[]>([]);
@@ -734,13 +736,15 @@ export default function SetDetailPage({ params }: PageProps) {
 
                             if (!response.ok) {
                                 const errorData = await response.json().catch(() => ({ error: "Failed to add card to deck" }));
-                                throw new Error(errorData.error || "Failed to add card to deck");
+                                const errorMessage = errorData.error || "Failed to add card to deck";
+                                showToast(errorMessage, "error");
+                                // Continue processing other cards instead of throwing
+                                continue;
                             }
                         }
                     } catch (err) {
                         console.error("Error adding cards to deck:", err);
-                        alert(err instanceof Error ? err.message : "Failed to add cards to deck");
-                        throw err;
+                        // Error already shown via toast, don't throw to prevent modal from closing if multiple cards
                     }
                 }}
             />
