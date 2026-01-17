@@ -16,7 +16,8 @@ type Deck = {
 
 type SelectDeckModalProps = {
     open: boolean;
-    cardId: string;
+    cardId?: string;
+    cardIds?: string[];
     onClose: () => void;
     onSelect: (deckId: string, quantity: number) => Promise<void>;
 };
@@ -24,6 +25,7 @@ type SelectDeckModalProps = {
 export default function SelectDeckModal({
     open,
     cardId,
+    cardIds = [],
     onClose,
     onSelect,
 }: SelectDeckModalProps) {
@@ -108,7 +110,12 @@ export default function SelectDeckModal({
                     <div className="flex items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 p-4">
                         <div className="min-w-0">
                             <h3 className="text-base font-semibold truncate">Select Deck</h3>
-                            <p className="text-xs opacity-70 truncate">Choose a deck to add this card to.</p>
+                            <p className="text-xs opacity-70 truncate">
+                                {cardIds.length > 0 
+                                    ? `Choose a deck to add ${cardIds.length} card${cardIds.length !== 1 ? "s" : ""} to.`
+                                    : "Choose a deck to add this card to."
+                                }
+                            </p>
                         </div>
 
                         <button

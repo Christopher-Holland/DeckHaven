@@ -33,6 +33,9 @@ export type SetCardsProps = {
     onCardClick?: () => void;
     isWishlisted?: boolean;
     onWishlistToggle?: () => void;
+    isSelectionMode?: boolean;
+    isSelected?: boolean;
+    onSelectionToggle?: (selected: boolean) => void;
 };
 
 export default function SetCards({
@@ -46,6 +49,9 @@ export default function SetCards({
     onCardClick,
     isWishlisted: externalWishlisted = false,
     onWishlistToggle,
+    isSelectionMode = false,
+    isSelected = false,
+    onSelectionToggle,
 }: SetCardsProps) {
     const [qty, setQty] = useState(initialOwnedCount ?? 0);
     const [internalWishlisted, setInternalWishlisted] = useState(false);
@@ -99,8 +105,23 @@ export default function SetCards({
           dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
         `}
             >
-                {/* Card Name - At the top */}
-                <h3 className="text-md font-semibold mb-3 text-center">{name}</h3>
+                {/* Card Name - At the top with checkbox when in selection mode */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                    <h3 className="text-md font-semibold text-center flex-1">{name}</h3>
+                    {isSelectionMode && onSelectionToggle && (
+                        <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                                e.stopPropagation();
+                                onSelectionToggle(e.target.checked);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-5 h-5 cursor-pointer accent-[#42c99c] dark:accent-[#82664e]"
+                            aria-label={`Select ${name}`}
+                        />
+                    )}
+                </div>
 
                 {/* Card Image */}
                 {imageSrc && (

@@ -14,7 +14,8 @@ type Binder = {
 
 type SelectBinderModalProps = {
     open: boolean;
-    cardId: string;
+    cardId?: string;
+    cardIds?: string[];
     onClose: () => void;
     onSelect: (binderId: string, quantity: number) => Promise<void>;
 };
@@ -22,6 +23,7 @@ type SelectBinderModalProps = {
 export default function SelectBinderModal({
     open,
     cardId,
+    cardIds = [],
     onClose,
     onSelect,
 }: SelectBinderModalProps) {
@@ -106,7 +108,12 @@ export default function SelectBinderModal({
                     <div className="flex items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 p-4">
                         <div className="min-w-0">
                             <h3 className="text-base font-semibold truncate">Select Binder</h3>
-                            <p className="text-xs opacity-70 truncate">Choose a binder to add this card to.</p>
+                            <p className="text-xs opacity-70 truncate">
+                                {cardIds.length > 0 
+                                    ? `Choose a binder to add ${cardIds.length} card${cardIds.length !== 1 ? "s" : ""} to.`
+                                    : "Choose a binder to add this card to."
+                                }
+                            </p>
                         </div>
 
                         <button

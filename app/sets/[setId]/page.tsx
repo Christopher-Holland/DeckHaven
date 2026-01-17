@@ -47,6 +47,8 @@ export default function SetDetailPage({ params }: PageProps) {
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
     const [isSelectBinderModalOpen, setIsSelectBinderModalOpen] = useState(false);
     const [isSelectDeckModalOpen, setIsSelectDeckModalOpen] = useState(false);
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
+    const [selectedCardIds, setSelectedCardIds] = useState<Set<string>>(new Set());
     const [filters, setFilters] = useState<SetCardFilters>({
         cardType: "all",
         color: "all",
@@ -257,7 +259,7 @@ export default function SetDetailPage({ params }: PageProps) {
     // Filter cards based on selected filters
     const applyFilters = (newFilters: SetCardFilters) => {
         setFilters(newFilters);
-        
+
         let filtered = [...allCards];
 
         // Filter by card type
@@ -333,7 +335,7 @@ export default function SetDetailPage({ params }: PageProps) {
     const filteredCardsRef = useRef(filteredCards);
     const observerRef = useRef<IntersectionObserver | null>(null);
     const sentinelRef = useRef<HTMLDivElement | null>(null);
-    
+
     useEffect(() => {
         filteredCardsRef.current = filteredCards;
     }, [filteredCards]);
@@ -465,25 +467,134 @@ export default function SetDetailPage({ params }: PageProps) {
                     </p>
                 </div>
 
-                {/* Right: Filters Button */}
+                {/* Right: Controls */}
                 <div className="flex-1 flex justify-end">
-                    <button
-                        type="button"
-                        onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                        className="
-                            flex items-center gap-2
-                            text-sm opacity-80
-                            border border-[#42c99c] dark:border-[#82664e]
-                            bg-[#e8d5b8] dark:bg-[#173c3f]
-                            rounded-md p-2
-                            hover:bg-black/10 dark:hover:bg-white/10
-                            hover:opacity-100
-                            transition-opacity
-                        "
-                    >
-                        <FilterIcon className="w-4 h-4" />
-                        Filters
-                    </button>
+                    <div className="flex flex-col items-end gap-2">
+                        {/* Row A: Always-visible utilities */}
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
+                            {/* Filters Button */}
+                            <button
+                                type="button"
+                                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                                className="
+          flex items-center gap-2
+          text-sm opacity-80
+          border border-[#42c99c] dark:border-[#82664e]
+          bg-[#e8d5b8] dark:bg-[#173c3f]
+          rounded-md p-2
+          hover:bg-black/10 dark:hover:bg-white/10
+          hover:opacity-100
+          transition-opacity
+        "
+                            >
+                                <FilterIcon className="w-4 h-4" />
+                                Filters
+                            </button>
+
+                            {/* If NOT in selection mode, show Select Cards here too */}
+                            {!isSelectionMode && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsSelectionMode(true)}
+                                    className="
+            flex items-center gap-2
+            text-sm opacity-80
+            border border-[#42c99c] dark:border-[#82664e]
+            bg-[#e8d5b8] dark:bg-[#173c3f]
+            rounded-md p-2
+            hover:bg-black/10 dark:hover:bg-white/10
+            hover:opacity-100
+            transition-opacity
+          "
+                                >
+                                    Select Cards
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Row B: Selection-mode actions */}
+                        {isSelectionMode && (
+                            <div className="flex items-center gap-2 flex-wrap justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const displayedCardIds = new Set(cards.map(c => c.id));
+                                        setSelectedCardIds(displayedCardIds);
+                                    }}
+                                    className="
+            flex items-center gap-2
+            text-sm opacity-80
+            border border-[#42c99c] dark:border-[#82664e]
+            bg-[#e8d5b8] dark:bg-[#173c3f]
+            rounded-md p-2
+            hover:bg-black/10 dark:hover:bg-white/10
+            hover:opacity-100
+            transition-opacity
+          "
+                                >
+                                    Select All
+                                </button>
+
+                                {selectedCardIds.size > 0 && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsSelectBinderModalOpen(true)}
+                                            className="
+                flex items-center gap-2
+                text-sm opacity-80
+                border border-[#42c99c] dark:border-[#82664e]
+                bg-[#e8d5b8] dark:bg-[#173c3f]
+                rounded-md p-2
+                hover:bg-black/10 dark:hover:bg-white/10
+                hover:opacity-100
+                transition-opacity
+              "
+                                        >
+                                            Add to Binder ({selectedCardIds.size})
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsSelectDeckModalOpen(true)}
+                                            className="
+                flex items-center gap-2
+                text-sm opacity-80
+                border border-[#42c99c] dark:border-[#82664e]
+                bg-[#e8d5b8] dark:bg-[#173c3f]
+                rounded-md p-2
+                hover:bg-black/10 dark:hover:bg-white/10
+                hover:opacity-100
+                transition-opacity
+              "
+                                        >
+                                            Add to Deck ({selectedCardIds.size})
+                                        </button>
+                                    </>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsSelectionMode(false);
+                                        setSelectedCardIds(new Set());
+                                    }}
+                                    className="
+            flex items-center gap-2
+            text-sm opacity-80
+            border border-red-400 dark:border-red-600
+            bg-[#e8d5b8] dark:bg-[#173c3f]
+            rounded-md p-2
+            hover:bg-black/10 dark:hover:bg-white/10
+            hover:opacity-100
+            transition-opacity
+          "
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </section>
             {/* Cards Grid */}
@@ -514,6 +625,19 @@ export default function SetDetailPage({ params }: PageProps) {
                             onCardClick={() => handleCardClick(card)}
                             isWishlisted={wishlistedCards.has(card.id)}
                             onWishlistToggle={() => toggleWishlist(card.id)}
+                            isSelectionMode={isSelectionMode}
+                            isSelected={selectedCardIds.has(card.id)}
+                            onSelectionToggle={(selected) => {
+                                setSelectedCardIds(prev => {
+                                    const next = new Set(prev);
+                                    if (selected) {
+                                        next.add(card.id);
+                                    } else {
+                                        next.delete(card.id);
+                                    }
+                                    return next;
+                                });
+                            }}
                         />
                     );
                 })}
@@ -538,31 +662,42 @@ export default function SetDetailPage({ params }: PageProps) {
             {/* Select Binder Modal */}
             <SelectBinderModal
                 open={isSelectBinderModalOpen}
-                cardId={selectedCard?.id || ""}
-                onClose={() => setIsSelectBinderModalOpen(false)}
+                cardId={isSelectionMode ? "" : (selectedCard?.id || "")}
+                cardIds={isSelectionMode ? Array.from(selectedCardIds) : []}
+                onClose={() => {
+                    setIsSelectBinderModalOpen(false);
+                    if (isSelectionMode) {
+                        setIsSelectionMode(false);
+                        setSelectedCardIds(new Set());
+                    }
+                }}
                 onSelect={async (binderId: string, quantity: number) => {
-                    if (!selectedCard) return;
+                    const cardsToAdd = isSelectionMode ? Array.from(selectedCardIds) : (selectedCard ? [selectedCard.id] : []);
+
+                    if (cardsToAdd.length === 0) return;
 
                     try {
-                        // Add card multiple times for quantity > 1
-                        for (let i = 0; i < quantity; i++) {
-                            const response = await fetch(`/api/binders/${binderId}/cards`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    cardId: selectedCard.id,
-                                    slotNumber: null, // Let API find first empty slot
-                                }),
-                            });
+                        // Add each card multiple times for quantity > 1
+                        for (const cardId of cardsToAdd) {
+                            for (let i = 0; i < quantity; i++) {
+                                const response = await fetch(`/api/binders/${binderId}/cards`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        cardId: cardId,
+                                        slotNumber: null, // Let API find first empty slot
+                                    }),
+                                });
 
-                            if (!response.ok) {
-                                const errorData = await response.json().catch(() => ({ error: "Failed to add card to binder" }));
-                                throw new Error(errorData.error || "Failed to add card to binder");
+                                if (!response.ok) {
+                                    const errorData = await response.json().catch(() => ({ error: "Failed to add card to binder" }));
+                                    throw new Error(errorData.error || "Failed to add card to binder");
+                                }
                             }
                         }
                     } catch (err) {
-                        console.error("Error adding card to binder:", err);
-                        alert(err instanceof Error ? err.message : "Failed to add card to binder");
+                        console.error("Error adding cards to binder:", err);
+                        alert(err instanceof Error ? err.message : "Failed to add cards to binder");
                         throw err;
                     }
                 }}
@@ -571,28 +706,40 @@ export default function SetDetailPage({ params }: PageProps) {
             {/* Select Deck Modal */}
             <SelectDeckModal
                 open={isSelectDeckModalOpen}
-                cardId={selectedCard?.id || ""}
-                onClose={() => setIsSelectDeckModalOpen(false)}
+                cardId={isSelectionMode ? "" : (selectedCard?.id || "")}
+                cardIds={isSelectionMode ? Array.from(selectedCardIds) : []}
+                onClose={() => {
+                    setIsSelectDeckModalOpen(false);
+                    if (isSelectionMode) {
+                        setIsSelectionMode(false);
+                        setSelectedCardIds(new Set());
+                    }
+                }}
                 onSelect={async (deckId: string, quantity: number) => {
-                    if (!selectedCard) return;
+                    const cardsToAdd = isSelectionMode ? Array.from(selectedCardIds) : (selectedCard ? [selectedCard.id] : []);
+
+                    if (cardsToAdd.length === 0) return;
 
                     try {
-                        const response = await fetch(`/api/decks/${deckId}/cards`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                cardId: selectedCard.id,
-                                quantity: quantity,
-                            }),
-                        });
+                        // Add each card with the specified quantity
+                        for (const cardId of cardsToAdd) {
+                            const response = await fetch(`/api/decks/${deckId}/cards`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    cardId: cardId,
+                                    quantity: quantity,
+                                }),
+                            });
 
-                        if (!response.ok) {
-                            const errorData = await response.json().catch(() => ({ error: "Failed to add card to deck" }));
-                            throw new Error(errorData.error || "Failed to add card to deck");
+                            if (!response.ok) {
+                                const errorData = await response.json().catch(() => ({ error: "Failed to add card to deck" }));
+                                throw new Error(errorData.error || "Failed to add card to deck");
+                            }
                         }
                     } catch (err) {
-                        console.error("Error adding card to deck:", err);
-                        alert(err instanceof Error ? err.message : "Failed to add card to deck");
+                        console.error("Error adding cards to deck:", err);
+                        alert(err instanceof Error ? err.message : "Failed to add cards to deck");
                         throw err;
                     }
                 }}
