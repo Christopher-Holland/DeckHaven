@@ -57,6 +57,8 @@ export default function BinderPage() {
     const [dragOverTrash, setDragOverTrash] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
+    const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+    const [addingToCollection, setAddingToCollection] = useState<string | null>(null);
 
     // Fetch binder data when page loads
     useEffect(() => {
@@ -395,6 +397,48 @@ export default function BinderPage() {
         }
     };
 
+    // Handle adding a card to collection
+    const handleAddToCollection = async (cardId: string) => {
+        setAddingToCollection(cardId);
+        const currentQuantity = collectionCardQuantities.get(cardId) || 0;
+        const newQuantity = currentQuantity + 1;
+
+        try {
+            // Optimistically update UI
+            setCollectionCardQuantities((prev) => {
+                const next = new Map(prev);
+                next.set(cardId, newQuantity);
+                return next;
+            });
+
+            // Save to database
+            const response = await fetch("/api/collection", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cardId, quantity: newQuantity }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to add card to collection");
+            }
+        } catch (error) {
+            console.error("Error adding card to collection:", error);
+            // Revert on error
+            setCollectionCardQuantities((prev) => {
+                const next = new Map(prev);
+                if (currentQuantity === 0) {
+                    next.delete(cardId);
+                } else {
+                    next.set(cardId, currentQuantity);
+                }
+                return next;
+            });
+            alert(error instanceof Error ? error.message : "Failed to add card to collection");
+        } finally {
+            setAddingToCollection(null);
+        }
+    };
+
     // Render a single page component
     const renderPage = (slots: (BinderCard | null)[], pageNumber: number) => (
         <div
@@ -465,26 +509,58 @@ export default function BinderPage() {
                                 <div className="absolute inset-x-0 top-0 h-3 bg-white/25 dark:bg-black/20" />
 
                                 {slot?.imageUrl ? (
-                                    <img
-                                        src={slot.imageUrl}
-                                        alt={slot.title ?? "Card"}
-                                        className={`h-full w-full object-cover cursor-move ${slot.isInCollection === false ? "opacity-60 grayscale" : ""}`}
-                                        draggable
-                                        onDragStart={(e) => {
-                                            if (slot && slot.slotNumber !== null && slot.slotNumber !== undefined) {
-                                                setDraggedCard({
-                                                    id: slot.id,
-                                                    cardId: slot.cardId,
-                                                    slotNumber: slot.slotNumber,
-                                                });
-                                                e.dataTransfer.effectAllowed = "move";
-                                            }
-                                        }}
-                                        onDragEnd={() => {
-                                            setDraggedCard(null);
-                                            setDragOverSlot(null);
-                                        }}
-                                    />
+                                    <div
+                                        className="relative h-full w-full group"
+                                        onMouseEnter={() => slot.isInCollection === false && setHoveredCardId(slot.cardId)}
+                                        onMouseLeave={() => setHoveredCardId(null)}
+                                    >
+                                        <img
+                                            src={slot.imageUrl}
+                                            alt={slot.title ?? "Card"}
+                                            className={`h-full w-full object-cover cursor-move transition-opacity ${slot.isInCollection === false ? "opacity-60 grayscale" : ""}`}
+                                            draggable
+                                            onDragStart={(e) => {
+                                                if (slot && slot.slotNumber !== null && slot.slotNumber !== undefined) {
+                                                    setDraggedCard({
+                                                        id: slot.id,
+                                                        cardId: slot.cardId,
+                                                        slotNumber: slot.slotNumber,
+                                                    });
+                                                    e.dataTransfer.effectAllowed = "move";
+                                                }
+                                            }}
+                                            onDragEnd={() => {
+                                                setDraggedCard(null);
+                                                setDragOverSlot(null);
+                                            }}
+                                        />
+                                        {/* Hover popup for cards not in collection */}
+                                        {slot.isInCollection === false && hoveredCardId === slot.cardId && (
+                                            <div className="absolute inset-0 flex items-center justify-center z-10">
+                                                <div className="bg-[#f6ead6] dark:bg-[#0f2a2c] border border-[#42c99c] dark:border-[#82664e] rounded-lg p-3 shadow-lg">
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleAddToCollection(slot.cardId);
+                                                        }}
+                                                        disabled={addingToCollection === slot.cardId}
+                                                        className="
+                                                            px-3 py-1.5 text-xs font-medium
+                                                            bg-[#42c99c] dark:bg-[#82664e]
+                                                            text-white
+                                                            rounded-md
+                                                            hover:bg-[#2fbf8f] dark:hover:bg-[#9b7a5f]
+                                                            transition-colors
+                                                            disabled:opacity-50 disabled:cursor-not-allowed
+                                                        "
+                                                    >
+                                                        {addingToCollection === slot.cardId ? "Adding..." : "Add to Collection"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 ) : (
                                     <div className="h-full w-full flex items-center justify-center">
                                         <div
