@@ -7,6 +7,7 @@ import Loading from "@/app/components/Loading";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import EditDeckModal from "./editDeckModal";
+import CommanderModal from "./commanderModal";
 import { FORMAT_RULES, type FormatKey, type FormatRules } from "@/app/lib/mtgFormatRules";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 type Deck = {
@@ -60,6 +61,7 @@ export default function DeckPage() {
     const [cardDetails, setCardDetails] = useState<Map<string, ScryfallCard>>(new Map());
     const [ownedCounts, setOwnedCounts] = useState<Map<string, number>>(new Map());
     const [loadingCards, setLoadingCards] = useState(false);
+    const [isCommanderModalOpen, setIsCommanderModalOpen] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -116,10 +118,26 @@ export default function DeckPage() {
 
                 for (const cardId of uniqueCardIds) {
                     try {
-                        const cardResponse = await fetch(`https://api.scryfall.com/cards/${cardId}`);
+                        // Strip "c:" prefix if present (for commanders) when fetching from Scryfall
+                        const actualCardId = cardId.startsWith("c:") ? cardId.replace(/^c:/, "") : cardId;
+                        
+                        // Skip if we already have this card (handles both with and without "c:" prefix)
+                        if (cardDetailsMap.has(actualCardId) || cardDetailsMap.has(cardId)) {
+                            if (cardId.startsWith("c:") && cardDetailsMap.has(actualCardId)) {
+                                // Store commander under both keys for easy lookup
+                                cardDetailsMap.set(cardId, cardDetailsMap.get(actualCardId)!);
+                            }
+                            continue;
+                        }
+                        
+                        const cardResponse = await fetch(`https://api.scryfall.com/cards/${actualCardId}`);
                         if (cardResponse.ok) {
                             const cardData = await cardResponse.json();
-                            cardDetailsMap.set(cardId, cardData);
+                            cardDetailsMap.set(actualCardId, cardData);
+                            // If this is a commander (c: prefix), also store under the prefixed key
+                            if (cardId.startsWith("c:")) {
+                                cardDetailsMap.set(cardId, cardData);
+                            }
                         }
                     } catch (err) {
                         console.warn(`Failed to fetch card ${cardId}:`, err);
@@ -248,6 +266,57 @@ export default function DeckPage() {
             alert(err instanceof Error ? err.message : "Failed to remove card from deck");
         }
     };
+
+    // Handle setting commander
+    const handleSetCommander = async (cardId: string) => {
+        try {
+            // First, remove existing commander(s)
+            const existingCommanders = deckCards.filter((dc) => dc.cardId.startsWith("c:"));
+            for (const commander of existingCommanders) {
+                await fetch(`/api/decks/${deckId}/cards/${commander.id}`, {
+                    method: "DELETE",
+                });
+            }
+
+            // Add new commander with "c:" prefix
+            const commanderCardId = `c:${cardId}`;
+            const response = await fetch(`/api/decks/${deckId}/cards`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    cardId: commanderCardId,
+                    quantity: 1,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to set commander" }));
+                throw new Error(errorData.error || "Failed to set commander");
+            }
+
+            // Refresh deck cards
+            const deckResponse = await fetch(`/api/decks/${deckId}`);
+            if (deckResponse.ok) {
+                const data = await deckResponse.json();
+                setDeckCards(data.deck?.deckCards || []);
+            }
+        } catch (err) {
+            console.error("Error setting commander:", err);
+            throw err;
+        }
+    };
+
+    // Get current commander card details
+    const currentCommander = useMemo(() => {
+        const commanderDeckCard = deckCards.find((dc) => dc.cardId.startsWith("c:"));
+        if (!commanderDeckCard) return null;
+        
+        // Extract actual card ID (remove "c:" prefix)
+        const actualCardId = commanderDeckCard.cardId.replace(/^c:/, "");
+        const scryfallCard = cardDetails.get(actualCardId);
+        
+        return { deckCard: commanderDeckCard, scryfallCard, actualCardId };
+    }, [deckCards, cardDetails]);
 
     if (loading) {
         return (
@@ -378,21 +447,79 @@ export default function DeckPage() {
                 <section className="mt-6 space-y-4">
                     <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold">Commander</h3>
+                        {currentCommander && (
+                            <button
+                                type="button"
+                                onClick={() => setIsCommanderModalOpen(true)}
+                                className="
+                                    inline-flex items-center gap-2
+                                    px-3 py-2 rounded-md text-sm
+                                    bg-[#e8d5b8] dark:bg-[#173c3f]
+                                    border border-[#42c99c] dark:border-[#82664e]
+                                    text-[#193f44] dark:text-[#e8d5b8]
+                                    hover:bg-[#42c99c] hover:text-white
+                                    dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]
+                                    transition-colors
+                                "
+                            >
+                                Change Commander
+                            </button>
+                        )}
                     </div>
                     <div className="rounded-lg border border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#173c3f] p-6">
-                        {deckCards.filter((dc) => dc.cardId.startsWith("c:")).length > 0 ? (
-                            <div>
-                                {deckCards.filter((dc) => dc.cardId.startsWith("c:")).map((dc) => (
-                                    <div key={dc.id}>
-                                        <h4 className="text-sm font-semibold text-center truncate">
-                                            {dc.cardId}
-                                        </h4>
-                                    </div>
-                                ))}
+                        {currentCommander && currentCommander.scryfallCard ? (
+                            <div className="flex items-center gap-4">
+                                <div className="flex-shrink-0">
+                                    {(() => {
+                                        const cardImage =
+                                            currentCommander.scryfallCard.image_uris?.normal ||
+                                            currentCommander.scryfallCard.image_uris?.large ||
+                                            currentCommander.scryfallCard.image_uris?.small ||
+                                            currentCommander.scryfallCard.card_faces?.[0]?.image_uris?.normal ||
+                                            "/images/DeckHaven-Shield.png";
+                                        return (
+                                            <img
+                                                src={cardImage}
+                                                alt={currentCommander.scryfallCard.name}
+                                                className="w-32 h-auto rounded-md"
+                                            />
+                                        );
+                                    })()}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-lg font-semibold truncate">
+                                        {currentCommander.scryfallCard.name}
+                                    </h4>
+                                    {currentCommander.scryfallCard.type_line && (
+                                        <p className="text-sm opacity-70 mt-1">
+                                            {currentCommander.scryfallCard.type_line}
+                                        </p>
+                                    )}
+                                    {currentCommander.scryfallCard.oracle_text && (
+                                        <p className="text-xs opacity-60 mt-2 line-clamp-3">
+                                            {currentCommander.scryfallCard.oracle_text}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         ) : (
-                            <div className="text-center text-sm opacity-70">
-                                No commander selected yet
+                            <div className="text-center py-6">
+                                <p className="text-sm opacity-70 mb-4">No commander selected</p>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCommanderModalOpen(true)}
+                                    className="
+                                        inline-flex items-center gap-2
+                                        px-4 py-2 rounded-md text-sm
+                                        bg-[#42c99c] dark:bg-[#82664e]
+                                        text-white
+                                        hover:opacity-95
+                                        transition-colors
+                                    "
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add Commander
+                                </button>
                             </div>
                         )}
                     </div>
@@ -552,6 +679,18 @@ export default function DeckPage() {
                     }
                 }}
             />
+
+            {/* Commander Modal */}
+            {deck.format === "Commander" && (
+                <CommanderModal
+                    open={isCommanderModalOpen}
+                    deckCards={deckCards}
+                    cardDetails={cardDetails}
+                    currentCommanderId={currentCommander?.deckCard.cardId || null}
+                    onClose={() => setIsCommanderModalOpen(false)}
+                    onSelect={handleSetCommander}
+                />
+            )}
         </main>
     );
 }
