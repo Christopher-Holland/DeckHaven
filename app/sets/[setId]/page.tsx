@@ -752,7 +752,7 @@ export default function SetDetailPage({ params }: PageProps) {
                 title={selectedCard?.name}
             >
                 {selectedCard && (
-                    <div className="flex flex-col items-center gap-4">
+                    <div className="flex flex-col items-center gap-6">
                         {/* Card Image */}
                         {(() => {
                             const cardImage = selectedCard.image_uris?.normal ||
@@ -769,66 +769,8 @@ export default function SetDetailPage({ params }: PageProps) {
                             );
                         })()}
 
-                        {/* Card Details */}
-                        <div className="w-full space-y-2">
-                            {selectedCard.type_line && (
-                                <p className="text-md opacity-80">
-                                    <span className="font-semibold">Type:</span> {selectedCard.type_line}
-                                </p>
-                            )}
-
-                            {selectedCard.mana_cost && (
-                                <p className="text-md opacity-80">
-                                    <span className="font-semibold">Mana Cost:</span> {selectedCard.mana_cost}
-                                </p>
-                            )}
-
-                            {selectedCard.collector_number && (
-                                <p className="text-md opacity-80">
-                                    <span className="font-semibold">Collector Number:</span> #{selectedCard.collector_number}
-                                </p>
-                            )}
-
-                            {selectedCard.rarity && (
-                                <p className="text-md opacity-80">
-                                    <span className="font-semibold">Rarity:</span> {selectedCard.rarity}
-                                </p>
-                            )}
-
-                            {selectedCard.oracle_text && (
-                                <div className="mt-4">
-                                    <p className="text-sm font-semibold mb-2">Oracle Text:</p>
-                                    <p className="text-md opacity-80 whitespace-pre-wrap">
-                                        {selectedCard.oracle_text}
-                                    </p>
-                                </div>
-                            )}
-
-                            {selectedCard.card_faces && selectedCard.card_faces.length > 0 && (
-                                <div className="mt-4">
-                                    <p className="text-sm font-semibold mb-2">Card Faces:</p>
-                                    {selectedCard.card_faces.map((face, index) => (
-                                        <div key={index} className="mb-4 p-3 bg-black/5 dark:bg-white/5 rounded">
-                                            <p className="text-sm font-semibold">{face.name}</p>
-                                            {face.type_line && (
-                                                <p className="text-md opacity-70">{face.type_line}</p>
-                                            )}
-                                            {face.mana_cost && (
-                                                <p className="text-md opacity-70">Mana: {face.mana_cost}</p>
-                                            )}
-                                            {face.oracle_text && (
-                                                <p className="text-md opacity-80 mt-2 whitespace-pre-wrap">
-                                                    {face.oracle_text}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
                         {/* Action Buttons */}
-                        <div className="w-full mt-6 pt-4 border-t border-[#42c99c] dark:border-[#82664e]">
+                        <div className="w-full pt-4">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <div className="flex items-center justify-center w-full">
                                     {selectedCard && (
