@@ -8,15 +8,69 @@
  */
 
 // TODO: Figure out API to get the latest TCG News
-// TODO: Rethink layout and purpose of this page
 
 "use client";
 
+import { useEffect, useState } from "react";
 import { useSidebar } from "../components/SidebarContext";
 import { tcgNews } from "../data/tcgNews";
+import Loading from "../components/Loading";
 
 export default function Dashboard() {
     const { isCollapsed } = useSidebar();
+    const [collectionCount, setCollectionCount] = useState<number>(0);
+    const [decksCount, setDecksCount] = useState<number>(0);
+    const [bindersCount, setBindersCount] = useState<number>(0);
+    const [wishlistCount, setWishlistCount] = useState<number>(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                // Fetch all stats in parallel
+                const [collectionRes, decksRes, bindersRes, wishlistRes] = await Promise.all([
+                    fetch("/api/collection?page=1&limit=1"),
+                    fetch("/api/decks"),
+                    fetch("/api/binders"),
+                    fetch("/api/wishlist"),
+                ]);
+
+                // Collection: get totalQuantity from pagination
+                if (collectionRes.ok) {
+                    const collectionData = await collectionRes.json();
+                    setCollectionCount(collectionData.pagination?.totalQuantity || 0);
+                }
+
+                // Decks: count the array length
+                if (decksRes.ok) {
+                    const decksData = await decksRes.json();
+                    setDecksCount(decksData.decks?.length || 0);
+                }
+
+                // Binders: count the array length
+                if (bindersRes.ok) {
+                    const bindersData = await bindersRes.json();
+                    setBindersCount(bindersData.binders?.length || 0);
+                }
+
+                // Wishlist: count the array length
+                if (wishlistRes.ok) {
+                    const wishlistData = await wishlistRes.json();
+                    setWishlistCount(wishlistData.wishlist?.length || 0);
+                }
+            } catch (error) {
+                // Error fetching dashboard data
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    if (loading) {
+        return <Loading />;
+    }
 
     return (
         <main className="
@@ -52,17 +106,17 @@ export default function Dashboard() {
                     <p className="text-xs opacity-80">
                         View and manage your cards
                     </p>
-                    <p className="text-xs opacity-80">
-                        Total Cards: 100
+                    <p className="text-xs opacity-80 mt-2">
+                        Total Cards: {collectionCount.toLocaleString()}
                     </p>
                     <p className="text-xs opacity-80">
-                        Total Sets: 100
+                        Total Decks: {decksCount}
                     </p>
                     <p className="text-xs opacity-80">
-                        Total Decks: 100
+                        Total Binders: {bindersCount}
                     </p>
                     <p className="text-xs opacity-80">
-                        Total Wishlist: 100
+                        Total Wishlist: {wishlistCount}
                     </p>
                 </div>
 
@@ -79,8 +133,8 @@ export default function Dashboard() {
                     <p className="text-xs opacity-80">
                         Build and edit decks
                     </p>
-                    <p className="text-sm font-semibold mb-2">
-                        Favorite Deck Name here
+                    <p className="text-xs opacity-80 mt-2">
+                        You have {decksCount} {decksCount === 1 ? "deck" : "decks"}
                     </p>
                 </div>
 
