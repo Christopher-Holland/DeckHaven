@@ -179,59 +179,96 @@ export default function Dashboard() {
             </section>
 
             {/* Secondary Grid */}
-            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* My Decks */}
-                <div
-                    className="
-            rounded-lg
-            border border-[#42c99c] dark:border-[#82664e]
-            bg-[#e8d5b8] dark:bg-[#173c3f]
-            p-4
-          "
-                >
-                    <div className="flex items-center justify-between gap-3 border-b border-[#42c99c] dark:border-[#82664e] pb-2 mb-3">
-                        <h3 className="text-md font-semibold">My Decks</h3>
-                        <Link href="/decks" className="text-xs opacity-80 hover:opacity-100 hover:underline">
-                            View all
-                        </Link>
+            <section className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr] gap-6">
+                {/* Left column stack */}
+                <div className="flex flex-col gap-6">
+                    {/* My Decks */}
+                    <div
+                        className="
+      rounded-lg
+      border border-[#42c99c] dark:border-[#82664e]
+      bg-[#e8d5b8] dark:bg-[#173c3f]
+      p-4
+    "
+                    >
+                        <div className="flex items-center justify-between gap-3 border-b border-[#42c99c] dark:border-[#82664e] pb-2 mb-3">
+                            <h3 className="text-md font-semibold">My Decks</h3>
+                            <Link href="/decks" className="text-xs opacity-80 hover:opacity-100 hover:underline">
+                                View all
+                            </Link>
+                        </div>
+
+                        <p className="text-xs opacity-80">
+                            You have {decksCount} {decksCount === 1 ? "deck" : "decks"}.
+                        </p>
+
+                        {deckNames.length > 0 ? (
+                            <div className="mt-3 space-y-1">
+                                {deckNames.slice(0, 3).map((deck) => (
+                                    <Link
+                                        key={deck.id}
+                                        href={`/decks/${deck.id}`}
+                                        className="block text-xs opacity-90 hover:opacity-100 hover:underline transition-opacity"
+                                    >
+                                        {deck.name}
+                                        {typeof deck._count?.deckCards === "number" ? (
+                                            <span className="opacity-70"> • {deck._count.deckCards} cards</span>
+                                        ) : null}
+                                    </Link>
+                                ))}
+                                {decksCount > 3 && (
+                                    <Link
+                                        href="/decks"
+                                        className="block text-xs opacity-70 hover:opacity-100 hover:underline transition-opacity italic mt-1"
+                                    >
+                                        + {decksCount - 3} more...
+                                    </Link>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="mt-3 text-xs opacity-80">
+                                No decks yet.{" "}
+                                <Link href="/decks" className="underline underline-offset-4 hover:opacity-100">
+                                    Create one
+                                </Link>
+                                .
+                            </div>
+                        )}
                     </div>
 
-                    <p className="text-xs opacity-80">
-                        You have {decksCount} {decksCount === 1 ? "deck" : "decks"}.
-                    </p>
-
-                    {deckNames.length > 0 ? (
-                        <div className="mt-3 space-y-1">
-                            {deckNames.map((deck) => (
-                                <Link
-                                    key={deck.id}
-                                    href={`/decks/${deck.id}`}
-                                    className="block text-xs opacity-90 hover:opacity-100 hover:underline transition-opacity"
-                                >
-                                    {deck.name}
-                                    {typeof deck._count?.deckCards === "number" ? (
-                                        <span className="opacity-70"> • {deck._count.deckCards} cards</span>
-                                    ) : null}
-                                </Link>
-                            ))}
-                            {decksCount > deckNames.length && (
-                                <Link
-                                    href="/decks"
-                                    className="block text-xs opacity-70 hover:opacity-100 hover:underline transition-opacity italic mt-1"
-                                >
-                                    + {decksCount - deckNames.length} more...
-                                </Link>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="mt-3 text-xs opacity-80">
-                            No decks yet.{" "}
-                            <Link href="/decks" className="underline underline-offset-4 hover:opacity-100">
-                                Create one
+                    {/* My Binders */}
+                    <div
+                        className="
+      rounded-lg
+      border border-[#42c99c] dark:border-[#82664e]
+      bg-[#e8d5b8] dark:bg-[#173c3f]
+      p-4
+    "
+                    >
+                        <div className="flex items-center justify-between gap-3 border-b border-[#42c99c] dark:border-[#82664e] pb-2 mb-3">
+                            <h3 className="text-md font-semibold">My Binders</h3>
+                            <Link href="/collection/binders" className="text-xs opacity-80 hover:opacity-100 hover:underline">
+                                View all
                             </Link>
-                            .
                         </div>
-                    )}
+
+                        <p className="text-xs opacity-80">
+                            You have {bindersCount} {bindersCount === 1 ? "binder" : "binders"}.
+                        </p>
+
+                        <div className="mt-3">
+                            <Link
+                                href="/collection/binders"
+                                className="
+          inline-flex items-center gap-2
+          text-xs opacity-90
+          hover:opacity-100 hover:underline
+        "
+                            >
+                                Open Binders <ArrowRight className="w-4 h-4" />
+                            </Link>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Recent Activity (v1.0-friendly) */}
@@ -272,35 +309,35 @@ export default function Dashboard() {
             bg-[#e8d5b8] dark:bg-[#173c3f] p-4
           "
                 >
-                    <div className="border-b border-[#42c99c] dark:border-[#82664e] mb-3">
-                        <h3 className="text-md font-semibold pb-2">Latest TCG News</h3>
-                    </div>
+                <div className="border-b border-[#42c99c] dark:border-[#82664e] mb-3">
+                    <h3 className="text-md font-semibold pb-2">Latest TCG News</h3>
+                </div>
 
-                    <ul className="space-y-3">
-                        {tcgNews.slice(0, 5).map((news) => (
-                            <li
-                                key={news.id}
-                                className="flex flex-col border-b border-black/10 dark:border-white/10 pb-2 last:border-none"
+                <ul className="space-y-3">
+                    {tcgNews.slice(0, 5).map((news) => (
+                        <li
+                            key={news.id}
+                            className="flex flex-col border-b border-black/10 dark:border-white/10 pb-2 last:border-none"
+                        >
+                            <a
+                                href={news.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm font-medium hover:underline"
                             >
-                                <a
-                                    href={news.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm font-medium hover:underline"
-                                >
-                                    {news.title}
-                                </a>
+                                {news.title}
+                            </a>
 
-                                <div className="flex flex-wrap gap-2 text-xs opacity-80 mt-1">
-                                    <span>{news.source}</span>
-                                    <span>•</span>
-                                    <span>{news.category}</span>
-                                    <span>•</span>
-                                    <span>{news.publishedAt}</span>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                            <div className="flex flex-wrap gap-2 text-xs opacity-80 mt-1">
+                                <span>{news.source}</span>
+                                <span>•</span>
+                                <span>{news.category}</span>
+                                <span>•</span>
+                                <span>{news.publishedAt}</span>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
                 </div>
             </section>
         </main>

@@ -18,6 +18,7 @@ import {
     LayoutDashboard,
     Layers,
     FolderOpen,
+    BookOpen,
     Library,
     Swords,
     Heart,
@@ -34,8 +35,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Sets", href: "/sets", icon: Layers },
-    { name: "Collection", href: "/collection", icon: FolderOpen },
+    { name: "Sets", href: "/sets", icon: BookOpen },
+    { name: "Collection", href: "/collection", icon: Layers },
     { name: "Decks", href: "/decks", icon: Swords },
     { name: "Wishlist", href: "/wishlist", icon: Heart },
     { name: "Settings", href: "/settings", icon: Settings },
