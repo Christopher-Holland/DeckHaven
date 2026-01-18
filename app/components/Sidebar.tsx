@@ -19,6 +19,7 @@ import {
     Layers,
     FolderOpen,
     Library,
+    Swords,
     Heart,
     Settings
 } from "lucide-react";
@@ -35,7 +36,7 @@ const navItems: NavItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Sets", href: "/sets", icon: Layers },
     { name: "Collection", href: "/collection", icon: FolderOpen },
-    { name: "Decks", href: "/decks", icon: Library },
+    { name: "Decks", href: "/decks", icon: Swords },
     { name: "Wishlist", href: "/wishlist", icon: Heart },
     { name: "Settings", href: "/settings", icon: Settings },
 ];
