@@ -156,7 +156,6 @@ export async function POST(
 
         return NextResponse.json({ binderCard });
     } catch (error) {
-        console.error("Error adding card to binder:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to add card to binder";
         return NextResponse.json(
             { error: errorMessage },

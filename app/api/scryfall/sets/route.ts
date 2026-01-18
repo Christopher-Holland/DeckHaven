@@ -21,7 +21,6 @@ export async function GET() {
         const result = await getSets();
         return NextResponse.json(result);
     } catch (error) {
-        console.error("Error fetching sets from Scryfall:", error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : "Failed to fetch sets" },
             { status: 500 }

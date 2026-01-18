@@ -93,7 +93,6 @@ export async function GET(request: NextRequest) {
             gameFilter: game, // Return the game filter for client-side filtering
         });
     } catch (error) {
-        console.error("Error fetching collection:", error);
         return NextResponse.json(
             { error: "Failed to fetch collection" },
             { status: 500 }
@@ -115,8 +114,6 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
         const { cardId, quantity, condition, language, notes, isFoil, tags } = body;
-
-        console.log("Collection POST request:", { cardId, quantity, condition, language, notes, isFoil, tags });
 
         if (!cardId || typeof quantity !== "number" || quantity < 0) {
             return NextResponse.json(
@@ -225,8 +222,7 @@ export async function POST(request: NextRequest) {
             };
 
             // Upsert collection item
-            console.log("Upserting collection:", { update: cleanUpdateData, create: createData });
-            const result = await prisma.collection.upsert({
+            await prisma.collection.upsert({
                 where: {
                     userId_cardId: {
                         userId: dbUser.id,
@@ -236,12 +232,10 @@ export async function POST(request: NextRequest) {
                 update: cleanUpdateData,
                 create: createData,
             });
-            console.log("Collection upsert result:", result);
         }
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Error updating collection:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to update collection";
         return NextResponse.json(
             { error: errorMessage },

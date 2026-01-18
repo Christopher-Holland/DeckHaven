@@ -104,7 +104,7 @@ export async function POST(
                 isBasicLand = basicLands.includes(cardName);
             }
         } catch (err) {
-            console.warn("Failed to fetch card from Scryfall for basic land check:", err);
+            // Failed to fetch card from Scryfall for basic land check
         }
 
         // Determine copy limit based on format
@@ -183,7 +183,6 @@ export async function POST(
             return NextResponse.json({ deckCard });
         }
     } catch (error) {
-        console.error("Error adding card to deck:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to add card to deck";
         return NextResponse.json(
             { error: errorMessage },

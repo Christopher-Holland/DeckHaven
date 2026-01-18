@@ -30,8 +30,6 @@ export async function GET(request: NextRequest) {
         const searchQuery = trimmedQuery.includes(' ') ? `!"${trimmedQuery}"` : trimmedQuery;
         const scryfallUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(searchQuery)}&order=released&unique=prints`;
         
-        console.log("Scryfall search URL:", scryfallUrl);
-        
         const response = await fetch(scryfallUrl, {
             headers: {
                 "Accept": "application/json",
@@ -42,7 +40,6 @@ export async function GET(request: NextRequest) {
         if (!response.ok) {
             if (response.status === 404) {
                 // No results found - Scryfall returns 404 when no matches
-                console.log("No results found for query:", trimmedQuery);
                 return NextResponse.json({
                     object: "list",
                     data: [],
@@ -50,15 +47,12 @@ export async function GET(request: NextRequest) {
                 });
             }
             const text = await response.text();
-            console.error("Scryfall API error:", response.status, text);
             throw new Error(`Scryfall API error: ${text}`);
         }
 
         const data = await response.json();
-        console.log("Scryfall returned", data.data?.length || 0, "cards");
         return NextResponse.json(data);
     } catch (error) {
-        console.error("Error searching Scryfall:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to search cards";
         return NextResponse.json(
             { error: errorMessage },

@@ -134,7 +134,6 @@ export async function PATCH(
             });
         }
     } catch (error) {
-        console.error("Error moving card:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to move card";
         return NextResponse.json(
             { error: errorMessage },
@@ -210,7 +209,6 @@ export async function DELETE(
             message: "Card removed from binder successfully",
         });
     } catch (error) {
-        console.error("Error deleting card:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to delete card";
         return NextResponse.json(
             { error: errorMessage },

@@ -33,7 +33,6 @@ export async function GET(
         const card = await response.json();
         return NextResponse.json(card);
     } catch (error) {
-        console.error("Error fetching card:", error);
         return NextResponse.json(
             { error: "Failed to fetch card" },
             { status: 500 }

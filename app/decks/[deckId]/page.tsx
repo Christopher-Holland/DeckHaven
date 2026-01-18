@@ -142,13 +142,13 @@ export default function DeckPage() {
                             }
                         }
                     } catch (err) {
-                        console.warn(`Failed to fetch card ${cardId}:`, err);
+                        // Failed to fetch card
                     }
                 }
 
                 setCardDetails(cardDetailsMap);
             } catch (err) {
-                console.error("Error fetching card details:", err);
+                // Error fetching card details
             } finally {
                 setLoadingCards(false);
             }
@@ -253,7 +253,6 @@ export default function DeckPage() {
                 );
             }
         } catch (err) {
-            console.error("Error updating card quantity:", err);
             showToast(err instanceof Error ? err.message : "Failed to update card quantity", "error");
         }
     };
@@ -272,7 +271,6 @@ export default function DeckPage() {
             // Remove from local state
             setDeckCards((prev) => prev.filter((dc) => dc.id !== deckCardId));
         } catch (err) {
-            console.error("Error removing card from deck:", err);
             alert(err instanceof Error ? err.message : "Failed to remove card from deck");
         }
     };
@@ -346,7 +344,6 @@ export default function DeckPage() {
                 setDeckCards(data.deck?.deckCards || []);
             }
         } catch (err) {
-            console.error("Error setting commander:", err);
             throw err;
         }
     };
@@ -720,7 +717,7 @@ export default function DeckPage() {
                             }
                         }
                     } catch (err) {
-                        console.error("Error refreshing deck:", err);
+                        // Error refreshing deck
                     }
                 }}
             />

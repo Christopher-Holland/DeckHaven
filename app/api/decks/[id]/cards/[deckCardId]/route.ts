@@ -112,7 +112,7 @@ export async function PATCH(
                 isBasicLand = basicLands.includes(cardName);
             }
         } catch (err) {
-            console.warn("Failed to fetch card from Scryfall for basic land check:", err);
+            // Failed to fetch card from Scryfall for basic land check
         }
 
         // Determine copy limit based on format
@@ -155,7 +155,6 @@ export async function PATCH(
 
         return NextResponse.json({ deckCard: updatedDeckCard });
     } catch (error) {
-        console.error("Error updating deck card:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to update deck card";
         return NextResponse.json(
             { error: errorMessage },
@@ -231,7 +230,6 @@ export async function DELETE(
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Error removing card from deck:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to remove card from deck";
         return NextResponse.json(
             { error: errorMessage },

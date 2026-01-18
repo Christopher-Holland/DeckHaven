@@ -76,7 +76,7 @@ export default function AddToBinderModal({
                     setCollectionCardIds(new Set(data.items.map(item => item.cardId)));
                 }
             } catch (e) {
-                console.warn("Failed to load collection:", e);
+                // Failed to load collection
             }
         }
 
@@ -101,7 +101,6 @@ export default function AddToBinderModal({
                 // For now, only MTG works - but we'll allow any game value and search MTG anyway
                 // This allows users to add MTG cards to any binder
                 const normalizedGame = (binderGame || "all").toLowerCase().trim();
-                console.log("Normalized game:", normalizedGame, "Original:", binderGame);
                 
                 // Only block if it's explicitly a non-MTG game (pokemon, yugioh)
                 if (normalizedGame === "pokemon" || normalizedGame === "yugioh") {
@@ -113,7 +112,6 @@ export default function AddToBinderModal({
                 // For MTG, all, null, or empty - proceed with MTG search
 
                 const searchUrl = `/api/scryfall/search?q=${encodeURIComponent(q)}`;
-                console.log("Searching:", searchUrl);
                 const res = await fetch(searchUrl);
                 
                 if (!res.ok) {
@@ -124,12 +122,10 @@ export default function AddToBinderModal({
                     } catch {
                         errorData = { error: errorText || "Failed to search cards" };
                     }
-                    console.error("Search API error:", errorData);
                     throw new Error(errorData.error || `Search failed with status ${res.status}`);
                 }
 
                 const data = await res.json();
-                console.log("Search response:", data);
                 
                 // Check if response has error
                 if (data.error) {
@@ -138,7 +134,6 @@ export default function AddToBinderModal({
                 
                 // Scryfall returns { object: "list", data: [...] }
                 const cards: ScryfallCard[] = data.data || [];
-                console.log(`Found ${cards.length} cards`);
                 setScryfallResults(cards.slice(0, 50)); // Limit to 50 results
 
                 // Store card details
@@ -146,7 +141,6 @@ export default function AddToBinderModal({
                 cards.forEach(card => details.set(card.id, card));
                 setCardDetails(prev => new Map([...prev, ...details]));
             } catch (e) {
-                console.error("Search error:", e);
                 setError(e instanceof Error ? e.message : "Failed to search cards");
                 setScryfallResults([]);
             } finally {

@@ -406,7 +406,6 @@ export default function OpenDeckModal({
                                         onClose();
                                     } catch (error) {
                                         // Error handling is done in the parent component
-                                        console.error("Error creating deck:", error);
                                     }
                                 } else {
                                     // If no onSuccess, just close

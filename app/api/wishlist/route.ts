@@ -47,7 +47,6 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ wishlist: Array.from(wishlistSet) });
     } catch (error) {
-        console.error("Error fetching wishlist:", error);
         return NextResponse.json(
             { error: "Failed to fetch wishlist" },
             { status: 500 }
@@ -121,7 +120,6 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Error updating wishlist:", error);
         return NextResponse.json(
             { error: "Failed to update wishlist" },
             { status: 500 }

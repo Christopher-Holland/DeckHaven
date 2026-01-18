@@ -254,7 +254,6 @@ export default function DecksPage() {
                 setDecks(decksData.decks || []);
             }
         } catch (err) {
-            console.error("Error creating deck:", err);
             alert(err instanceof Error ? err.message : "Failed to create deck");
         }
     };

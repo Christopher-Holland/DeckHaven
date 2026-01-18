@@ -21,7 +21,6 @@ export async function GET() {
         const card = await getRandomCard();
         return NextResponse.json(card);
     } catch (error) {
-        console.error("Error fetching random card from Scryfall:", error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : "Failed to fetch random card" },
             { status: 500 }

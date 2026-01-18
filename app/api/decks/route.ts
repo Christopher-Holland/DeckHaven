@@ -50,7 +50,6 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ decks });
     } catch (error) {
-        console.error("Error fetching decks:", error);
         return NextResponse.json(
             { error: "Failed to fetch decks" },
             { status: 500 }
@@ -150,7 +149,6 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ deck });
     } catch (error) {
-        console.error("Error creating deck:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to create deck";
         return NextResponse.json(
             { error: errorMessage },

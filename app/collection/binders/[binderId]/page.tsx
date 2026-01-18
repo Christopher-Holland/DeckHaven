@@ -97,7 +97,7 @@ export default function BinderPage() {
                         setCollectionCardQuantities(quantitiesMap);
                     }
                 } catch (err) {
-                    console.warn("Failed to fetch collection:", err);
+                    // Failed to fetch collection
                 }
 
                 // Fetch card details from Scryfall
@@ -110,12 +110,12 @@ export default function BinderPage() {
                             detailsMap.set(bc.cardId, cardData);
                         }
                     } catch (err) {
-                        console.warn(`Failed to fetch card ${bc.cardId}:`, err);
+                        // Failed to fetch card
                     }
                 }
                 setCardDetails(detailsMap);
             } catch (err) {
-                console.error("Error fetching binder data:", err);
+                // Error fetching binder data
             } finally {
                 setLoadingCards(false);
             }
@@ -365,7 +365,6 @@ export default function BinderPage() {
                 setBinderCards(cards);
             }
         } catch (error) {
-            console.error("Error moving card:", error);
             alert(error instanceof Error ? error.message : "Failed to move card");
         }
     };
@@ -392,7 +391,6 @@ export default function BinderPage() {
                 setBinderCards(cards);
             }
         } catch (error) {
-            console.error("Error deleting card:", error);
             alert(error instanceof Error ? error.message : "Failed to delete card");
         }
     };
@@ -422,7 +420,6 @@ export default function BinderPage() {
                 throw new Error("Failed to add card to collection");
             }
         } catch (error) {
-            console.error("Error adding card to collection:", error);
             // Revert on error
             setCollectionCardQuantities((prev) => {
                 const next = new Map(prev);
@@ -1136,7 +1133,7 @@ export default function BinderPage() {
                                         detailsMap.set(bc.cardId, cardData);
                                     }
                                 } catch (err) {
-                                    console.warn(`Failed to fetch card ${bc.cardId}:`, err);
+                                    // Failed to fetch card
                                 }
                             }
                         }

@@ -117,7 +117,7 @@ export default function BindersPage() {
             setAllBinders(data.binders || []);
 
         } catch (err) {
-            console.error("Failed to refresh binders:", err);
+            // Failed to refresh binders
         }
     };
 

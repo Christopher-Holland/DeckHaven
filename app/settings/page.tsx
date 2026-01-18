@@ -25,7 +25,7 @@ export default function SettingsPage() {
                     Manage your account, appearance, and DeckHaven preferences.
                 </p>
                 <h3 className="text-3xl font-semibold opacity-70 mt-1 text-center">
-                    <span className="text-red-500">SOME FEATURES MY BE UNAVAILABLE AT THIS TIME.</span>
+                    <span className="text-red-500">SOME FEATURES MAY BE UNAVAILABLE AT THIS TIME.</span>
                 </h3>
             </section>
 

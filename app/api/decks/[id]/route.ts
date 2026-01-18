@@ -75,7 +75,6 @@ export async function GET(
 
         return NextResponse.json({ deck });
     } catch (error) {
-        console.error("Error fetching deck:", error);
         return NextResponse.json(
             { error: "Failed to fetch deck" },
             { status: 500 }
@@ -181,7 +180,6 @@ export async function PATCH(
 
         return NextResponse.json({ deck });
     } catch (error) {
-        console.error("Error updating deck:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to update deck";
         return NextResponse.json(
             { error: errorMessage },

@@ -81,7 +81,6 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     setCardImage(imageUrl);
                 }
             } catch (err) {
-                console.warn("Failed to fetch card image:", err);
                 setCardImage(null);
             } finally {
                 setLoadingImage(false);
@@ -124,13 +123,13 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                                 }
                             }
                         } catch (err) {
-                            console.warn(`Failed to fetch deck ${deck.id}:`, err);
+                            // Failed to fetch deck
                         }
                     }
                     setDecksWithCard(decksContainingCard);
                 }
             } catch (err) {
-                console.warn("Failed to fetch decks:", err);
+                // Failed to fetch decks
             } finally {
                 setLoadingDecks(false);
             }
@@ -153,7 +152,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     setBindersWithCard(bindersContainingCard);
                 }
             } catch (err) {
-                console.warn("Failed to fetch binders:", err);
+                // Failed to fetch binders
             } finally {
                 setLoadingBinders(false);
             }

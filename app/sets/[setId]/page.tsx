@@ -88,7 +88,7 @@ export default function SetDetailPage({ params }: PageProps) {
                     setWishlistedCards(new Set(data.wishlist || []));
                 }
             } catch (err) {
-                console.error("Error fetching user data:", err);
+                // Error fetching user data
             }
         }
 
@@ -138,7 +138,7 @@ export default function SetDetailPage({ params }: PageProps) {
                             `/api/scryfall/cards?setCode=${setCode}&page=${page}`
                         );
                         if (!cardsResponse.ok) {
-                            console.warn(`Failed to fetch cards for set ${setCode}`);
+                            // Failed to fetch cards for set
                             break;
                         }
                         const cardsData = await cardsResponse.json();
@@ -201,7 +201,7 @@ export default function SetDetailPage({ params }: PageProps) {
                 body: JSON.stringify({ cardId, quantity: count }),
             });
         } catch (err) {
-            console.error("Error updating collection:", err);
+            // Error updating collection
             // Revert on error
             setOwnedCounts((prev) => {
                 const next = new Map(prev);
@@ -239,7 +239,7 @@ export default function SetDetailPage({ params }: PageProps) {
                 body: JSON.stringify({ cardId, isWishlisted: newWishlisted }),
             });
         } catch (err) {
-            console.error("Error updating wishlist:", err);
+            // Error updating wishlist
             // Revert on error
             setWishlistedCards((prev) => {
                 const next = new Set(prev);
@@ -698,7 +698,7 @@ export default function SetDetailPage({ params }: PageProps) {
                             }
                         }
                     } catch (err) {
-                        console.error("Error adding cards to binder:", err);
+                        // Error adding cards to binder
                         alert(err instanceof Error ? err.message : "Failed to add cards to binder");
                         throw err;
                     }
@@ -743,7 +743,7 @@ export default function SetDetailPage({ params }: PageProps) {
                             }
                         }
                     } catch (err) {
-                        console.error("Error adding cards to deck:", err);
+                        // Error adding cards to deck
                         // Error already shown via toast, don't throw to prevent modal from closing if multiple cards
                     }
                 }}

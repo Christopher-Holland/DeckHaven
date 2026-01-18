@@ -98,7 +98,7 @@ export default function CollectionPage() {
                             cardsMap.set(item.cardId, cardData);
                         }
                     } catch (err) {
-                        console.warn(`Failed to fetch card ${item.cardId}:`, err);
+                        // Failed to fetch card
                     }
                 }
                 setCards(cardsMap);
@@ -189,7 +189,7 @@ export default function CollectionPage() {
                                 cardsMap.set(newItem.cardId, cardData);
                             }
                         } catch (err) {
-                            console.warn(`Failed to fetch card ${newItem.cardId}:`, err);
+                            // Failed to fetch card
                         }
                     }
                 }
@@ -222,7 +222,6 @@ export default function CollectionPage() {
                 });
             }
         } catch (err) {
-            console.error("Error updating quantity:", err);
             alert(err instanceof Error ? err.message : "Failed to update quantity");
         } finally {
             setUpdatingQuantities(prev => {
@@ -864,8 +863,6 @@ export default function CollectionPage() {
                         isFoil: updated.isFoil ?? false,
                     };
 
-                    console.log("Saving card:", requestBody);
-
                     // Update collection via API
                     const response = await fetch("/api/collection", {
                         method: "POST",
@@ -908,7 +905,7 @@ export default function CollectionPage() {
                                     cardsMap.set(item.cardId, cardData);
                                 }
                             } catch (err) {
-                                console.warn(`Failed to fetch card ${item.cardId}:`, err);
+                                // Failed to fetch card
                             }
                         }
                     }

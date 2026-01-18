@@ -59,7 +59,6 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ binders, gameFilter: game });
     } catch (error) {
-        console.error("Error fetching binders:", error);
         return NextResponse.json(
             { error: "Failed to fetch binders" },
             { status: 500 }
@@ -179,7 +178,6 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ binder });
     } catch (error) {
-        console.error("Error creating binder:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to create binder";
         return NextResponse.json(
             { error: errorMessage },

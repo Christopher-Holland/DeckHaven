@@ -88,7 +88,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                         setCollectionCardIds(cardIds);
                     }
                 } catch (err) {
-                    console.warn("Failed to fetch collection:", err);
+                    // Failed to fetch collection
                 }
 
                 // Fetch card details from Scryfall
@@ -101,12 +101,12 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                             detailsMap.set(bc.cardId, cardData);
                         }
                     } catch (err) {
-                        console.warn(`Failed to fetch card ${bc.cardId}:`, err);
+                        // Failed to fetch card
                     }
                 }
                 setCardDetails(detailsMap);
             } catch (err) {
-                console.error("Error fetching binder cards:", err);
+                // Error fetching binder cards
             } finally {
                 setLoadingCards(false);
             }
@@ -309,7 +309,6 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 setBinderCards(cards);
             }
         } catch (error) {
-            console.error("Error moving card:", error);
             alert(error instanceof Error ? error.message : "Failed to move card");
         }
     };
@@ -336,7 +335,6 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 setBinderCards(cards);
             }
         } catch (error) {
-            console.error("Error deleting card:", error);
             alert(error instanceof Error ? error.message : "Failed to delete card");
         }
     };
@@ -1034,7 +1032,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                         detailsMap.set(bc.cardId, cardData);
                                     }
                                 } catch (err) {
-                                    console.warn(`Failed to fetch card ${bc.cardId}:`, err);
+                                    // Failed to fetch card
                                 }
                             }
                         }

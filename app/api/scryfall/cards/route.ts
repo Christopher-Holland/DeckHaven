@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(result);
     } catch (error) {
-        console.error("Error fetching cards from Scryfall:", error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : "Failed to fetch cards" },
             { status: 500 }

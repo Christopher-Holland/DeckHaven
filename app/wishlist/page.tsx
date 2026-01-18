@@ -65,7 +65,7 @@ function WishlistContent() {
                             cardsMap.set(cardId, cardData);
                         }
                     } catch (err) {
-                        console.warn(`Failed to fetch card ${cardId}:`, err);
+                        // Failed to fetch card
                     }
                 }
                 setCards(cardsMap);
@@ -110,7 +110,7 @@ function WishlistContent() {
                 return next;
             });
         } catch (err) {
-            console.error("Error removing from wishlist:", err);
+            // Error removing from wishlist
         }
     };
 
@@ -132,7 +132,7 @@ function WishlistContent() {
                 body: JSON.stringify({ cardId, quantity: count }),
             });
         } catch (err) {
-            console.error("Error updating collection:", err);
+            // Error updating collection
         }
     };
 

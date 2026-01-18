@@ -74,7 +74,6 @@ export async function GET(
 
         return NextResponse.json({ binder });
     } catch (error) {
-        console.error("Error fetching binder:", error);
         return NextResponse.json(
             { error: "Failed to fetch binder" },
             { status: 500 }
@@ -208,7 +207,6 @@ export async function PATCH(
 
         return NextResponse.json({ binder });
     } catch (error) {
-        console.error("Error updating binder:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to update binder";
         return NextResponse.json(
             { error: errorMessage },
@@ -268,7 +266,6 @@ export async function DELETE(
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Error deleting binder:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to delete binder";
         return NextResponse.json(
             { error: errorMessage },
