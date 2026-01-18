@@ -25,12 +25,19 @@ import {
 
 import Loading from "../components/Loading";
 import { tcgNews } from "../data/tcgNews";
-
 type Deck = {
     id: string;
     name: string;
     _count?: {
         deckCards: number;
+    };
+};
+
+type Binder = {
+    id: string;
+    name: string;
+    _count?: {
+        binderCards: number;
     };
 };
 
@@ -43,7 +50,7 @@ export default function Dashboard() {
     const [wishlistCount, setWishlistCount] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [deckNames, setDeckNames] = useState<Deck[]>([]);
-
+    const [binderNames, setBinderNames] = useState<Binder[]>([]);
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
@@ -70,15 +77,12 @@ export default function Dashboard() {
                 setDeckNames(decks.slice(0, 5));
             }
 
-            // Binders: count the array length
+            // Binders: get count and names
             if (bindersRes.ok) {
                 const bindersData = await bindersRes.json();
-                const binders = Array.isArray(bindersData.binders)
-                    ? bindersData.binders
-                    : Array.isArray(bindersData)
-                        ? bindersData
-                        : [];
+                const binders: Binder[] = bindersData.binders || [];
                 setBindersCount(binders.length);
+                setBinderNames(binders.slice(0, 5));
             }
 
             // Wishlist: count the array length
@@ -256,18 +260,38 @@ export default function Dashboard() {
                             You have {bindersCount} {bindersCount === 1 ? "binder" : "binders"}.
                         </p>
 
-                        <div className="mt-3">
-                            <Link
-                                href="/collection/binders"
-                                className="
-          inline-flex items-center gap-2
-          text-xs opacity-90
-          hover:opacity-100 hover:underline
-        "
-                            >
-                                Open Binders <ArrowRight className="w-4 h-4" />
-                            </Link>
-                        </div>
+                        {binderNames.length > 0 ? (
+                            <div className="mt-3 space-y-1">
+                                {binderNames.slice(0, 3).map((binder) => (
+                                    <Link
+                                        key={binder.id}
+                                        href={`/collection/binders/${binder.id}`}
+                                        className="block text-xs opacity-90 hover:opacity-100 hover:underline transition-opacity"
+                                    >
+                                        {binder.name}
+                                        {typeof binder._count?.binderCards === "number" ? (
+                                            <span className="opacity-70"> • {binder._count.binderCards} cards</span>
+                                        ) : null}
+                                    </Link>
+                                ))}
+                                {bindersCount > 3 && (
+                                    <Link
+                                        href="/collection/binders"
+                                        className="block text-xs opacity-70 hover:opacity-100 hover:underline transition-opacity italic mt-1"
+                                    >
+                                        + {bindersCount - 3} more...
+                                    </Link>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="mt-3 text-xs opacity-80">
+                                No binders yet.{" "}
+                                <Link href="/collection/binders" className="underline underline-offset-4 hover:opacity-100">
+                                    Create one
+                                </Link>
+                                .
+                            </div>
+                        )}
                     </div>
                 </div>
 
