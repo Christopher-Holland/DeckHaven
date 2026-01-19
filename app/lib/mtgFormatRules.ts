@@ -45,6 +45,8 @@ export const FORMAT_RULES = {
         minCards: 60,
         sideboard: "Up to 15",
         copies: "Up to 4 copies (except basic lands)",
+        singleton: false,
+        hasCommander: false,
         notes: ["Rotating format (card pool changes over time)."],
     },
 
@@ -54,6 +56,8 @@ export const FORMAT_RULES = {
         deckSize: "60 cards minimum",
         minCards: 60,
         sideboard: "Up to 15",
+        singleton: false,
+        hasCommander: false,
         copies: "Up to 4 copies (except basic lands)",
     },
 
@@ -63,6 +67,8 @@ export const FORMAT_RULES = {
         deckSize: "60 cards minimum",
         minCards: 60,
         sideboard: "Up to 15",
+        singleton: false,
+        hasCommander: false,
         copies: "Up to 4 copies (except basic lands)",
     },
 
@@ -73,6 +79,8 @@ export const FORMAT_RULES = {
         minCards: 60,
         sideboard: "Up to 15",
         copies: "Up to 4 copies (except basic lands); banned list applies",
+        singleton: false,
+        hasCommander: false,
         notes: ["Some formats have a restricted list—Vintage is the main one."],
     },
 
@@ -83,6 +91,8 @@ export const FORMAT_RULES = {
         minCards: 60,
         sideboard: "Up to 15",
         copies: "Up to 4 copies (except basic lands); some cards restricted to 1",
+        singleton: false,
+        hasCommander: false,
         restrictedListPossible: true,
     },
 
@@ -93,6 +103,8 @@ export const FORMAT_RULES = {
         minCards: 60,
         sideboard: "Up to 15",
         copies: "Up to 4 copies (except basic lands)",
+        singleton: false,
+        hasCommander: false,
         notes: ["Card pool restriction: commons only (per format legality)."],
     },
 
@@ -145,6 +157,7 @@ export const FORMAT_RULES = {
         sideboard: "None / Not typical",
         copies: "Singleton (1 of each, except basic lands)",
         singleton: true,
+        hasCommander: false,
         notes: [
             "Includes 1 Oathbreaker (a planeswalker) + 1 Signature Spell.",
         ],
@@ -157,6 +170,8 @@ export const FORMAT_RULES = {
         minCards: 40,
         sideboard: "All unused cards",
         copies: "No copy limit (you can play any number you drafted)",
+        singleton: false,
+        hasCommander: false,
         notes: ["Built during the event from drafted cards."],
     },
 
@@ -167,6 +182,8 @@ export const FORMAT_RULES = {
         minCards: 40,
         sideboard: "All unused cards",
         copies: "No copy limit (any number from your sealed pool)",
+        singleton: false,
+        hasCommander: false,
         notes: ["Built during the event from your sealed pool."],
     },
 
@@ -177,6 +194,8 @@ export const FORMAT_RULES = {
             "Depends on underlying format (often 60+ Constructed or 40+ Limited)",
         sideboard: "Depends on underlying format",
         copies: "Depends on underlying format",
+        singleton: false,
+        hasCommander: false,
         notes: ["Team format—deck rules come from the format being played."],
     },
 
@@ -186,6 +205,8 @@ export const FORMAT_RULES = {
         deckSize: "Uses underlying format rules",
         sideboard: "Depends on underlying format",
         copies: "Depends on underlying format",
+        singleton: false,
+        hasCommander: false,
         notes: ["Planes deck is separate from your main deck."],
     },
 
@@ -195,6 +216,8 @@ export const FORMAT_RULES = {
         deckSize: "Uses underlying format rules",
         sideboard: "Depends on underlying format",
         copies: "Depends on underlying format",
+        singleton: false,
+        hasCommander: false,
         notes: ["Scheme deck is separate from your main deck."],
     },
 } as const;
