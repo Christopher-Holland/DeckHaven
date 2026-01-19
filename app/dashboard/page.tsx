@@ -170,10 +170,6 @@ export default function Dashboard() {
 
             {/* Snapshot */}
             <section className="mb-6">
-                <div className="flex items-center justify-between gap-3 mb-3">
-                    <h3 className="text-lg font-semibold">Snapshot</h3>
-                </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StatCard label="Total Cards" value={collectionCount.toLocaleString()} />
                     <StatCard label="Decks" value={`${decksCount}`} />
