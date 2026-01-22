@@ -11,9 +11,9 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@stackframe/stack";
-import CreateDeckModal from "./createDeckModal";
 import Loading from "@/app/components/Loading";
 import { useRouter } from "next/navigation";
+import { useDrawer } from "@/app/components/Drawer/drawerProvider";
 
 type Deck = {
     id: string;
@@ -193,7 +193,7 @@ function DeckBox({
 export default function DecksPage() {
     const user = useUser();
     const router = useRouter();
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const { open } = useDrawer();
     const [decks, setDecks] = useState<Deck[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -319,7 +319,7 @@ export default function DecksPage() {
                             focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                             dark:focus:ring-[#82664e]
                         "
-                        onClick={() => setIsCreateModalOpen(true)}
+                        onClick={() => open("CREATE_DECK", { onSuccess: handleDeckCreated })}
                     >
                         Create Deck
                     </button>
@@ -356,20 +356,11 @@ export default function DecksPage() {
                             bg-[#42c99c] dark:bg-[#82664e] text-white
                             hover:opacity-95 transition-opacity
                         "
-                        onClick={() => setIsCreateModalOpen(true)}
+                        onClick={() => open("CREATE_DECK", { onSuccess: handleDeckCreated })}
                     >
                         Create Deck
                     </button>
                 </section>
-            )}
-
-            {/* Create Deck Modal */}
-            {isCreateModalOpen && (
-                <CreateDeckModal 
-                    open={isCreateModalOpen} 
-                    onClose={() => setIsCreateModalOpen(false)}
-                    onSuccess={handleDeckCreated}
-                />
             )}
         </main>
     );

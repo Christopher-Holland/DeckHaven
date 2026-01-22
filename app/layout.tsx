@@ -18,6 +18,8 @@ import { ToastProvider } from "./components/ToastContext";
 import LayoutWrapper from "./components/LayoutWrapper";
 import { GameFilterProvider } from "./components/GameFilterContext";
 import ToastContainer from "./components/Toast";
+import { DrawerProvider } from "./components/Drawer/drawerProvider";
+import { DrawerHost } from "./components/Drawer/DrawerHost";
 import type { Metadata } from "next";
 import { MedievalSharp } from "next/font/google";
 import Loading from "./components/Loading";
@@ -51,10 +53,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
                                 <ThemeProvider>
                                     <SidebarProvider>
                                         <ToastProvider>
-                                            <LayoutWrapper>
-                                                {children}
-                                            </LayoutWrapper>
-                                            <ToastContainer />
+                                            <DrawerProvider>
+                                                <LayoutWrapper>
+                                                    {children}
+                                                </LayoutWrapper>
+                                                <ToastContainer />
+                                                <DrawerHost />
+                                            </DrawerProvider>
                                         </ToastProvider>
                                     </SidebarProvider>
                                 </ThemeProvider>

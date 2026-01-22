@@ -6,11 +6,11 @@ import { useUser } from "@stackframe/stack";
 import Loading from "@/app/components/Loading";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import EditDeckModal from "./editDeckModal";
 import CommanderModal from "./commanderModal";
 import { useToast } from "@/app/components/ToastContext";
 import { FORMAT_RULES, type FormatKey, type FormatRules } from "@/app/lib/mtgFormatRules";
 import type { ScryfallCard } from "@/app/lib/scryfall";
+import { useDrawer } from "@/app/components/Drawer/drawerProvider";
 type Deck = {
     id: string;
     name: string;
@@ -59,7 +59,7 @@ export default function DeckPage() {
     const [deckSideboard, setDeckSideboard] = useState<DeckSideboard[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const { open } = useDrawer();
     const [cardDetails, setCardDetails] = useState<Map<string, ScryfallCard>>(new Map());
     const [ownedCounts, setOwnedCounts] = useState<Map<string, number>>(new Map());
     const [loadingCards, setLoadingCards] = useState(false);
@@ -469,7 +469,24 @@ export default function DeckPage() {
                     </button>
 
                     <button
-                        onClick={() => setIsEditModalOpen(true)}
+                        onClick={() => open("EDIT_DECK", {
+                            deck,
+                            onSuccess: async () => {
+                                // Refresh deck data after successful update
+                                try {
+                                    const response = await fetch(`/api/decks/${deckId}`);
+                                    if (response.ok) {
+                                        const data = await response.json();
+                                        if (data.deck) {
+                                            setDeck(data.deck);
+                                            setDeckCards(data.deck.deckCards || []);
+                                        }
+                                    }
+                                } catch (err) {
+                                    // Error refreshing deck
+                                }
+                            }
+                        })}
                         className="
               inline-flex items-center gap-2
               px-3 py-2 rounded-md text-sm
@@ -699,28 +716,6 @@ export default function DeckPage() {
                     )}
                 </section>
             )}
-
-            {/* Edit Deck Modal */}
-            <EditDeckModal
-                open={isEditModalOpen}
-                deck={deck}
-                onClose={() => setIsEditModalOpen(false)}
-                onSuccess={async () => {
-                    // Refresh deck data after successful update
-                    try {
-                        const response = await fetch(`/api/decks/${deckId}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.deck) {
-                                setDeck(data.deck);
-                                setDeckCards(data.deck.deckCards || []);
-                            }
-                        }
-                    } catch (err) {
-                        // Error refreshing deck
-                    }
-                }}
-            />
 
             {/* Commander Modal */}
             {deck.format === "Commander" && (

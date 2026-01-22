@@ -23,11 +23,11 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@stackframe/stack";
-import NewBinderModal from "./newBinderModal";
 import Loading from "@/app/components/Loading";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGameFilter } from "@/app/components/GameFilterContext";
+import { useDrawer } from "@/app/components/Drawer/drawerProvider";
 
 type Binder = {
     id: string;
@@ -50,7 +50,7 @@ type Binder = {
 export default function BindersPage() {
     const user = useUser();
     const { game } = useGameFilter();
-    const [isOpen, setIsOpen] = useState(false);
+    const { open } = useDrawer();
     const [binders, setBinders] = useState<Binder[]>([]);
     const [allBinders, setAllBinders] = useState<Binder[]>([]); // Store all binders for filtering
     const [loading, setLoading] = useState(true);
@@ -190,7 +190,7 @@ export default function BindersPage() {
                 <div className="flex items-center justify-end gap-2">
                     <button
                         className="px-3 py-1.5 rounded-md text-sm font-medium bg-black/5 dark:bg-white/5 border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
-                        onClick={() => setIsOpen(true)}
+                        onClick={() => open("NEW_BINDER", { onSuccess: handleBinderCreated })}
                     >
                         Add Binder
                     </button>
@@ -299,14 +299,12 @@ export default function BindersPage() {
                     </p>
                     <button
                         className="px-4 py-2 rounded-md text-sm font-medium bg-[#42c99c] dark:bg-[#82664e] text-white hover:opacity-95 transition-opacity"
-                        onClick={() => setIsOpen(true)}
+                        onClick={() => open("NEW_BINDER", { onSuccess: handleBinderCreated })}
                     >
                         Create Binder
                     </button>
                 </section>
             )}
-
-            <NewBinderModal open={isOpen} onClose={() => setIsOpen(false)} onSuccess={handleBinderCreated} />
         </main>
     );
 }

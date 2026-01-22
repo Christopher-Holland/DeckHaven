@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Edit, Plus, Trash, X, ChevronLeft, ChevronRight, Trash2, RotateCcw, SkipBack, SkipForward } from "lucide-react";
-import EditBinderModal from "../editBinderModal";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import AddToBinderModal from "../addToBinderModal";
 import { useRouter, useParams } from "next/navigation";
 import { useUser } from "@stackframe/stack";
 import ConfirmDeleteModal from "@/app/components/confirmDeleteModal";
+import { useDrawer } from "@/app/components/Drawer/drawerProvider";
 
 type Binder = {
     id: string;
@@ -35,7 +35,7 @@ export default function BinderPage() {
     const params = useParams();
     const binderId = params?.binderId as string;
     const user = useUser();
-    const [editModalOpen, setEditModalOpen] = useState(false);
+    const { open } = useDrawer();
     const [deleting, setDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [isFlipping, setIsFlipping] = useState(false);
@@ -265,7 +265,7 @@ export default function BinderPage() {
     // Escape to close and keyboard navigation
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && !editModalOpen && !deleting) router.push("/collection/binders");
+            if (e.key === "Escape" && !deleting) router.push("/collection/binders");
             // Arrow keys for navigation
             if (e.key === "ArrowLeft" && currentPage > 1 && !isFlipping) {
                 handlePageChange(currentPage - 1);
@@ -276,7 +276,7 @@ export default function BinderPage() {
         };
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
-    }, [editModalOpen, deleting, currentPage, totalPages, isFlipping, router]);
+    }, [deleting, currentPage, totalPages, isFlipping, router]);
 
     // Calculate which physical pages to show based on view number
     // View 1: Cover | Page 1
@@ -733,7 +733,17 @@ export default function BinderPage() {
                                     transition-colors
                                     "
                             type="button"
-                            onClick={() => setEditModalOpen(true)}
+                            onClick={() => open("EDIT_BINDER", {
+                                binder,
+                                onSuccess: async () => {
+                                    // Refresh binder data
+                                    const response = await fetch(`/api/binders/${binderId}`);
+                                    if (response.ok) {
+                                        const data = await response.json();
+                                        setBinder(data.binder);
+                                    }
+                                }
+                            })}
                         >
                             <Edit className="w-5 h-5" />
                             <span className="text-sm">Edit Binder</span>
@@ -1086,22 +1096,6 @@ export default function BinderPage() {
                     )}
                 </div>
             </div>
-
-            {/* Edit Binder Modal */}
-            <EditBinderModal
-                open={editModalOpen}
-                binder={binder}
-                onClose={() => setEditModalOpen(false)}
-                onSuccess={async () => {
-                    setEditModalOpen(false);
-                    // Refresh binder data
-                    const response = await fetch(`/api/binders/${binderId}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        setBinder(data.binder);
-                    }
-                }}
-            />
 
             {/* Add to Binder Modal */}
             <AddToBinderModal
