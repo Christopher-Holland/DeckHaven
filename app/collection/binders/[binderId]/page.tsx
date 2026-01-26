@@ -133,7 +133,7 @@ export default function BinderPage() {
     // Use hex colors from database, with fallbacks
     const coverColor = useMemo(() => binder?.color || "#ffffff", [binder?.color]);
     const spineColor = useMemo(() => binder?.spineColor || "#1f2937", [binder?.spineColor]);
-    const pageColor = useMemo(() => binder?.pageColor || "#f6ead6", [binder?.pageColor]);
+    const pageColor = useMemo(() => binder?.pageColor || "var(--theme-bg)", [binder?.pageColor]);
 
     // Determine grid size from binder size (default to 3x3 if not set)
     const gridSize = useMemo(() => {
@@ -482,7 +482,7 @@ export default function BinderPage() {
                                     overflow-hidden
                                     relative
                                     shadow-sm
-                                    ${isDragOver ? "ring-2 ring-[#42c99c] dark:ring-[#82664e] bg-[#42c99c]/20 dark:bg-[#82664e]/20" : ""}
+                                    ${isDragOver ? "ring-2 ring-[var(--theme-accent)] bg-[var(--theme-accent)]/20" : ""}
                                 `}
                                 title={slot?.title ?? (slot ? "Card" : "Empty slot")}
                                 onDragOver={(e) => {
@@ -534,7 +534,7 @@ export default function BinderPage() {
                                         {/* Hover popup for cards not in collection */}
                                         {slot.isInCollection === false && hoveredCardId === slot.cardId && (
                                             <div className="absolute inset-0 flex items-center justify-center z-10">
-                                                <div className="bg-[#f6ead6] dark:bg-[#0f2a2c] border border-[#42c99c] dark:border-[#82664e] rounded-lg p-3 shadow-lg">
+                                                <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-lg p-3 shadow-lg">
                                                     <button
                                                         type="button"
                                                         onClick={(e) => {
@@ -544,10 +544,10 @@ export default function BinderPage() {
                                                         disabled={addingToCollection === slot.cardId}
                                                         className="
                                                             px-3 py-1.5 text-xs font-medium
-                                                            bg-[#42c99c] dark:bg-[#82664e]
+                                                            bg-[var(--theme-accent)]
                                                             text-white
                                                             rounded-md
-                                                            hover:bg-[#2fbf8f] dark:hover:bg-[#9b7a5f]
+                                                            hover:bg-[var(--theme-accent-hover)]
                                                             transition-colors
                                                             disabled:opacity-50 disabled:cursor-not-allowed
                                                         "
@@ -681,7 +681,7 @@ export default function BinderPage() {
                         bg-white/80
                         backdrop-blur
                         px-4 py-3
-                        text-[#193f44]
+                        text-[var(--theme-fg)]
                         shadow-md
                     "
                 >
@@ -704,9 +704,9 @@ export default function BinderPage() {
 
     if (!binder) {
         return (
-            <div className="min-h-screen bg-[#f6ead6] dark:bg-[#0f2a2c] flex items-center justify-center">
+            <div className="min-h-screen bg-[var(--theme-bg)] flex items-center justify-center">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#42c99c] dark:border-[#82664e] mb-4"></div>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--theme-accent)] mb-4"></div>
                     <p className="text-sm opacity-70">Loading binder...</p>
                 </div>
             </div>
@@ -714,12 +714,12 @@ export default function BinderPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#f6ead6] dark:bg-[#0f2a2c]">
+        <div className="min-h-screen bg-[var(--theme-bg)]">
             <div className="container mx-auto px-4 py-6">
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3 mb-6 border-b border-black/10 dark:border-white/10 pb-4">
                     <div className="min-w-0">
-                        <h1 className="text-2xl font-semibold truncate text-center justify-center text-[#193f44] dark:text-[#e8d5b8]">{binder.name}</h1>
+                        <h1 className="text-2xl font-semibold truncate text-center justify-center text-[var(--theme-fg)]">{binder.name}</h1>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
@@ -779,8 +779,7 @@ export default function BinderPage() {
                                     bg-black/5 dark:bg-white/5
                                     hover:bg-black/10 dark:hover:bg-white/10
                                     transition-colors
-                                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                    dark:focus:ring-[#82664e]
+                                    focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                 "
                             aria-label="Close"
                         >
@@ -797,7 +796,7 @@ export default function BinderPage() {
                                 relative
                                 rounded-2xl
                                 border border-black/10 dark:border-white/10
-                                bg-[#e8d5b8] dark:bg-[#173c3f]
+                                bg-[var(--theme-sidebar)]
                                 p-4 sm:p-6
                                 overflow-visible
                             "
@@ -816,7 +815,7 @@ export default function BinderPage() {
                         {loadingCards ? (
                             <div className="flex items-center justify-center min-h-[400px]">
                                 <div className="text-center">
-                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#42c99c] dark:border-[#82664e] mb-4"></div>
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--theme-accent)] mb-4"></div>
                                     <p className="text-sm opacity-70">Loading binder cards...</p>
                                 </div>
                             </div>
@@ -832,14 +831,13 @@ export default function BinderPage() {
                                                 absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-20
                                                 flex items-center justify-center
                                                 w-10 h-10 rounded-full
-                                                bg-[#e8d5b8] dark:bg-[#173c3f]
-                                                border border-[#42c99c] dark:border-[#82664e]
-                                                text-[#193f44] dark:text-[#e8d5b8]
-                                                hover:bg-black/10 dark:hover:bg-white/10
-                                                disabled:opacity-50 disabled:cursor-not-allowed
-                                                transition-colors
-                                                focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                                dark:focus:ring-[#82664e]
+                                bg-[var(--theme-sidebar)]
+                                border border-[var(--theme-border)]
+                                text-[var(--theme-fg)]
+                                hover:bg-black/10 dark:hover:bg-white/10
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                                transition-colors
+                                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                                 shadow-lg
                                             "
                                         aria-label="Previous page"
@@ -858,14 +856,13 @@ export default function BinderPage() {
                                                 absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-20
                                                 flex items-center justify-center
                                                 w-10 h-10 rounded-full
-                                                bg-[#e8d5b8] dark:bg-[#173c3f]
-                                                border border-[#42c99c] dark:border-[#82664e]
-                                                text-[#193f44] dark:text-[#e8d5b8]
-                                                hover:bg-black/10 dark:hover:bg-white/10
-                                                disabled:opacity-50 disabled:cursor-not-allowed
-                                                transition-colors
-                                                focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                                dark:focus:ring-[#82664e]
+                                bg-[var(--theme-sidebar)]
+                                border border-[var(--theme-border)]
+                                text-[var(--theme-fg)]
+                                hover:bg-black/10 dark:hover:bg-white/10
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                                transition-colors
+                                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                                 shadow-lg
                                             "
                                         aria-label="Next page"
@@ -1007,7 +1004,7 @@ export default function BinderPage() {
                                 mt-4 px-4 py-3
                                 flex items-center justify-between
                                 border-t border-black/10 dark:border-white/10
-                                bg-[#f6ead6]/95 dark:bg-[#0f2a2c]/95
+                                bg-[var(--theme-bg)]/95
                                 backdrop-blur
                                 "
                         >
@@ -1018,14 +1015,13 @@ export default function BinderPage() {
                                 className="
         flex items-center gap-2
         px-4 py-2 rounded-md
-        bg-[#e8d5b8] dark:bg-[#173c3f]
-        border border-[#42c99c] dark:border-[#82664e]
-        text-[#193f44] dark:text-[#e8d5b8]
-        hover:bg-black/10 dark:hover:bg-white/10
-        disabled:opacity-50 disabled:cursor-not-allowed
-        transition-colors
-        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-        dark:focus:ring-[#82664e]
+                                bg-[var(--theme-sidebar)]
+                                border border-[var(--theme-border)]
+                                text-[var(--theme-fg)]
+                                hover:bg-black/10 dark:hover:bg-white/10
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                                transition-colors
+                                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
       "
                             >
                                 <SkipBack className="w-4 h-4" />
@@ -1041,7 +1037,7 @@ export default function BinderPage() {
         transition-all duration-200
         ${dragOverTrash
                                         ? "bg-red-500/20 border-red-500 scale-110"
-                                        : "bg-[#e8d5b8]/50 dark:bg-[#173c3f]/50 border-[#42c99c] dark:border-[#82664e]"
+                                        : "bg-[var(--theme-sidebar)]/50 border-[var(--theme-border)]"
                                     }
         ${draggedCard ? "opacity-100" : "opacity-50"}
       `}
@@ -1067,7 +1063,7 @@ export default function BinderPage() {
                                 <Trash2
                                     className={`
           w-5 h-5 transition-colors
-          ${dragOverTrash ? "text-red-500" : "text-[#193f44] dark:text-[#e8d5b8]"}
+          ${dragOverTrash ? "text-red-500" : "text-[var(--theme-fg)]"}
         `}
                                 />
                             </div>
@@ -1079,14 +1075,13 @@ export default function BinderPage() {
                                 className="
         flex items-center gap-2
         px-4 py-2 rounded-md
-        bg-[#e8d5b8] dark:bg-[#173c3f]
-        border border-[#42c99c] dark:border-[#82664e]
-        text-[#193f44] dark:text-[#e8d5b8]
-        hover:bg-black/10 dark:hover:bg-white/10
-        disabled:opacity-50 disabled:cursor-not-allowed
-        transition-colors
-        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-        dark:focus:ring-[#82664e]
+                                bg-[var(--theme-sidebar)]
+                                border border-[var(--theme-border)]
+                                text-[var(--theme-fg)]
+                                hover:bg-black/10 dark:hover:bg-white/10
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                                transition-colors
+                                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
       "
                             >
                                 To End

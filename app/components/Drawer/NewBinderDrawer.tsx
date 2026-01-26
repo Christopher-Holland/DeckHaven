@@ -207,7 +207,7 @@ export function NewBinderDrawer() {
                 <button
                     type="submit"
                     disabled={saving}
-                    className="px-3 py-2 rounded-md text-sm font-medium bg-[#42c99c] dark:bg-[#82664e] text-white hover:opacity-95 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-3 py-2 rounded-md text-sm font-medium bg-[var(--theme-accent)] text-white hover:opacity-95 transition-opacity focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                     {saving ? (
                         <>

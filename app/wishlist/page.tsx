@@ -141,9 +141,9 @@ function WishlistContent() {
             <main
                 className="
                     min-h-[calc(100vh-8rem)]
-                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    bg-[var(--theme-bg)]
                     px-6 py-6
-                    text-[#193f44] dark:text-[#e8d5b8]
+                    text-[var(--theme-fg)]
                     transition-all duration-300
                 "
             >
@@ -157,9 +157,9 @@ function WishlistContent() {
             <main
                 className="
                     min-h-[calc(100vh-8rem)]
-                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    bg-[var(--theme-bg)]
                     px-6 py-6
-                    text-[#193f44] dark:text-[#e8d5b8]
+                    text-[var(--theme-fg)]
                     transition-all duration-300
                 "
             >
@@ -174,9 +174,9 @@ function WishlistContent() {
         <main
             className="
                 min-h-[calc(100vh-8rem)]
-                bg-[#f6ead6] dark:bg-[#0f2a2c]
+                bg-[var(--theme-bg)]
                 px-6 py-6
-                text-[#193f44] dark:text-[#e8d5b8]
+                text-[var(--theme-fg)]
                 transition-all duration-300
             "
         >
@@ -223,8 +223,8 @@ function WishlistContent() {
                                 key={cardId}
                                 className="
                                     rounded-lg
-                                    border border-[#42c99c] dark:border-[#82664e]
-                                    bg-[#e8d5b8] dark:bg-[#173c3f]
+                                    border border-[var(--theme-border)]
+                                    bg-[var(--theme-sidebar)]
                                     p-4
                                     flex flex-col gap-3
                                 "
@@ -271,9 +271,9 @@ export default function WishlistPage() {
             <main
                 className="
                     min-h-[calc(100vh-8rem)]
-                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    bg-[var(--theme-bg)]
                     px-6 py-6
-                    text-[#193f44] dark:text-[#e8d5b8]
+                    text-[var(--theme-fg)]
                     transition-all duration-300
                 "
             >

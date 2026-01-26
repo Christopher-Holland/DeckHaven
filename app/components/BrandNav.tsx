@@ -28,14 +28,14 @@ export default function BrandNav() {
         <nav
             className="
         w-full h-12
-        border-b border-[#42c99c] dark:border-[#82664e]
-        bg-[#f1e3cc] dark:bg-[#173c3f]
+        border-b border-[var(--theme-border)]
+        bg-[var(--theme-bg)]
         flex items-center justify-center
         px-6
         transition-all duration-300
       "
         >
-            <div className="flex gap-6 justify-center text-md font-medium text-[#193f44] dark:text-[#e8d5b8]">
+            <div className="flex gap-6 justify-center text-md font-medium text-[var(--theme-fg)]">
                 {items.map((item) => {
                     const active = game === item.key;
 
@@ -46,7 +46,7 @@ export default function BrandNav() {
                             onClick={() => setGame(item.key)}
                             className={[
                                 "transition-colors",
-                                active ? "text-[#36c293] underline" : "hover:text-[#36c293] ",
+                                active ? "text-[var(--theme-accent)] underline" : "hover:text-[var(--theme-accent)] ",
                             ].join(" ")}
                             aria-current={active ? "page" : undefined}
                         >

@@ -3,30 +3,42 @@
 /* Enable dark mode variant for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* DeckHaven Theme CSS Variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Default theme colors (DeckHaven Light) */
+  --theme-bg: #f6ead6;
+  --theme-fg: #193f44;
+  --theme-accent: #42c99c;
+  --theme-accent-secondary: #82664e;
+  --theme-border: #42c99c;
+  --theme-sidebar: #e8d5b8;
+  --theme-sidebar-border: #42c99c;
+  --theme-card: #ffffff;
+  --theme-card-border: #000000;
+  
+  /* Legacy variables for compatibility */
+  --background: var(--theme-bg);
+  --foreground: var(--theme-fg);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--theme-bg);
+  --color-foreground: var(--theme-fg);
+  --color-accent: var(--theme-accent);
+  --color-accent-hover: var(--theme-accent-hover);
+  --color-border: var(--theme-border);
+  --color-sidebar: var(--theme-sidebar);
+  --color-sidebar-border: var(--theme-sidebar-border);
+  --color-card: var(--theme-card);
+  --color-card-border: var(--theme-card-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-/* Dark mode using class strategy (for next-themes) */
+/* Dark mode using class strategy (for next-themes compatibility) */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-}
-
-/* Fallback for system preference when no class is set */
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: var(--theme-bg);
+  --foreground: var(--theme-fg);
 }
 
 body {

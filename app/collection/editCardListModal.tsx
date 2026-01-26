@@ -205,8 +205,8 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                 aria-label="Edit collection item"
                 className="
           absolute right-0 top-0 h-full w-full max-w-md
-          bg-[#f6ead6] dark:bg-[#0f2a2c]
-          text-[#193f44] dark:text-[#e8d5b8]
+          bg-[var(--theme-bg)]
+          text-[var(--theme-fg)]
           border-l border-black/10 dark:border-white/10
           shadow-[-20px_0_60px_-25px_rgba(0,0,0,0.55)]
           flex flex-col
@@ -279,8 +279,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                   w-24 rounded-md border px-3 py-2 text-sm text-center
                   bg-white/70 dark:bg-white/5
                   border-black/10 dark:border-white/10
-                  focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                  dark:focus:ring-[#82664e]
+                  focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                 "
                             />
 
@@ -323,8 +322,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                   mt-2 w-full rounded-md border px-3 py-2 text-sm
                   bg-white/70 dark:bg-white/5
                   border-black/10 dark:border-white/10
-                  focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                  dark:focus:ring-[#82664e]
+                  focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                 "
                             />
                         </div>
@@ -339,8 +337,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                   mt-2 w-full rounded-md border px-3 py-2 text-sm
                   bg-white/70 dark:bg-white/5
                   border-black/10 dark:border-white/10
-                  focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                  dark:focus:ring-[#82664e]
+                  focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                 "
                             />
                         </div>
@@ -487,7 +484,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                         }}
                         className="
               rounded-md px-4 py-2 text-sm font-medium text-white
-              bg-[#42c99c] dark:bg-[#82664e]
+              bg-[var(--theme-accent)]
               hover:opacity-95 transition-opacity
               disabled:opacity-50 disabled:cursor-not-allowed
             "

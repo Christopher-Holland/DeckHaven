@@ -81,21 +81,19 @@ export default function SetCard({
             tabIndex={href ? 0 : undefined}
             className="
         relative rounded-lg
-        border border-[#42c99c] dark:border-[#82664e]
-        bg-[#e8d5b8] dark:bg-[#173c3f]
+        border border-[var(--theme-border)]
+        bg-[var(--theme-sidebar)]
         p-4
         cursor-pointer
         transition-all duration-200 ease-out
         hover:-translate-y-0.5
-        hover:border-[#2fbf8f]
-        dark:hover:border-[#9b7a5f]
-        hover:shadow-[0_0_20px_rgba(130,102,78,0.2)]
-        dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
+        hover:border-[var(--theme-accent-hover)]
+        hover:shadow-[0_0_20px_var(--theme-accent)]/20
       "
         >
 
             {/* Set Name */}
-            <div className="w-full mb-2 border-b border-[#42c99c] dark:border-[#82664e] pb-2">
+            <div className="w-full mb-2 border-b border-[var(--theme-border)] pb-2">
                 <h3 className="text-lg font-semibold text-center px-12 truncate">
                     {name}
                 </h3>

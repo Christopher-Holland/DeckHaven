@@ -194,9 +194,9 @@ export default function AddToBinderModal({
                 className="
           relative w-[min(900px,96vw)] max-h-[85vh] overflow-hidden
           rounded-2xl
-          border border-[#42c99c] dark:border-[#82664e]
-          bg-[#f6ead6] dark:bg-[#0f2a2c]
-          text-[#193f44] dark:text-[#e8d5b8]
+          border border-[var(--theme-border)]
+          bg-[var(--theme-bg)]
+          text-[var(--theme-fg)]
           shadow-2xl
         "
                 onMouseDown={(e) => e.stopPropagation()}
@@ -237,9 +237,9 @@ export default function AddToBinderModal({
                                 placeholder="Search Scryfall for cards (e.g., Lightning Bolt, set:MH2)…"
                                 className="
                   w-full rounded-md pl-9 pr-3 py-2 text-sm
-                  bg-[#e8d5b8] dark:bg-[#173c3f]
-                  border border-[#42c99c] dark:border-[#82664e]
-                  focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]
+                  bg-[var(--theme-sidebar)]
+                  border border-[var(--theme-border)]
+                  focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                 "
                             />
                         </div>
@@ -284,8 +284,8 @@ export default function AddToBinderModal({
                                             border border-black/10 dark:border-white/10
                                             transition-opacity
                                             ${isInCollection 
-                                                ? "bg-[#e8d5b8] dark:bg-[#173c3f]" 
-                                                : "bg-[#e8d5b8]/50 dark:bg-[#173c3f]/50 opacity-60"
+                                                ? "bg-[var(--theme-sidebar)]" 
+                                                : "bg-[var(--theme-sidebar)]/50 opacity-60"
                                             }
                                         `}
                                     >
@@ -326,7 +326,7 @@ export default function AddToBinderModal({
                                                 px-3 py-2 rounded-md text-sm font-medium
                                                 bg-black/5 dark:bg-white/5
                                                 hover:bg-black/10 dark:hover:bg-white/10
-                                                border border-[#42c99c] dark:border-[#82664e]
+                                                border border-[var(--theme-border)]
                                                 disabled:opacity-50 disabled:cursor-not-allowed
                                                 transition-colors
                                                 flex-shrink-0

@@ -43,11 +43,11 @@ function NavbarContent() {
     const isDark = mounted && (resolvedTheme === "dark" || theme === "dark");
 
     return (
-        <header className="h-20 w-full border-b border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#113033] text-gray-900 dark:text-white grid grid-cols-3 items-center px-6 transition-all duration-300">
+        <header className="h-20 w-full border-b border-[var(--theme-border)] bg-[var(--theme-sidebar)] text-[var(--theme-fg)] grid grid-cols-3 items-center px-6 transition-all duration-300">
 
             {/* Left: Logo */}
             <div className="flex items-center">
-                <h1 className="text-lg font-bold text-[#42c99c] dark:text-[#e8d5b8]">
+                <h1 className="text-lg font-bold text-[var(--theme-accent)]">
                     DeckHaven
                 </h1>
             </div>
@@ -58,8 +58,8 @@ function NavbarContent() {
                     <input
                         type="text"
                         placeholder="Search cards, decks..."
-                        className="px-20 py-1.5 text-sm border border-[#42c99c] dark:border-[#e8d5b8] rounded-md bg-gray-200 dark:bg-gray-800 text-[#36c293] dark:text-[#36c293] placeholder-[#193f44] dark:placeholder-[#e8d5b8]
-                       focus:outline-none focus:ring-2 focus:ring-[#42c99c]"
+                        className="px-20 py-1.5 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-card)] text-[var(--theme-fg)] placeholder-[var(--theme-fg)]/60
+                       focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                     />
                 </div>
             </div>
@@ -68,8 +68,8 @@ function NavbarContent() {
             <div className="flex items-center justify-end gap-4">
                 <button
                     onClick={toggleTheme}
-                    className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white
-                       flex items-center justify-center text-sm font-medium hover:bg-[#113033] hover:text-white dark:hover:bg-[#82664e] transition-colors cursor-pointer relative z-10"
+                    className="h-8 w-8 rounded-full bg-[var(--theme-card)] text-[var(--theme-fg)]
+                       flex items-center justify-center text-sm font-medium hover:bg-[var(--theme-accent)] hover:text-white transition-colors cursor-pointer relative z-10"
                     aria-label="Toggle theme"
                     type="button"
                 >
@@ -93,7 +93,7 @@ function NavbarContent() {
                                     className="h-8 w-8 rounded-full"
                                 />
                             ) : (
-                                <div className="h-8 w-8 rounded-full bg-[#42c99c] dark:bg-[#82664e] text-white flex items-center justify-center text-sm font-medium">
+                                <div className="h-8 w-8 rounded-full bg-[var(--theme-accent)] text-white flex items-center justify-center text-sm font-medium">
                                     {user.displayName?.[0] || user.primaryEmail?.[0] || "U"}
                                 </div>
                             )}
@@ -108,10 +108,9 @@ function NavbarContent() {
                             }}
                             className="
                                 px-3 py-1.5 rounded-md text-sm
-                                bg-[#e8d5b8] dark:bg-[#173c3f]
-                                border border-[#42c99c] dark:border-[#82664e]
-                                hover:bg-[#42c99c] hover:text-white
-                                dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]
+                                bg-[var(--theme-sidebar)]
+                                border border-[var(--theme-border)]
+                                hover:bg-[var(--theme-accent)] hover:text-white
                                 transition-colors
                             "
                         >
@@ -123,10 +122,9 @@ function NavbarContent() {
                         onClick={() => router.push("/auth/signin")}
                         className="
                             px-3 py-1.5 rounded-md text-sm
-                            bg-[#e8d5b8] dark:bg-[#173c3f]
-                            border border-[#42c99c] dark:border-[#82664e]
-                            hover:bg-[#42c99c] hover:text-white
-                            dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]
+                            bg-[var(--theme-sidebar)]
+                            border border-[var(--theme-border)]
+                            hover:bg-[var(--theme-accent)] hover:text-white
                             transition-colors
                         "
                     >
@@ -141,9 +139,9 @@ function NavbarContent() {
 export default function Navbar() {
     return (
         <Suspense fallback={
-            <header className="h-20 w-full border-b border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#113033] text-gray-900 dark:text-white grid grid-cols-3 items-center px-6 transition-all duration-300">
+            <header className="h-20 w-full border-b border-[var(--theme-border)] bg-[var(--theme-sidebar)] text-[var(--theme-fg)] grid grid-cols-3 items-center px-6 transition-all duration-300">
                 <div className="flex items-center">
-                    <h1 className="text-lg font-bold text-[#42c99c] dark:text-[#e8d5b8]">
+                    <h1 className="text-lg font-bold text-[var(--theme-accent)]">
                         DeckHaven
                     </h1>
                 </div>
@@ -152,13 +150,13 @@ export default function Navbar() {
                         <input
                             type="text"
                             placeholder="Search cards, decks..."
-                            className="px-20 py-1.5 text-sm border border-[#42c99c] dark:border-[#e8d5b8] rounded-md bg-gray-200 dark:bg-gray-800 text-[#36c293] dark:text-[#36c293] placeholder-[#193f44] dark:placeholder-[#e8d5b8] focus:outline-none focus:ring-2 focus:ring-[#42c99c]"
+                            className="px-20 py-1.5 text-sm border border-[var(--theme-border)] rounded-md bg-[var(--theme-card)] text-[var(--theme-fg)] placeholder-[var(--theme-fg)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                             disabled
                         />
                     </div>
                 </div>
                 <div className="flex items-center justify-end gap-4">
-                    <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                    <div className="h-8 w-8 rounded-full bg-[var(--theme-card)] animate-pulse" />
                 </div>
             </header>
         }>

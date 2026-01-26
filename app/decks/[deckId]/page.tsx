@@ -365,9 +365,9 @@ export default function DeckPage() {
             <main
                 className="
           min-h-[calc(100vh-8rem)]
-          bg-[#f6ead6] dark:bg-[#0f2a2c]
+          bg-[var(--theme-bg)]
           px-6 py-6
-          text-[#193f44] dark:text-[#e8d5b8]
+          text-[var(--theme-fg)]
           transition-all duration-300
         "
             >
@@ -381,9 +381,9 @@ export default function DeckPage() {
             <main
                 className="
           min-h-[calc(100vh-8rem)]
-          bg-[#f6ead6] dark:bg-[#0f2a2c]
+          bg-[var(--theme-bg)]
           px-6 py-6
-          text-[#193f44] dark:text-[#e8d5b8]
+          text-[var(--theme-fg)]
           transition-all duration-300
         "
             >
@@ -399,9 +399,9 @@ export default function DeckPage() {
             <main
                 className="
           min-h-[calc(100vh-8rem)]
-          bg-[#f6ead6] dark:bg-[#0f2a2c]
+          bg-[var(--theme-bg)]
           px-6 py-6
-          text-[#193f44] dark:text-[#e8d5b8]
+          text-[var(--theme-fg)]
           transition-all duration-300
         "
             >
@@ -416,9 +416,9 @@ export default function DeckPage() {
         <main
             className="
         min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        bg-[var(--theme-bg)]
         px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+        text-[var(--theme-fg)]
         transition-all duration-300
       "
         >
@@ -430,8 +430,8 @@ export default function DeckPage() {
               inline-flex items-center gap-2
               text-sm opacity-70
               px-3 py-2 rounded-md
-              border border-black/10 dark:border-[#82664e]
-              hover:bg-black/10 dark:hover:bg-[#82664e]/10
+              border border-black/10 dark:border-[var(--theme-border)]/50
+              hover:bg-black/10 dark:hover:bg-[var(--theme-accent)]/10
               transition-colors
             "
                         onClick={() => router.back()}
@@ -457,7 +457,7 @@ export default function DeckPage() {
                         className="
               inline-flex items-center gap-2
               px-3 py-2 rounded-md text-sm
-              bg-[#42c99c] dark:bg-[#82664e]
+              bg-[var(--theme-accent)]
               text-white
               hover:opacity-95
               transition-colors
@@ -490,7 +490,7 @@ export default function DeckPage() {
                         className="
               inline-flex items-center gap-2
               px-3 py-2 rounded-md text-sm
-              bg-[#42c99c] dark:bg-[#82664e]
+              bg-[var(--theme-accent)]
               text-white
               hover:opacity-95
               transition-colors
@@ -513,11 +513,10 @@ export default function DeckPage() {
                                 className="
                                     inline-flex items-center gap-2
                                     px-3 py-2 rounded-md text-sm
-                                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                                    border border-[#42c99c] dark:border-[#82664e]
-                                    text-[#193f44] dark:text-[#e8d5b8]
-                                    hover:bg-[#42c99c] hover:text-white
-                                    dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]
+                                    bg-[var(--theme-sidebar)]
+                                    border border-[var(--theme-border)]
+                                    text-[var(--theme-fg)]
+                                    hover:bg-[var(--theme-accent)] hover:text-white
                                     transition-colors
                                 "
                             >
@@ -525,7 +524,7 @@ export default function DeckPage() {
                             </button>
                         )}
                     </div>
-                    <div className="rounded-lg border border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#173c3f] p-6">
+                    <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-6">
                         {currentCommander && currentCommander.scryfallCard ? (
                             <div className="flex items-center gap-4">
                                 <div className="flex-shrink-0">
@@ -570,7 +569,7 @@ export default function DeckPage() {
                                     className="
                                         inline-flex items-center gap-2
                                         px-4 py-2 rounded-md text-sm
-                                        bg-[#42c99c] dark:bg-[#82664e]
+                                        bg-[var(--theme-accent)]
                                         text-white
                                         hover:opacity-95
                                         transition-colors
@@ -616,8 +615,8 @@ export default function DeckPage() {
                                                 key={deckCard.id}
                                                 className={`
                           rounded-lg border p-3
-                          border-[#42c99c] dark:border-[#82664e]
-                          bg-[#e8d5b8] dark:bg-[#173c3f]
+                          border-[var(--theme-border)]
+                          bg-[var(--theme-sidebar)]
                           flex flex-col gap-2
                           ${missing ? "opacity-80" : ""}
                         `}
@@ -655,8 +654,8 @@ export default function DeckPage() {
                                                                 px-2.5 py-1
                                                                 rounded-full
                                                                 text-md font-extrabold
-                                                                bg-[#f6ead6] dark:bg-[#0f2a2c]
-                                                                text-[#193f44] dark:text-[#e8d5b8]
+                                                                bg-[var(--theme-bg)]
+                                                                text-[var(--theme-fg)]
                                                                 border border-black/20 dark:border-white/20
                                                                 shadow-md
                                                             ">
@@ -696,8 +695,8 @@ export default function DeckPage() {
                                                     className="
                             rounded-lg border p-1
                             text-sm opacity-70
-                            border-[#42c99c] dark:border-[#82664e]
-                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                          border-[var(--theme-border)]
+                          bg-[var(--theme-sidebar)]
                             flex flex-col gap-2
                             hover:opacity-95
                             hover:text-red-500

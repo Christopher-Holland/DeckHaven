@@ -107,9 +107,9 @@ export default function Dashboard() {
         <main
             className="
         min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        bg-[var(--theme-bg)]
         px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+        text-[var(--theme-fg)]
         transition-all duration-300
       "
         >
@@ -128,8 +128,8 @@ export default function Dashboard() {
                     className="
             inline-flex items-center gap-2
             px-3 py-2 rounded-md text-sm
-            bg-[#e8d5b8] dark:bg-[#173c3f]
-            border border-[#42c99c] dark:border-[#82664e]
+            bg-[var(--theme-sidebar)]
+            border border-[var(--theme-border)]
             hover:bg-black/10 dark:hover:bg-white/10
             transition-colors
             flex-shrink-0
@@ -186,12 +186,12 @@ export default function Dashboard() {
                     <div
                         className="
       rounded-lg
-      border border-[#42c99c] dark:border-[#82664e]
-      bg-[#e8d5b8] dark:bg-[#173c3f]
+      border border-[var(--theme-border)]
+      bg-[var(--theme-sidebar)]
       p-4
     "
                     >
-                        <div className="flex items-center justify-between gap-3 border-b border-[#42c99c] dark:border-[#82664e] pb-2 mb-3">
+                        <div className="flex items-center justify-between gap-3 border-b border-[var(--theme-border)] pb-2 mb-3">
                             <h3 className="text-md font-semibold">My Decks</h3>
                             <Link href="/decks" className="text-xs opacity-80 hover:opacity-100 hover:underline">
                                 View all
@@ -240,12 +240,12 @@ export default function Dashboard() {
                     <div
                         className="
       rounded-lg
-      border border-[#42c99c] dark:border-[#82664e]
-      bg-[#e8d5b8] dark:bg-[#173c3f]
+      border border-[var(--theme-border)]
+      bg-[var(--theme-sidebar)]
       p-4
     "
                     >
-                        <div className="flex items-center justify-between gap-3 border-b border-[#42c99c] dark:border-[#82664e] pb-2 mb-3">
+                        <div className="flex items-center justify-between gap-3 border-b border-[var(--theme-border)] pb-2 mb-3">
                             <h3 className="text-md font-semibold">My Binders</h3>
                             <Link href="/collection/binders" className="text-xs opacity-80 hover:opacity-100 hover:underline">
                                 View all
@@ -295,12 +295,12 @@ export default function Dashboard() {
                 <div
                     className="
             rounded-lg
-            border border-[#42c99c] dark:border-[#82664e]
-            bg-[#e8d5b8] dark:bg-[#173c3f]
+            border border-[var(--theme-border)]
+            bg-[var(--theme-sidebar)]
             p-4
           "
                 >
-                    <div className="border-b border-[#42c99c] dark:border-[#82664e] pb-2 mb-3">
+                    <div className="border-b border-[var(--theme-border)] pb-2 mb-3">
                         <h3 className="text-md font-semibold">Recent Activity</h3>
                     </div>
 
@@ -325,11 +325,11 @@ export default function Dashboard() {
                 {/* Latest TCG News */}
                 <div
                     className="
-            rounded-lg border border-[#42c99c] dark:border-[#82664e]
-            bg-[#e8d5b8] dark:bg-[#173c3f] p-4
+            rounded-lg border border-[var(--theme-border)]
+            bg-[var(--theme-sidebar)] p-4
           "
                 >
-                <div className="border-b border-[#42c99c] dark:border-[#82664e] mb-3">
+                <div className="border-b border-[var(--theme-border)] mb-3">
                     <h3 className="text-md font-semibold pb-2">Latest TCG News</h3>
                 </div>
 
@@ -382,8 +382,8 @@ function ActionCard({
             className="
         text-left
         rounded-lg
-        border border-[#42c99c] dark:border-[#82664e]
-        bg-[#e8d5b8] dark:bg-[#173c3f]
+        border border-[var(--theme-border)]
+        bg-[var(--theme-sidebar)]
         p-4
         hover:bg-black/10 dark:hover:bg-white/10
         transition-colors
@@ -405,8 +405,8 @@ function StatCard({ label, value }: { label: string; value: string }) {
         <div
             className="
         rounded-lg
-        border border-[#42c99c] dark:border-[#82664e]
-        bg-[#e8d5b8] dark:bg-[#173c3f]
+        border border-[var(--theme-border)]
+        bg-[var(--theme-sidebar)]
         p-4
       "
         >

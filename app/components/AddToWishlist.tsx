@@ -39,19 +39,18 @@ export default function AddToWishlist({
         text-sm font-medium
         px-3 py-1.5
         rounded-md
-        border border-[#42c99c] dark:border-[#82664e]
+        border border-[var(--theme-border)]
         bg-black/5 dark:bg-white/5
         hover:bg-black/10 dark:hover:bg-white/10
         transition-colors
-        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-        dark:focus:ring-[#82664e]
+        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
         flex items-center justify-center gap-2
       "
             aria-pressed={isWishlisted}
         >
             <HeartIcon
                 className={`w-4 h-4 ${isWishlisted
-                        ? "fill-[#42c99c] text-[#42c99c] dark:fill-red-300 dark:text-red-300"
+                        ? "fill-[var(--theme-accent)] text-[var(--theme-accent)]"
                         : "fill-none"
                     }`}
                 aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}

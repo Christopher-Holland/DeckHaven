@@ -45,8 +45,8 @@ export default function ConfirmDeleteModal({
           relative w-[min(420px,92vw)]
           rounded-xl
           border border-black/10 dark:border-white/10
-          bg-[#f6ead6] dark:bg-[#0f2a2c]
-          text-[#193f44] dark:text-[#e8d5b8]
+          bg-[var(--theme-bg)]
+          text-[var(--theme-fg)]
           shadow-2xl
         "
                 onMouseDown={(e) => e.stopPropagation()}
@@ -108,7 +108,7 @@ export default function ConfirmDeleteModal({
               disabled:opacity-50 disabled:cursor-not-allowed
               ${destructive
                                 ? "bg-red-600 hover:bg-red-700 text-white"
-                                : "bg-[#42c99c] hover:bg-[#36b88f] text-white"
+                                : "bg-[var(--theme-accent)] hover:bg-[var(--theme-accent-hover)] text-white"
                             }
             `}
                     >

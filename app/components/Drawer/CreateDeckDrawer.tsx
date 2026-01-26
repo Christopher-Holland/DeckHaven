@@ -273,7 +273,7 @@ export function CreateDeckDrawer() {
                 <button
                     onClick={handleCreate}
                     disabled={!deckName.trim()}
-                    className="rounded-md px-4 py-2 text-sm font-medium text-white bg-[#42c99c] dark:bg-[#82664e] hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-md px-4 py-2 text-sm font-medium text-white bg-[var(--theme-accent)] hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Create Deck
                 </button>

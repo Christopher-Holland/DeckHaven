@@ -58,12 +58,11 @@ export default function AddToCollectionControl({
             text-sm font-medium
             px-3 py-1.5
             rounded-md
-            border border-[#42c99c] dark:border-[#82664e]
+            border border-[var(--theme-border)]
             bg-black/5 dark:bg-white/5
             hover:bg-black/10 dark:hover:bg-white/10
             transition-colors
-            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-            dark:focus:ring-[#82664e]
+            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
           "
                 >
                     Add to collection
@@ -76,7 +75,7 @@ export default function AddToCollectionControl({
             px-2 py-1.5
             rounded-md
             bg-black/5 dark:bg-white/5
-            border border-[#42c99c] dark:border-[#82664e]
+            border border-[var(--theme-border)]
           "
                     aria-label="Adjust quantity"
                 >
@@ -86,7 +85,7 @@ export default function AddToCollectionControl({
                         disabled={!canDecrease}
                         className="
               p-1 rounded
-              border border-[#42c99c] dark:border-[#82664e]
+              border border-[var(--theme-border)]
               hover:bg-black/10 dark:hover:bg-white/10
               disabled:opacity-40 disabled:cursor-not-allowed
               focus:outline-none focus:ring-2 focus:ring-[#42c99c]
@@ -107,7 +106,7 @@ export default function AddToCollectionControl({
                         disabled={!canIncrease}
                         className="
               p-1 rounded
-              border border-[#42c99c] dark:border-[#82664e]
+              border border-[var(--theme-border)]
               hover:bg-black/10 dark:hover:bg-white/10
               disabled:opacity-40 disabled:cursor-not-allowed
               focus:outline-none focus:ring-2 focus:ring-[#42c99c]

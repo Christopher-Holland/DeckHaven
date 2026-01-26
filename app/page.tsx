@@ -31,9 +31,9 @@ function HomeContent() {
             className="
         min-h-screen
         flex items-center justify-center
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        bg-[var(--theme-bg)]
         px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+        text-[var(--theme-fg)]
       "
         >
             <div
@@ -72,13 +72,12 @@ function HomeContent() {
                         href="/auth/signin"
                         className="
               rounded-lg
-              border border-[#42c99c] dark:border-[#82664e]
-              bg-[#e8d5b8] dark:bg-[#173c3f]
-              text-[#193f44] dark:text-[#e8d5b8]
+              border border-[var(--theme-border)]
+              bg-[var(--theme-sidebar)]
+              text-[var(--theme-fg)]
               px-6 py-3
               text-sm font-semibold
-              hover:bg-[#42c99c] hover:text-white
-              dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]
+              hover:bg-[var(--theme-accent)] hover:text-white
               transition-all duration-200
               shadow-sm
             "
@@ -90,12 +89,12 @@ function HomeContent() {
                         href="/auth/signup"
                         className="
               rounded-lg
-              border border-[#42c99c] dark:border-[#82664e]
-              bg-[#42c99c] dark:bg-[#82664e]
-              text-white dark:text-[#e8d5b8]
+              border border-[var(--theme-border)]
+              bg-[var(--theme-accent)]
+              text-white
               px-6 py-3
               text-sm font-semibold
-              hover:bg-[#36c293] dark:hover:bg-[#9d7a5f]
+              hover:bg-[var(--theme-accent-hover)]
               transition-all duration-200
               shadow-sm
             "
@@ -106,7 +105,7 @@ function HomeContent() {
 
                 {/* Divider */}
                 <div className="flex items-center justify-center mb-6">
-                    <div className="w-24 h-px bg-[#82664e]/60" />
+                    <div className="w-24 h-px bg-[var(--theme-accent)]/60" />
                 </div>
 
                 {/* Feature Highlights */}
@@ -127,13 +126,13 @@ export default function Home() {
                 className="
                     min-h-screen
                     flex items-center justify-center
-                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    bg-[var(--theme-bg)]
                     px-6 py-6
-                    text-[#193f44] dark:text-[#e8d5b8]
+                    text-[var(--theme-fg)]
                 "
             >
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#42c99c] mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--theme-accent)] mx-auto mb-4"></div>
                     <p className="text-sm opacity-70">Loading...</p>
                 </div>
             </main>

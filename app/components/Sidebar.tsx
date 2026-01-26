@@ -50,10 +50,10 @@ export default function Sidebar() {
         <aside className={`
             ${isCollapsed ? "w-16" : "w-64"}
             h-full 
-            bg-[#e8d5b8] dark:bg-[#113033] 
-            text-gray-900 dark:text-gray-100 
+            bg-[var(--theme-sidebar)]
+            text-[var(--theme-fg)]
             flex flex-col 
-            border-r border-[#42c99c] dark:border-[#82664e]
+            border-r border-[var(--theme-sidebar-border)]
             transition-all duration-300 ease-in-out
             relative
         `}>
@@ -65,11 +65,11 @@ export default function Sidebar() {
                     z-50
                     w-6 h-6
                     rounded-full
-                    bg-[#42c99c] dark:bg-[#82664e]
+                    bg-[var(--theme-accent)]
                     text-white
                     flex items-center justify-center
                     shadow-lg
-                    hover:bg-[#36c293] dark:hover:bg-[#9d7a5f]
+                    hover:bg-[var(--theme-accent-hover)]
                     transition-colors
                 "
                 aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -104,8 +104,8 @@ export default function Sidebar() {
 
             {/* Brand Name */}
             {!isCollapsed && (
-                <div className="h-14 flex items-center justify-center px-6 border-b border-[#42c99c] dark:border-[#82664e]">
-                    <span className="text-lg font-bold text-[#42c99c] dark:text-[#e8d5b8]">DeckHaven</span>
+                <div className="h-14 flex items-center justify-center px-6 border-b border-[var(--theme-sidebar-border)]">
+                    <span className="text-lg font-bold text-[var(--theme-accent)]">DeckHaven</span>
                 </div>
             )}
 
@@ -131,8 +131,8 @@ export default function Sidebar() {
                                 transition-all duration-200
                                 ${isCollapsed ? "flex items-center justify-center" : "flex items-center gap-3"}
                                 ${isActive
-                                    ? "text-[#42c99c] dark:text-[#e8d5b8] shadow-[0_0_15px_rgba(130,102,78,0.2)] dark:shadow-[0_0_15px_rgba(66,201,156,0.3)]"
-                                    : "text-[#113033] dark:text-[#e8d5b8] hover:text-[#36c293] dark:hover:text-[#36c293]"
+                                    ? "text-[var(--theme-accent)] shadow-[0_0_15px_var(--theme-accent)]/30"
+                                    : "text-[var(--theme-fg)] hover:text-[var(--theme-accent)]"
                                 }
                             `}
                             title={isCollapsed ? item.name : undefined}
@@ -146,7 +146,7 @@ export default function Sidebar() {
 
             {/* Footer */}
             {!isCollapsed && (
-                <div className="px-6 py-4 border-t border-[#42c99c] dark:border-[#82664e] text-xs text-[#42c99c] dark:text-[#82664e]">
+                <div className="px-6 py-4 border-t border-[var(--theme-sidebar-border)] text-xs text-[var(--theme-accent)]">
                     © DeckHaven
                 </div>
             )}

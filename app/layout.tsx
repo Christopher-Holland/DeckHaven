@@ -13,6 +13,7 @@ import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackClientApp } from "../stack/client";
 import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { DeckHavenThemeProvider } from "./components/ThemeContext";
 import { SidebarProvider } from "./components/SidebarContext";
 import { ToastProvider } from "./components/ToastContext";
 import LayoutWrapper from "./components/LayoutWrapper";
@@ -51,17 +52,19 @@ export default function RootLayout({ children }: RootLayoutProps) {
                         <StackTheme>
                             <Suspense fallback={<Loading />}>
                                 <ThemeProvider>
-                                    <SidebarProvider>
-                                        <ToastProvider>
-                                            <DrawerProvider>
-                                                <LayoutWrapper>
-                                                    {children}
-                                                </LayoutWrapper>
-                                                <ToastContainer />
-                                                <DrawerHost />
-                                            </DrawerProvider>
-                                        </ToastProvider>
-                                    </SidebarProvider>
+                                    <DeckHavenThemeProvider>
+                                        <SidebarProvider>
+                                            <ToastProvider>
+                                                <DrawerProvider>
+                                                    <LayoutWrapper>
+                                                        {children}
+                                                    </LayoutWrapper>
+                                                    <ToastContainer />
+                                                    <DrawerHost />
+                                                </DrawerProvider>
+                                            </ToastProvider>
+                                        </SidebarProvider>
+                                    </DeckHavenThemeProvider>
                                 </ThemeProvider>
                             </Suspense>
                         </StackTheme>

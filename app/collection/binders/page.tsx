@@ -126,9 +126,9 @@ export default function BindersPage() {
             <main
                 className="
           min-h-[calc(100vh-8rem)]
-          bg-[#f6ead6] dark:bg-[#0f2a2c]
+          bg-[var(--theme-bg)]
           px-6 py-6
-          text-[#193f44] dark:text-[#e8d5b8]
+          text-[var(--theme-fg)]
           transition-all duration-300
         "
             >
@@ -142,9 +142,9 @@ export default function BindersPage() {
             <main
                 className="
           min-h-[calc(100vh-8rem)]
-          bg-[#f6ead6] dark:bg-[#0f2a2c]
+          bg-[var(--theme-bg)]
           px-6 py-6
-          text-[#193f44] dark:text-[#e8d5b8]
+          text-[var(--theme-fg)]
           transition-all duration-300
         "
             >
@@ -159,9 +159,9 @@ export default function BindersPage() {
         <main
             className="
         min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        bg-[var(--theme-bg)]
         px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+        text-[var(--theme-fg)]
         transition-all duration-300
       "
         >
@@ -189,7 +189,7 @@ export default function BindersPage() {
                 </div>
                 <div className="flex items-center justify-end gap-2">
                     <button
-                        className="px-3 py-1.5 rounded-md text-sm font-medium bg-black/5 dark:bg-white/5 border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                        className="px-3 py-1.5 rounded-md text-sm font-medium bg-black/5 dark:bg-white/5 border border-[var(--theme-border)] hover:bg-black/10 dark:hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                         onClick={() => open("NEW_BINDER", { onSuccess: handleBinderCreated })}
                     >
                         Add Binder
@@ -290,15 +290,15 @@ export default function BindersPage() {
                 <section
                     className="
             rounded-lg p-12 text-center
-            border border-[#42c99c] dark:border-[#82664e]
-            bg-[#e8d5b8] dark:bg-[#173c3f]
+            border border-[var(--theme-border)]
+            bg-[var(--theme-sidebar)]
           "
                 >
                     <p className="text-sm opacity-70 mb-4">
                         No binders yet. Create your first binder to get started!
                     </p>
                     <button
-                        className="px-4 py-2 rounded-md text-sm font-medium bg-[#42c99c] dark:bg-[#82664e] text-white hover:opacity-95 transition-opacity"
+                        className="px-4 py-2 rounded-md text-sm font-medium bg-[var(--theme-accent)] text-white hover:opacity-95 transition-opacity"
                         onClick={() => open("NEW_BINDER", { onSuccess: handleBinderCreated })}
                     >
                         Create Binder

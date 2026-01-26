@@ -88,8 +88,8 @@ export default function SetCards({
                 tabIndex={onCardClick ? 0 : undefined}
                 className={`
           group relative rounded-lg
-          border border-[#42c99c] dark:border-[#82664e]
-          bg-[#e8d5b8] dark:bg-[#173c3f]
+          border border-[var(--theme-border)]
+          bg-[var(--theme-sidebar)]
           p-4
           ${onCardClick ? "cursor-pointer" : ""}
           transition-all duration-200 ease-out
@@ -99,10 +99,8 @@ export default function SetCards({
           }
           hover:opacity-100 hover:grayscale-0
           hover:-translate-y-0.5
-          hover:border-[#2fbf8f]
-          dark:hover:border-[#9b7a5f]
-          hover:shadow-[0_0_20px_rgba(130,102,78,0.2)]
-          dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
+          hover:border-[var(--theme-accent-hover)]
+          hover:shadow-[0_0_20px_var(--theme-accent)]/20
         `}
             >
                 {/* Card Name - At the top with checkbox when in selection mode */}
@@ -117,7 +115,7 @@ export default function SetCards({
                                 onSelectionToggle(e.target.checked);
                             }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-5 h-5 cursor-pointer accent-[#42c99c] dark:accent-[#82664e]"
+                            className="w-5 h-5 cursor-pointer accent-[var(--theme-accent)]"
                             aria-label={`Select ${name}`}
                         />
                     )}

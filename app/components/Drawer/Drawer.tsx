@@ -39,8 +39,8 @@ export function Drawer({
             <aside
                 className="
           absolute right-0 top-0 h-full w-full sm:w-[420px] md:w-[480px]
-          bg-[#0f2a2c] text-[#e8d5b8]
-          border-l border-[#9e7c60]/40
+          bg-[var(--theme-bg)] text-[var(--theme-fg)]
+          border-l border-[var(--theme-border)]/40
           shadow-[-18px_0_40px_rgba(0,0,0,0.55)]
           animate-in slide-in-from-right duration-300
           flex flex-col
@@ -49,10 +49,10 @@ export function Drawer({
                 aria-modal="true"
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[#9e7c60]/25">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--theme-border)]/25">
                     <div className="min-w-0">
                         {title ? (
-                            <h2 className="text-sm uppercase tracking-widest text-[#e8d5b8]/90 truncate">
+                            <h2 className="text-sm uppercase tracking-widest text-[var(--theme-fg)]/90 truncate">
                                 {title}
                             </h2>
                         ) : (

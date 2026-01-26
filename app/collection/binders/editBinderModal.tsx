@@ -130,9 +130,9 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                 className="
           relative w-[min(560px,92vw)]
           rounded-xl
-          border border-[#42c99c] dark:border-[#82664e]
-          bg-[#f6ead6] dark:bg-[#0f2a2c]
-          text-[#193f44] dark:text-[#e8d5b8]
+          border border-[var(--theme-border)]
+          bg-[var(--theme-bg)]
+          text-[var(--theme-fg)]
           shadow-xl
         "
                 onMouseDown={(e) => e.stopPropagation()}
@@ -149,8 +149,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
               bg-black/5 dark:bg-white/5
               hover:bg-black/10 dark:hover:bg-white/10
               transition-colors
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-              dark:focus:ring-[#82664e]
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
               disabled:opacity-50
             "
                         aria-label="Close modal"
@@ -174,7 +173,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                 value={selectedGame}
                                 onChange={(e) => setSelectedGame(e.target.value)}
                                 required
-                                className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-[#e8d5b8] dark:bg-[#173c3f] border border-[#42c99c] dark:border-[#82664e] focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]">
+                                className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]">
                                 <option value="all">Favorites (All Games)</option>
                                 <option value="mtg">Magic the Gathering</option>
                                 <option value="pokemon">Pokémon</option>
@@ -189,7 +188,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                 value={size}
                                 onChange={(e) => setSize(e.target.value)}
                                 required
-                                className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-[#e8d5b8] dark:bg-[#173c3f] border border-[#42c99c] dark:border-[#82664e] focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                                className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                             >
                                 <option value="2x2">2x2</option>
                                 <option value="3x3">3x3</option>
@@ -208,8 +207,8 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                 required
                                 className="
                     mt-1 w-full rounded-md px-3 py-2 text-sm
-                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                    border border-[#42c99c] dark:border-[#82664e]
+                    bg-[var(--theme-sidebar)]
+                    border border-[var(--theme-border)]
                     focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                     dark:focus:ring-[#82664e]
                   "
@@ -227,8 +226,8 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                 rows={3}
                                 className="
                     mt-1 w-full rounded-md px-3 py-2 text-sm
-                    bg-[#e8d5b8] dark:bg-[#173c3f]
-                    border border-[#42c99c] dark:border-[#82664e]
+                    bg-[var(--theme-sidebar)]
+                    border border-[var(--theme-border)]
                     focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                     dark:focus:ring-[#82664e]
                     resize-none
@@ -247,7 +246,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                     onChange={(e) => setCoverColor(e.target.value)}
                                     className="
                                         w-16 h-10 rounded-md
-                                        border border-[#42c99c] dark:border-[#82664e]
+                                        border border-[var(--theme-border)]
                                         cursor-pointer
                                         focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                         dark:focus:ring-[#82664e]
@@ -260,8 +259,8 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                     placeholder="#ffffff"
                                     className="
                                         flex-1 rounded-md px-3 py-2 text-sm
-                                        bg-[#e8d5b8] dark:bg-[#173c3f]
-                                        border border-[#42c99c] dark:border-[#82664e]
+                                        bg-[var(--theme-sidebar)]
+                                        border border-[var(--theme-border)]
                                         focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                         dark:focus:ring-[#82664e]
                                     "
@@ -279,7 +278,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                     onChange={(e) => setSpineColor(e.target.value)}
                                     className="
                                         w-16 h-10 rounded-md
-                                        border border-[#42c99c] dark:border-[#82664e]
+                                        border border-[var(--theme-border)]
                                         cursor-pointer
                                         focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                         dark:focus:ring-[#82664e]
@@ -292,8 +291,8 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                     placeholder="#1f2937"
                                     className="
                                         flex-1 rounded-md px-3 py-2 text-sm
-                                        bg-[#e8d5b8] dark:bg-[#173c3f]
-                                        border border-[#42c99c] dark:border-[#82664e]
+                                        bg-[var(--theme-sidebar)]
+                                        border border-[var(--theme-border)]
                                         focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                         dark:focus:ring-[#82664e]
                                     "
@@ -311,7 +310,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                     onChange={(e) => setPageColor(e.target.value)}
                                     className="
                                         w-16 h-10 rounded-md
-                                        border border-[#42c99c] dark:border-[#82664e]
+                                        border border-[var(--theme-border)]
                                         cursor-pointer
                                         focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                         dark:focus:ring-[#82664e]
@@ -324,8 +323,8 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                     placeholder="#f6ead6"
                                     className="
                                         flex-1 rounded-md px-3 py-2 text-sm
-                                        bg-[#e8d5b8] dark:bg-[#173c3f]
-                                        border border-[#42c99c] dark:border-[#82664e]
+                                        bg-[var(--theme-sidebar)]
+                                        border border-[var(--theme-border)]
                                         focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                                         dark:focus:ring-[#82664e]
                                     "
@@ -355,12 +354,11 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                             disabled={saving}
                             className="
               px-3 py-2 rounded-md text-sm font-medium
-              bg-[#42c99c] dark:bg-[#82664e]
+              bg-[var(--theme-accent)]
               text-white
               hover:opacity-95
               transition-opacity
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-              dark:focus:ring-[#82664e]
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
               disabled:opacity-50 disabled:cursor-not-allowed
               flex items-center gap-2
             "

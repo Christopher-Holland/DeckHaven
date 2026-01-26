@@ -385,7 +385,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                     overflow-hidden
                                     relative
                                     shadow-sm
-                                    ${isDragOver ? "ring-2 ring-[#42c99c] dark:ring-[#82664e] bg-[#42c99c]/20 dark:bg-[#82664e]/20" : ""}
+                                    ${isDragOver ? "ring-2 ring-[var(--theme-accent)] bg-[var(--theme-accent)]/20" : ""}
                                 `}
                                 title={slot?.title ?? (slot ? "Card" : "Empty slot")}
                                 onDragOver={(e) => {
@@ -552,7 +552,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                         bg-white/80
                         backdrop-blur
                         px-4 py-3
-                        text-[#193f44]
+                        text-[var(--theme-fg)]
                         shadow-md
                     "
                 >
@@ -591,9 +591,9 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
           relative w-[min(1400px,98vw)] max-h-[95vh]
           overflow-hidden
           rounded-2xl
-          border border-[#42c99c] dark:border-[#82664e]
-          bg-[#f6ead6] dark:bg-[#0f2a2c]
-          text-[#193f44] dark:text-[#e8d5b8]
+          border border-[var(--theme-border)]
+          bg-[var(--theme-bg)]
+          text-[var(--theme-fg)]
           shadow-2xl
         "
                 onMouseDown={(e) => e.stopPropagation()}
@@ -674,8 +674,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
               bg-black/5 dark:bg-white/5
               hover:bg-black/10 dark:hover:bg-white/10
               transition-colors
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-              dark:focus:ring-[#82664e]
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
             "
                         aria-label="Close modal"
                     >
@@ -691,7 +690,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
               relative
               rounded-2xl
               border border-black/10 dark:border-white/10
-              bg-[#e8d5b8] dark:bg-[#173c3f]
+              bg-[var(--theme-sidebar)]
               p-3 sm:p-4
               overflow-visible
             "
@@ -710,7 +709,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                         {loadingCards ? (
                             <div className="flex items-center justify-center min-h-[400px]">
                                 <div className="text-center">
-                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#42c99c] dark:border-[#82664e] mb-4"></div>
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--theme-accent)] mb-4"></div>
                                     <p className="text-sm opacity-70">Loading binder cards...</p>
                                 </div>
                             </div>
@@ -726,14 +725,13 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                             absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-20
                                             flex items-center justify-center
                                             w-10 h-10 rounded-full
-                                            bg-[#e8d5b8] dark:bg-[#173c3f]
-                                            border border-[#42c99c] dark:border-[#82664e]
-                                            text-[#193f44] dark:text-[#e8d5b8]
+                                            bg-[var(--theme-sidebar)]
+                                            border border-[var(--theme-border)]
+                                            text-[var(--theme-fg)]
                                             hover:bg-black/10 dark:hover:bg-white/10
                                             disabled:opacity-50 disabled:cursor-not-allowed
                                             transition-colors
-                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                            dark:focus:ring-[#82664e]
+                                            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                             shadow-lg
                                         "
                                         aria-label="Previous page"
@@ -752,14 +750,13 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                             absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-20
                                             flex items-center justify-center
                                             w-10 h-10 rounded-full
-                                            bg-[#e8d5b8] dark:bg-[#173c3f]
-                                            border border-[#42c99c] dark:border-[#82664e]
-                                            text-[#193f44] dark:text-[#e8d5b8]
+                                            bg-[var(--theme-sidebar)]
+                                            border border-[var(--theme-border)]
+                                            text-[var(--theme-fg)]
                                             hover:bg-black/10 dark:hover:bg-white/10
                                             disabled:opacity-50 disabled:cursor-not-allowed
                                             transition-colors
-                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                            dark:focus:ring-[#82664e]
+                                            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                             shadow-lg
                                         "
                                         aria-label="Next page"
@@ -905,14 +902,13 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                 className="
                                         flex items-center gap-2
                                         px-4 py-2 rounded-md
-                                        bg-[#e8d5b8] dark:bg-[#173c3f]
-                                        border border-[#42c99c] dark:border-[#82664e]
-                                        text-[#193f44] dark:text-[#e8d5b8]
+                                        bg-[var(--theme-sidebar)]
+                                        border border-[var(--theme-border)]
+                                        text-[var(--theme-fg)]
                                         hover:bg-black/10 dark:hover:bg-white/10
                                         disabled:opacity-50 disabled:cursor-not-allowed
                                         transition-colors
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                             >
                                 <SkipBack className="w-4 h-4" />
@@ -928,7 +924,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                     transition-all duration-200
                                     ${dragOverTrash
                                         ? "bg-red-500/20 border-red-500 scale-110"
-                                        : "bg-[#e8d5b8]/50 dark:bg-[#173c3f]/50 border-[#42c99c] dark:border-[#82664e]"
+                                        : "bg-[var(--theme-sidebar)]/50 border-[var(--theme-border)]"
                                     }
                                     ${draggedCard ? "opacity-100" : "opacity-50"}
                                 `}
@@ -958,7 +954,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                         transition-colors
                                         ${dragOverTrash
                                             ? "text-red-500"
-                                            : "text-[#193f44] dark:text-[#e8d5b8]"
+                                            : "text-[var(--theme-fg)]"
                                         }
                                     `}
                                 />
@@ -971,14 +967,13 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                 className="
                                         flex items-center gap-2
                                         px-4 py-2 rounded-md
-                                        bg-[#e8d5b8] dark:bg-[#173c3f]
-                                        border border-[#42c99c] dark:border-[#82664e]
-                                        text-[#193f44] dark:text-[#e8d5b8]
+                                        bg-[var(--theme-sidebar)]
+                                        border border-[var(--theme-border)]
+                                        text-[var(--theme-fg)]
                                         hover:bg-black/10 dark:hover:bg-white/10
                                         disabled:opacity-50 disabled:cursor-not-allowed
                                         transition-colors
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                             >
                                 To End

@@ -341,9 +341,9 @@ export default function CollectionPage() {
             <main
                 className="
                     min-h-[calc(100vh-8rem)]
-                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    bg-[var(--theme-bg)]
                     px-6 py-6
-                    text-[#193f44] dark:text-[#e8d5b8]
+                    text-[var(--theme-fg)]
                     transition-all duration-300
                 "
             >
@@ -357,9 +357,9 @@ export default function CollectionPage() {
             <main
                 className="
                     min-h-[calc(100vh-8rem)]
-                    bg-[#f6ead6] dark:bg-[#0f2a2c]
+                    bg-[var(--theme-bg)]
                     px-6 py-6
-                    text-[#193f44] dark:text-[#e8d5b8]
+                    text-[var(--theme-fg)]
                     transition-all duration-300
                 "
             >
@@ -374,9 +374,9 @@ export default function CollectionPage() {
         <main
             className="
         min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
-        px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+                    bg-[var(--theme-bg)]
+                    px-6 py-6
+                    text-[var(--theme-fg)]
         transition-all duration-300
       "
         >
@@ -395,8 +395,8 @@ export default function CollectionPage() {
                     className="
                         rounded-lg p-4
                         text-center
-                        border border-[#42c99c] dark:border-[#82664e]
-                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                        border border-[var(--theme-border)]
+                        bg-[var(--theme-sidebar)]
                         lg:col-span-1
                         "
                 >
@@ -413,8 +413,8 @@ export default function CollectionPage() {
                 <div
                     className="
                         rounded-lg p-4
-                        border border-[#42c99c] dark:border-[#82664e]
-                        bg-[#e8d5b8] dark:bg-[#173c3f]
+                        border border-[var(--theme-border)]
+                        bg-[var(--theme-sidebar)]
                         lg:col-span-2
                         "
                 >
@@ -431,11 +431,10 @@ export default function CollectionPage() {
                             className="
           w-full px-3 py-2 rounded-md text-sm font-medium
           bg-black/5 dark:bg-white/5
-          border border-[#42c99c] dark:border-[#82664e]
+          border border-[var(--theme-border)]
           hover:bg-black/10 dark:hover:bg-white/10
           transition-colors
-          focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-          dark:focus:ring-[#82664e]
+          focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
         "
                         >
                             Open Binders
@@ -447,11 +446,10 @@ export default function CollectionPage() {
                             className="
           w-full px-3 py-2 rounded-md text-sm font-medium
           bg-black/5 dark:bg-white/5
-          border border-[#42c99c] dark:border-[#82664e]
+          border border-[var(--theme-border)]
           hover:bg-black/10 dark:hover:bg-white/10
           transition-colors
-          focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-          dark:focus:ring-[#82664e]
+          focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
         "
                         >
                             Add Cards
@@ -464,7 +462,7 @@ export default function CollectionPage() {
                             className="
           w-full px-3 py-2 rounded-md text-sm font-medium
           bg-black/5 dark:bg-white/5
-          border border-[#42c99c] dark:border-[#82664e]
+          border border-[var(--theme-border)]
           opacity-60 cursor-not-allowed
         "
                         >
@@ -478,7 +476,7 @@ export default function CollectionPage() {
             <section
                 className="
           mb-4 rounded-lg p-3
-          border border-[#42c99c] dark:border-[#82664e]
+          border border-[var(--theme-border)]
           bg-black/5 dark:bg-white/5
           flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between
         "
@@ -491,10 +489,9 @@ export default function CollectionPage() {
                     className="
             w-full lg:max-w-sm
             rounded-md px-3 py-2 text-sm
-            bg-[#e8d5b8] dark:bg-[#173c3f]
-            border border-[#42c99c] dark:border-[#82664e]
-            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-            dark:focus:ring-[#82664e]
+            bg-[var(--theme-sidebar)]
+            border border-[var(--theme-border)]
+            focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
           "
                 />
 
@@ -505,8 +502,8 @@ export default function CollectionPage() {
                             onClick={() => setFilterMenuOpen(!filterMenuOpen)}
                             className="
                   px-3 py-1.5 rounded-md text-sm font-medium
-                  bg-[#e8d5b8] dark:bg-[#173c3f]
-                  border border-[#42c99c] dark:border-[#82664e]
+                  bg-[var(--theme-sidebar)]
+                  border border-[var(--theme-border)]
                   hover:bg-black/10 dark:hover:bg-white/10
                   transition-colors
                   flex items-center gap-1
@@ -522,7 +519,7 @@ export default function CollectionPage() {
                                     className="fixed inset-0 z-10" 
                                     onClick={() => setFilterMenuOpen(false)}
                                 />
-                                <div className="absolute right-0 mt-2 z-20 w-56 rounded-lg border border-[#42c99c] dark:border-[#82664e] bg-[#e8d5b8] dark:bg-[#173c3f] shadow-lg p-3 space-y-3">
+                                <div className="absolute right-0 mt-2 z-20 w-56 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-sidebar)] shadow-lg p-3 space-y-3">
                                     {/* Sort Options */}
                                     <div>
                                         <label className="text-xs font-semibold opacity-80 mb-2 block">Sort By</label>
@@ -531,10 +528,9 @@ export default function CollectionPage() {
                                             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
                                             className="
                                     w-full rounded-md px-2 py-1.5 text-sm
-                                    bg-[#f6ead6] dark:bg-[#0f2a2c]
-                                    border border-[#42c99c] dark:border-[#82664e]
-                                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                    dark:focus:ring-[#82664e]
+                                    bg-[var(--theme-bg)]
+                                    border border-[var(--theme-border)]
+                                    focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
                                   "
                                         >
                                             <option value="newest">Newest</option>
@@ -553,10 +549,9 @@ export default function CollectionPage() {
                                             onChange={(e) => setSelectedSet(e.target.value)}
                                             className="
                                     w-full rounded-md px-2 py-1.5 text-sm
-                                    bg-[#f6ead6] dark:bg-[#0f2a2c]
-                                    border border-[#42c99c] dark:border-[#82664e]
-                                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                    dark:focus:ring-[#82664e]
+                                    bg-[var(--theme-bg)]
+                                    border border-[var(--theme-border)]
+                                    focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
                                   "
                                         >
                                             <option value="all">All Sets</option>
@@ -574,10 +569,9 @@ export default function CollectionPage() {
                                             onChange={(e) => setSelectedTag(e.target.value)}
                                             className="
                                     w-full rounded-md px-2 py-1.5 text-sm
-                                    bg-[#f6ead6] dark:bg-[#0f2a2c]
-                                    border border-[#42c99c] dark:border-[#82664e]
-                                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                    dark:focus:ring-[#82664e]
+                                    bg-[var(--theme-bg)]
+                                    border border-[var(--theme-border)]
+                                    focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
                                   "
                                         >
                                             <option value="all">All Tags</option>
@@ -597,11 +591,10 @@ export default function CollectionPage() {
                                             }}
                                             className="
                                             w-full rounded-md px-2 py-1.5 text-sm
-                                            bg-[#f6ead6] dark:bg-[#0f2a2c]
-                                            border border-[#42c99c] dark:border-[#82664e]
+                                            bg-[var(--theme-bg)]
+                                            border border-[var(--theme-border)]
                                             hover:bg-black/10 dark:hover:bg-white/10
-                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                            dark:focus:ring-[#82664e]
+                                            focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
                                             transition-colors
                                             ">
                                             Clear Filters
@@ -618,8 +611,8 @@ export default function CollectionPage() {
             <section
                 className="
           rounded-lg overflow-hidden
-          border border-[#42c99c] dark:border-[#82664e]
-          bg-[#e8d5b8] dark:bg-[#173c3f]
+          border border-[var(--theme-border)]
+          bg-[var(--theme-sidebar)]
         "
             >
                 <div className="grid grid-cols-12 gap-2 px-4 py-3 text-xs font-semibold opacity-80 border-b border-black/10 dark:border-white/10">
@@ -684,7 +677,7 @@ export default function CollectionPage() {
                                     className="col-span-2 flex justify-end items-center gap-2"
                                     onClick={(e) => e.stopPropagation()}
                                 >
-                                    <div className="flex items-center gap-1 border border-[#42c99c] dark:border-[#82664e] rounded-md bg-[#e8d5b8] dark:bg-[#173c3f]">
+                                    <div className="flex items-center gap-1 border border-[var(--theme-border)] rounded-md bg-[var(--theme-sidebar)]">
                                         <button
                                             type="button"
                                             onClick={(e) => {
@@ -753,14 +746,13 @@ export default function CollectionPage() {
                             disabled={currentPage === 1}
                             className="
                             px-3 py-1.5 rounded-md
-                            bg-[#e8d5b8] dark:bg-[#173c3f]
-                            text-[#193f44] dark:text-[#e8d5b8]
-                            border border-[#42c99c] dark:border-[#82664e]
+                            bg-[var(--theme-sidebar)]
+                            text-[var(--theme-fg)]
+                            border border-[var(--theme-border)]
                             hover:bg-black/10 dark:hover:bg-white/10
                             disabled:opacity-50 disabled:cursor-not-allowed
                             transition-colors
-                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                            dark:focus:ring-[#82664e]
+                            focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
                             flex items-center gap-1
                         "
                         >
@@ -783,11 +775,10 @@ export default function CollectionPage() {
                                             className={`
                                             px-3 py-1.5 rounded-md text-sm
                                             transition-colors
-                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                            dark:focus:ring-[#82664e]
+                                            focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
                                             ${currentPage === page
-                                                    ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
-                                                    : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
+                                            ? "bg-[var(--theme-accent)] text-white font-semibold"
+                                            : "bg-[var(--theme-sidebar)] text-[var(--theme-fg)] border border-[var(--theme-border)] hover:bg-black/10 dark:hover:bg-white/10"
                                                 }
                                         `}
                                         >
@@ -811,14 +802,13 @@ export default function CollectionPage() {
                             disabled={currentPage === collectionData.pagination.totalPages}
                             className="
                             px-3 py-1.5 rounded-md
-                            bg-[#e8d5b8] dark:bg-[#173c3f]
-                            text-[#193f44] dark:text-[#e8d5b8]
-                            border border-[#42c99c] dark:border-[#82664e]
+                            bg-[var(--theme-sidebar)]
+                            text-[var(--theme-fg)]
+                            border border-[var(--theme-border)]
                             hover:bg-black/10 dark:hover:bg-white/10
                             disabled:opacity-50 disabled:cursor-not-allowed
                             transition-colors
-                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                            dark:focus:ring-[#82664e]
+                            focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
                             flex items-center gap-1
                         "
                         >

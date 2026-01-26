@@ -94,9 +94,9 @@ export default function OpenDeckModal({
                         max-h-[90vh]
                         overflow-hidden
                         rounded-2xl border
-                        bg-[#f6ead6] dark:bg-[#0f2a2c]
+                        bg-[var(--theme-bg)]
                         border-black/10 dark:border-white/10
-                        text-[#193f44] dark:text-[#e8d5b8]
+                        text-[var(--theme-fg)]
                         shadow-[0_30px_80px_-35px_rgba(0,0,0,0.60)]
                         flex flex-col
                         "
@@ -113,8 +113,8 @@ export default function OpenDeckModal({
                             className="
                 rounded-md px-3 py-1.5 text-sm font-medium
                 bg-black/5 dark:bg-white/5
-                hover:bg-[#42c99c] dark:hover:bg-[#82664e]
-                border border-[#42c99c] dark:border-[#82664e]
+                hover:bg-[var(--theme-accent)]
+                border border-[var(--theme-border)]
                 transition-colors
                 focus:outline-none focus:ring-2 focus:ring-[#42c99c]
                 dark:focus:ring-[#82664e]
@@ -145,8 +145,7 @@ export default function OpenDeckModal({
                                             w-full rounded-md border px-3 py-2 text-sm
                                             bg-white/70 dark:bg-white/5
                                             border-black/10 dark:border-white/10
-                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                            dark:focus:ring-[#82664e]
+                                            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                         "
                                     />
                                 </div>
@@ -165,8 +164,7 @@ export default function OpenDeckModal({
                                             w-full rounded-md border px-3 py-2 text-sm
                                             bg-white/70 dark:bg-white/5
                                             border-black/10 dark:border-white/10
-                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                            dark:focus:ring-[#82664e]
+                                            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                             resize-none
                                         "
                                     />
@@ -184,8 +182,7 @@ export default function OpenDeckModal({
                                             w-full rounded-md border px-3 py-2 text-sm
                                             bg-white/70 dark:bg-white/5
                                             border-black/10 dark:border-white/10
-                                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                            dark:focus:ring-[#82664e]
+                                            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                         "
                                     >
                                         {Object.keys(FORMAT_RULES).map((k) => (
@@ -415,7 +412,7 @@ export default function OpenDeckModal({
                             disabled={!deckName.trim()}
                             className="
                 rounded-md px-4 py-2 text-sm font-medium text-white
-                bg-[#42c99c] dark:bg-[#82664e]
+                bg-[var(--theme-accent)]
                 hover:opacity-95 transition-opacity
                 disabled:opacity-50 disabled:cursor-not-allowed
               "

@@ -76,8 +76,8 @@ export default function CardModal({
           max-h-[90vh]
           overflow-y-auto
           rounded-lg
-          bg-[#f6ead6] dark:bg-[#173c3f]
-          border border-[#42c99c] dark:border-[#82664e]
+          bg-[var(--theme-bg)]
+          border border-[var(--theme-border)]
           p-6
           shadow-lg
         "

@@ -64,9 +64,9 @@ export default function Sets() {
         <main
             className="
                 min-h-[calc(100vh-8rem)]
-                bg-[#f6ead6] dark:bg-[#0f2a2c]
+                bg-[var(--theme-bg)]
                 px-6 py-6
-                text-[#193f44] dark:text-[#e8d5b8]
+                text-[var(--theme-fg)]
                 transition-all duration-300
             "
         >
@@ -86,14 +86,13 @@ export default function Sets() {
                         onClick={() => router.push(`/sets/browse?game=${game.id}`)}
                         className="
                             relative rounded-lg
-                            border border-[#42c99c] dark:border-[#82664e]
-                            bg-[#e8d5b8] dark:bg-[#173c3f]
+                            border border-[var(--theme-border)]
+                            bg-[var(--theme-sidebar)]
                             p-6
                             cursor-pointer
                             transition-all duration-200 ease-out
                             hover:-translate-y-0.5
-                            hover:border-[#2fbf8f]
-                            dark:hover:border-[#9b7a5f]
+                            hover:border-[var(--theme-accent-hover)]
                             hover:shadow-[0_0_20px_rgba(130,102,78,0.2)]
                             dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
                             "
@@ -123,7 +122,7 @@ export default function Sets() {
                 <div
                     className="
                         relative rounded-lg
-                        border border-dashed border-[#42c99c] dark:border-[#82664e]
+                        border border-dashed border-[var(--theme-border)]
                         bg-transparent
                         p-6
                         flex flex-col items-center justify-center

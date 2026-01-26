@@ -33,7 +33,7 @@ export default function Loading({
     return (
         <div className="flex flex-col items-center justify-center gap-3">
             <motion.div
-                className={`rounded-full ${sizeClasses[size]} border-[#42c99c] dark:border-[#82664e]`}
+                className={`rounded-full ${sizeClasses[size]} border-[var(--theme-accent)]`}
                 style={{
                     borderTopColor: "transparent", // Creates the spinning effect
                 }}

@@ -266,9 +266,9 @@ export default function BrowseSets() {
             <main
                 className="
         min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        bg-[var(--theme-bg)]
         px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+        text-[var(--theme-fg)]
         transition-all duration-300
       "
             >
@@ -282,9 +282,9 @@ export default function BrowseSets() {
             <main
                 className="
         min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        bg-[var(--theme-bg)]
         px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+        text-[var(--theme-fg)]
         transition-all duration-300
       "
             >
@@ -299,9 +299,9 @@ export default function BrowseSets() {
         <main
             className="
         min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        bg-[var(--theme-bg)]
         px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+        text-[var(--theme-fg)]
         transition-all duration-300
       "
         >
@@ -325,15 +325,14 @@ export default function BrowseSets() {
             flex items-center gap-2
             px-3 py-1.5
             rounded-md
-            border border-[#42c99c] dark:border-[#82664e]
-            text-[#193f44] dark:text-[#e8d5b8]
+            border border-[var(--theme-border)]
+            text-[var(--theme-fg)]
             bg-black/5 dark:bg-white/5
             hover:bg-black/10 dark:hover:bg-white/10
             transition-all duration-200 ease-out
             hover:translate-x-0.5
             focus:outline-none
-            focus:ring-2 focus:ring-[#42c99c]
-            dark:focus:ring-[#82664e]
+            focus:ring-2 focus:ring-[var(--theme-accent)]
             cursor-pointer
           "
                 >
@@ -354,7 +353,7 @@ export default function BrowseSets() {
                     <div
                         className="
                         rounded-lg
-                        border border-dashed border-[#42c99c] dark:border-[#82664e]
+                        border border-dashed border-[var(--theme-border)]
                         bg-transparent
                         p-12
                         flex flex-col items-center justify-center
@@ -374,12 +373,11 @@ export default function BrowseSets() {
                             className="
                             text-sm font-medium
                             px-4 py-2 rounded-md
-                            bg-[#42c99c] dark:bg-[#82664e]
+                            bg-[var(--theme-accent)]
                             text-white
-                            hover:bg-[#36c293] dark:hover:bg-[#9d7a5f]
+                            hover:bg-[var(--theme-accent-hover)]
                             transition-colors
-                            focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                            dark:focus:ring-[#82664e]
+                            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                         "
                         >
                             Back to Game Selection
@@ -401,10 +399,9 @@ export default function BrowseSets() {
                             className="
                 rounded-md px-2 py-1 text-sm
                 bg-black/5 dark:bg-white/5
-                border border-[#42c99c] dark:border-[#82664e]
+                border border-[var(--theme-border)]
                 focus:outline-none
-                focus:ring-2 focus:ring-[#42c99c]
-                dark:focus:ring-[#82664e]
+                focus:ring-2 focus:ring-[var(--theme-accent)]
               "
                         >
                             <option value="all">All</option>
@@ -422,10 +419,9 @@ export default function BrowseSets() {
                             className="
                 rounded-md px-2 py-1 text-sm
                 bg-black/5 dark:bg-white/5
-                border border-[#42c99c] dark:border-[#82664e]
+                border border-[var(--theme-border)]
                 focus:outline-none
-                focus:ring-2 focus:ring-[#42c99c]
-                dark:focus:ring-[#82664e]
+                focus:ring-2 focus:ring-[var(--theme-accent)]
               "
                         >
                             <option value="newest">Newest First</option>
@@ -453,14 +449,13 @@ export default function BrowseSets() {
                         disabled={currentPage === 1}
                         className="
               px-3 py-1.5 rounded-md
-              bg-[#e8d5b8] dark:bg-[#173c3f]
-              text-[#193f44] dark:text-[#e8d5b8]
-              border border-[#42c99c] dark:border-[#82664e]
+              bg-[var(--theme-sidebar)]
+              text-[var(--theme-fg)]
+              border border-[var(--theme-border)]
               hover:bg-black/10 dark:hover:bg-white/10
               disabled:opacity-50 disabled:cursor-not-allowed
               transition-colors
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-              dark:focus:ring-[#82664e]
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
               flex items-center gap-1
             "
                     >
@@ -483,11 +478,10 @@ export default function BrowseSets() {
                                         className={`
                       px-3 py-1.5 rounded-md text-sm
                       transition-colors
-                      focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                      dark:focus:ring-[#82664e]
+                      focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                       ${currentPage === page
-                                                ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
-                                                : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
+                                                ? "bg-[var(--theme-accent)] text-white font-semibold"
+                                                : "bg-[var(--theme-sidebar)] text-[var(--theme-fg)] border border-[var(--theme-border)] hover:bg-black/10 dark:hover:bg-white/10"
                                             }
                     `}
                                     >
@@ -511,14 +505,13 @@ export default function BrowseSets() {
                         disabled={currentPage === totalPages}
                         className="
               px-3 py-1.5 rounded-md
-              bg-[#e8d5b8] dark:bg-[#173c3f]
-              text-[#193f44] dark:text-[#e8d5b8]
-              border border-[#42c99c] dark:border-[#82664e]
+              bg-[var(--theme-sidebar)]
+              text-[var(--theme-fg)]
+              border border-[var(--theme-border)]
               hover:bg-black/10 dark:hover:bg-white/10
               disabled:opacity-50 disabled:cursor-not-allowed
               transition-colors
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-              dark:focus:ring-[#82664e]
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
               flex items-center gap-1
             "
                     >
@@ -561,14 +554,13 @@ export default function BrowseSets() {
                         disabled={currentPage === 1}
                         className="
               px-3 py-1.5 rounded-md
-              bg-[#e8d5b8] dark:bg-[#173c3f]
-              text-[#193f44] dark:text-[#e8d5b8]
-              border border-[#42c99c] dark:border-[#82664e]
+              bg-[var(--theme-sidebar)]
+              text-[var(--theme-fg)]
+              border border-[var(--theme-border)]
               hover:bg-black/10 dark:hover:bg-white/10
               disabled:opacity-50 disabled:cursor-not-allowed
               transition-colors
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-              dark:focus:ring-[#82664e]
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
               flex items-center gap-1
             "
                     >
@@ -591,11 +583,10 @@ export default function BrowseSets() {
                                         className={`
                       px-3 py-1.5 rounded-md text-sm
                       transition-colors
-                      focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                      dark:focus:ring-[#82664e]
+                      focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                       ${currentPage === page
-                                                ? "bg-[#42c99c] dark:bg-[#82664e] text-white font-semibold"
-                                                : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] border border-[#42c99c] dark:border-[#82664e] hover:bg-black/10 dark:hover:bg-white/10"
+                                                ? "bg-[var(--theme-accent)] text-white font-semibold"
+                                                : "bg-[var(--theme-sidebar)] text-[var(--theme-fg)] border border-[var(--theme-border)] hover:bg-black/10 dark:hover:bg-white/10"
                                             }
                     `}
                                     >
@@ -619,14 +610,13 @@ export default function BrowseSets() {
                         disabled={currentPage === totalPages}
                         className="
               px-3 py-1.5 rounded-md
-              bg-[#e8d5b8] dark:bg-[#173c3f]
-              text-[#193f44] dark:text-[#e8d5b8]
-              border border-[#42c99c] dark:border-[#82664e]
+              bg-[var(--theme-sidebar)]
+              text-[var(--theme-fg)]
+              border border-[var(--theme-border)]
               hover:bg-black/10 dark:hover:bg-white/10
               disabled:opacity-50 disabled:cursor-not-allowed
               transition-colors
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-              dark:focus:ring-[#82664e]
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
               flex items-center gap-1
             "
                     >

@@ -394,9 +394,9 @@ export default function SetDetailPage({ params }: PageProps) {
             <main
                 className="
         min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        bg-[var(--theme-bg)]
         px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+        text-[var(--theme-fg)]
         transition-all duration-300
       "
             >
@@ -412,9 +412,9 @@ export default function SetDetailPage({ params }: PageProps) {
             <main
                 className="
         min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        bg-[var(--theme-bg)]
         px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+        text-[var(--theme-fg)]
         transition-all duration-300
       "
             >
@@ -429,14 +429,14 @@ export default function SetDetailPage({ params }: PageProps) {
         <main
             className="
         min-h-[calc(100vh-8rem)]
-        bg-[#f6ead6] dark:bg-[#0f2a2c]
+        bg-[var(--theme-bg)]
         px-6 py-6
-        text-[#193f44] dark:text-[#e8d5b8]
+        text-[var(--theme-fg)]
         transition-all duration-300
       "
         >
             {/* Header */}
-            <section className="mb-6 flex items-center sticky top-0 border-b border-black/10 dark:border-[#82664e]/10 bg-white dark:bg-[#0f2a2c] z-10">
+            <section className="mb-6 flex items-center sticky top-0 border-b border-black/10 dark:border-[var(--theme-border)]/10 bg-white dark:bg-[var(--theme-bg)] z-10">
                 {/* Left: Back Button */}
                 <div className="flex-1 flex justify-start">
                     <button
@@ -445,8 +445,8 @@ export default function SetDetailPage({ params }: PageProps) {
                         className="
         flex items-center gap-2
         text-sm opacity-80
-        border border-[#42c99c] dark:border-[#82664e]
-        bg-[#e8d5b8] dark:bg-[#173c3f]
+        border border-[var(--theme-border)]
+        bg-[var(--theme-sidebar)]
         rounded-md p-2
         hover:bg-black/10 dark:hover:bg-white/10
         hover:opacity-100
@@ -481,10 +481,10 @@ export default function SetDetailPage({ params }: PageProps) {
                                 className="
           flex items-center gap-2
           text-sm opacity-80
-          border border-[#42c99c] dark:border-[#82664e]
-          bg-[#e8d5b8] dark:bg-[#173c3f]
-          rounded-md p-2
-          hover:bg-black/10 dark:hover:bg-white/10
+        border border-[var(--theme-border)]
+        bg-[var(--theme-sidebar)]
+        rounded-md p-2
+        hover:bg-black/10 dark:hover:bg-white/10
           hover:opacity-100
           transition-opacity
         "
@@ -501,8 +501,8 @@ export default function SetDetailPage({ params }: PageProps) {
                                     className="
             flex items-center gap-2
             text-sm opacity-80
-            border border-[#42c99c] dark:border-[#82664e]
-            bg-[#e8d5b8] dark:bg-[#173c3f]
+            border border-[var(--theme-border)]
+            bg-[var(--theme-sidebar)]
             rounded-md p-2
             hover:bg-black/10 dark:hover:bg-white/10
             hover:opacity-100
@@ -526,8 +526,8 @@ export default function SetDetailPage({ params }: PageProps) {
                                     className="
             flex items-center gap-2
             text-sm opacity-80
-            border border-[#42c99c] dark:border-[#82664e]
-            bg-[#e8d5b8] dark:bg-[#173c3f]
+            border border-[var(--theme-border)]
+            bg-[var(--theme-sidebar)]
             rounded-md p-2
             hover:bg-black/10 dark:hover:bg-white/10
             hover:opacity-100
@@ -545,8 +545,8 @@ export default function SetDetailPage({ params }: PageProps) {
                                             className="
                 flex items-center gap-2
                 text-sm opacity-80
-                border border-[#42c99c] dark:border-[#82664e]
-                bg-[#e8d5b8] dark:bg-[#173c3f]
+                border border-[var(--theme-border)]
+                bg-[var(--theme-sidebar)]
                 rounded-md p-2
                 hover:bg-black/10 dark:hover:bg-white/10
                 hover:opacity-100
@@ -562,8 +562,8 @@ export default function SetDetailPage({ params }: PageProps) {
                                             className="
                 flex items-center gap-2
                 text-sm opacity-80
-                border border-[#42c99c] dark:border-[#82664e]
-                bg-[#e8d5b8] dark:bg-[#173c3f]
+                border border-[var(--theme-border)]
+                bg-[var(--theme-sidebar)]
                 rounded-md p-2
                 hover:bg-black/10 dark:hover:bg-white/10
                 hover:opacity-100
@@ -585,7 +585,7 @@ export default function SetDetailPage({ params }: PageProps) {
             flex items-center gap-2
             text-sm opacity-80
             border border-red-400 dark:border-red-600
-            bg-[#e8d5b8] dark:bg-[#173c3f]
+            bg-[var(--theme-sidebar)]
             rounded-md p-2
             hover:bg-black/10 dark:hover:bg-white/10
             hover:opacity-100
@@ -796,13 +796,12 @@ export default function SetDetailPage({ params }: PageProps) {
                                     className={`
                                         px-4 py-2 rounded-md
                                         text-sm font-medium
-                                        border border-[#42c99c] dark:border-[#82664e]
+                                        border border-[var(--theme-border)]
                                         transition-all duration-200
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                         ${selectedCard && wishlistedCards.has(selectedCard.id)
-                                            ? "bg-[#42c99c] dark:bg-[#82664e] text-white"
-                                            : "bg-[#e8d5b8] dark:bg-[#173c3f] text-[#193f44] dark:text-[#e8d5b8] hover:bg-[#42c99c] hover:text-white dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]"
+                                            ? "bg-[var(--theme-accent)] text-white"
+                                            : "bg-[var(--theme-sidebar)] text-[var(--theme-fg)] hover:bg-[var(--theme-accent)] hover:text-white"
                                         }
                                     `}
                                 >
@@ -822,14 +821,12 @@ export default function SetDetailPage({ params }: PageProps) {
                                     className="
                                         px-4 py-2 rounded-md
                                         text-sm font-medium
-                                        border border-[#42c99c] dark:border-[#82664e]
-                                        bg-[#e8d5b8] dark:bg-[#173c3f]
-                                        text-[#193f44] dark:text-[#e8d5b8]
-                                        hover:bg-[#42c99c] hover:text-white
-                                        dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]
+                                        border border-[var(--theme-border)]
+                                        bg-[var(--theme-sidebar)]
+                                        text-[var(--theme-fg)]
+                                        hover:bg-[var(--theme-accent)] hover:text-white
                                         transition-all duration-200
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 >
                                     Add to Deck
@@ -845,14 +842,12 @@ export default function SetDetailPage({ params }: PageProps) {
                                     className="
                                         px-4 py-2 rounded-md
                                         text-sm font-medium
-                                        border border-[#42c99c] dark:border-[#82664e]
-                                        bg-[#e8d5b8] dark:bg-[#173c3f]
-                                        text-[#193f44] dark:text-[#e8d5b8]
-                                        hover:bg-[#42c99c] hover:text-white
-                                        dark:hover:bg-[#82664e] dark:hover:text-[#e8d5b8]
+                                        border border-[var(--theme-border)]
+                                        bg-[var(--theme-sidebar)]
+                                        text-[var(--theme-fg)]
+                                        hover:bg-[var(--theme-accent)] hover:text-white
                                         transition-all duration-200
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 >
                                     Add to Binder
