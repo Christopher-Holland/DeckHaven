@@ -14,6 +14,8 @@
 import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGameFilter } from "@/app/components/GameFilterContext";
+import { useUser } from "@stackframe/stack";
+import { useEffect, useState } from "react";
 
 type CardGame = {
     id: string;
@@ -21,27 +23,6 @@ type CardGame = {
     imageSrc: string;
     ownedCount: number;
 };
-
-const demoGames: CardGame[] = [
-    {
-        id: "mtg",
-        name: "Magic the Gathering",
-        imageSrc: "/images/DeckHaven-Shield.png",
-        ownedCount: 12,
-    },
-    {
-        id: "ptcg",
-        name: "Pokémon",
-        imageSrc: "/images/DeckHaven-Shield.png",
-        ownedCount: 12,
-    },
-    {
-        id: "ytcg",
-        name: "Yu-Gi-Oh!",
-        imageSrc: "/images/DeckHaven-Shield.png",
-        ownedCount: 12,
-    },
-];
 
 // Map game filter from BrandNav to sets page game IDs
 const gameIdMap: Record<string, string> = {
@@ -53,6 +34,68 @@ const gameIdMap: Record<string, string> = {
 export default function Sets() {
     const router = useRouter();
     const { game } = useGameFilter();
+    const user = useUser();
+    const [games, setGames] = useState<CardGame[]>([
+        {
+            id: "mtg",
+            name: "Magic the Gathering",
+            imageSrc: "/images/DeckHaven-Shield.png",
+            ownedCount: 0,
+        },
+        {
+            id: "ptcg",
+            name: "Pokémon",
+            imageSrc: "/images/DeckHaven-Shield.png",
+            ownedCount: 0,
+        },
+        {
+            id: "ytcg",
+            name: "Yu-Gi-Oh!",
+            imageSrc: "/images/DeckHaven-Shield.png",
+            ownedCount: 0,
+        },
+    ]);
+
+    // Fetch collection counts by game
+    useEffect(() => {
+        if (!user) {
+            // Reset to 0 if user is not logged in
+            setGames(prev => prev.map(g => ({ ...g, ownedCount: 0 })));
+            return;
+        }
+
+        async function fetchCollectionCounts() {
+            try {
+                // Fetch collection data - the API returns totalQuantity which is the sum of all quantities
+                // We only need the first page to get the pagination metadata
+                const response = await fetch("/api/collection?page=1&limit=1");
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+                
+                // Currently all cards come from Scryfall (MTG only)
+                // The totalQuantity field represents the sum of all card quantities in the collection
+                // In the future, we may need to check card data to determine game
+                // For now, all cards are MTG
+                const mtgCount = data.pagination?.totalQuantity || 0;
+                
+                // Pokemon and Yu-Gi-Oh counts are 0 since no cards from those games exist yet
+                // (all cards are from Scryfall which is MTG only)
+                setGames(prev => prev.map(g => {
+                    if (g.id === "mtg") {
+                        return { ...g, ownedCount: mtgCount };
+                    }
+                    return { ...g, ownedCount: 0 };
+                }));
+            } catch (err) {
+                // Silently fail - counts will remain at 0
+            }
+        }
+
+        fetchCollectionCounts();
+    }, [user]);
 
     // Don't render the page if a specific game is selected
     // GameFilterContext will handle navigation to /sets/browse
@@ -80,7 +123,7 @@ export default function Sets() {
 
             {/* Game Selection Grid */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {demoGames.map((game) => (
+                {games.map((game) => (
                     <div
                         key={game.id}
                         onClick={() => router.push(`/sets/browse?game=${game.id}`)}
