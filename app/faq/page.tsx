@@ -112,7 +112,7 @@ const faqs: FAQItem[] = [
 
 export default function FAQPage() {
     return (
-        <main className="min-h-screen px-6 py-8 bg-[#f6ead6] dark:bg-[#0f2a2c] text-[#193f44] dark:text-[#e8d5b8]">
+        <main className="min-h-screen px-6 py-8 bg-[var(--theme-bg)] text-[var(--theme-fg)]">
             <div className="mx-auto w-full max-w-3xl">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold tracking-tight">FAQ</h1>
@@ -125,7 +125,7 @@ export default function FAQPage() {
                     {faqs.map((item, idx) => (
                         <details
                             key={idx}
-                            className="group rounded-xl border border-[#82664e]/35 dark:border-[#42c99c]/25 bg-white/70 dark:bg-[#1a3a3d]/50 backdrop-blur px-4 py-3"
+                            className="group rounded-xl border border-[var(--theme-border)]/35 bg-[var(--theme-card)]/70 backdrop-blur px-4 py-3"
                         >
                             <summary className="cursor-pointer list-none select-none flex items-center justify-between gap-4">
                                 <span className="text-base font-semibold">{item.q}</span>
@@ -141,7 +141,7 @@ export default function FAQPage() {
                     ))}
                 </section>
 
-                <footer className="mt-10 rounded-xl border border-[#82664e]/30 dark:border-[#42c99c]/20 bg-white/60 dark:bg-[#1a3a3d]/40 px-4 py-3">
+                <footer className="mt-10 rounded-xl border border-[var(--theme-border)]/30 bg-[var(--theme-card)]/60 px-4 py-3">
                     <p className="text-sm opacity-80">
                         DeckHaven is built to feel familiar, not overwhelming. Take it one
                         step at a time.
