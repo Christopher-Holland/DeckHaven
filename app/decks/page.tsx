@@ -14,6 +14,7 @@ import { useUser } from "@stackframe/stack";
 import Loading from "@/app/components/Loading";
 import { useRouter } from "next/navigation";
 import { useDrawer } from "@/app/components/Drawer/drawerProvider";
+import { useToast } from "@/app/components/ToastContext";
 
 type Deck = {
     id: string;
@@ -194,6 +195,7 @@ export default function DecksPage() {
     const user = useUser();
     const router = useRouter();
     const { open } = useDrawer();
+    const { showToast } = useToast();
     const [decks, setDecks] = useState<Deck[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -254,7 +256,7 @@ export default function DecksPage() {
                 setDecks(decksData.decks || []);
             }
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Failed to create deck");
+            showToast(err instanceof Error ? err.message : "Failed to create deck", "error");
         }
     };
 

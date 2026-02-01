@@ -21,6 +21,7 @@ import type { ScryfallCard } from "@/app/lib/scryfall";
 import EditCardListModal, { type EditableCard } from "./editCardListModal";
 import { useRouter } from "next/navigation";
 import { useGameFilter } from "@/app/components/GameFilterContext";
+import { useToast } from "@/app/components/ToastContext";
 
 type CollectionItem = {
     id: string;
@@ -64,6 +65,7 @@ export default function CollectionPage() {
     const [selectedTag, setSelectedTag] = useState<string>("all");
     const [filterMenuOpen, setFilterMenuOpen] = useState(false);
     const { game } = useGameFilter();
+    const { showToast } = useToast();
 
     // Reset to page 1 when game filter changes
     useEffect(() => {
@@ -222,7 +224,7 @@ export default function CollectionPage() {
                 });
             }
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Failed to update quantity");
+            showToast(err instanceof Error ? err.message : "Failed to update quantity", "error");
         } finally {
             setUpdatingQuantities(prev => {
                 const next = new Set(prev);

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { FORMAT_RULES, type FormatKey, type FormatRules } from "@/app/lib/mtgFormatRules";
+import { useToast } from "@/app/components/ToastContext";
 
 type DeckData = {
     name: string;
@@ -41,6 +42,7 @@ export default function OpenDeckModal({
     onSuccess,
     children,
 }: OpenDeckModalProps) {
+    const { showToast } = useToast();
     const [selectedFormat, setSelectedFormat] = useState<FormatKey>(format);
     const [deckBoxColor, setDeckBoxColor] = useState<string>(initialDeckBoxColor);
     const [trimColor, setTrimColor] = useState<string>(initialTrimColor);
@@ -375,7 +377,7 @@ export default function OpenDeckModal({
                         <button
                             onClick={async () => {
                                 if (!deckName.trim()) {
-                                    alert("Please enter a deck name");
+                                    showToast("Please enter a deck name", "warning");
                                     return;
                                 }
 

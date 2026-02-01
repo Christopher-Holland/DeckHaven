@@ -8,6 +8,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useUser } from "@stackframe/stack";
 import ConfirmDeleteModal from "@/app/components/confirmDeleteModal";
 import { useDrawer } from "@/app/components/Drawer/drawerProvider";
+import { useToast } from "@/app/components/ToastContext";
 
 type Binder = {
     id: string;
@@ -36,6 +37,7 @@ export default function BinderPage() {
     const binderId = params?.binderId as string;
     const user = useUser();
     const { open } = useDrawer();
+    const { showToast } = useToast();
     const [deleting, setDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [isFlipping, setIsFlipping] = useState(false);
@@ -365,7 +367,7 @@ export default function BinderPage() {
                 setBinderCards(cards);
             }
         } catch (error) {
-            alert(error instanceof Error ? error.message : "Failed to move card");
+            showToast(error instanceof Error ? error.message : "Failed to move card", "error");
         }
     };
 
@@ -391,7 +393,7 @@ export default function BinderPage() {
                 setBinderCards(cards);
             }
         } catch (error) {
-            alert(error instanceof Error ? error.message : "Failed to delete card");
+            showToast(error instanceof Error ? error.message : "Failed to delete card", "error");
         }
     };
 
@@ -430,7 +432,7 @@ export default function BinderPage() {
                 }
                 return next;
             });
-            alert(error instanceof Error ? error.message : "Failed to add card to collection");
+            showToast(error instanceof Error ? error.message : "Failed to add card to collection", "error");
         } finally {
             setAddingToCollection(null);
         }
@@ -1166,7 +1168,7 @@ export default function BinderPage() {
                             }
                             router.push("/collection/binders");
                         } catch (err) {
-                            alert(err instanceof Error ? err.message : "Failed to delete binder");
+                            showToast(err instanceof Error ? err.message : "Failed to delete binder", "error");
                         } finally {
                             setDeleting(false);
                             setDeleteModalOpen(false);

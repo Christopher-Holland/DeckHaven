@@ -271,7 +271,7 @@ export default function DeckPage() {
             // Remove from local state
             setDeckCards((prev) => prev.filter((dc) => dc.id !== deckCardId));
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Failed to remove card from deck");
+            showToast(err instanceof Error ? err.message : "Failed to remove card from deck", "error");
         }
     };
 

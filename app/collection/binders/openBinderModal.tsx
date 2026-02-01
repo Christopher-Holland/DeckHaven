@@ -5,6 +5,7 @@ import { Edit, Plus, Trash, X, ChevronLeft, ChevronRight, Trash2, RotateCcw, Ski
 import EditBinderModal from "./editBinderModal";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import AddToBinderModal from "./addToBinderModal";
+import { useToast } from "@/app/components/ToastContext";
 
 type Binder = {
     id: string;
@@ -36,6 +37,7 @@ type Props = {
 };
 
 export default function OpenBinderModal({ open, binder, cards = [], onClose, onSuccess }: Props) {
+    const { showToast } = useToast();
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -309,7 +311,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 setBinderCards(cards);
             }
         } catch (error) {
-            alert(error instanceof Error ? error.message : "Failed to move card");
+            showToast(error instanceof Error ? error.message : "Failed to move card", "error");
         }
     };
 
@@ -335,7 +337,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 setBinderCards(cards);
             }
         } catch (error) {
-            alert(error instanceof Error ? error.message : "Failed to delete card");
+            showToast(error instanceof Error ? error.message : "Failed to delete card", "error");
         }
     };
 
@@ -655,7 +657,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                     onSuccess();
                                 }
                             } catch (err) {
-                                alert(err instanceof Error ? err.message : "Failed to delete binder");
+                                showToast(err instanceof Error ? err.message : "Failed to delete binder", "error");
                             } finally {
                                 setDeleting(false);
                             }

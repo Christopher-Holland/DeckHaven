@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FORMAT_RULES, type FormatKey, type FormatRules } from "@/app/lib/mtgFormatRules";
 import { useDrawer } from "./drawerProvider";
+import { useToast } from "@/app/components/ToastContext";
 
 type DeckData = {
     name: string;
@@ -26,6 +27,7 @@ function RuleCard({ label, value }: { label: string; value: string }) {
 
 export function CreateDeckDrawer() {
     const { state, close } = useDrawer();
+    const { showToast } = useToast();
     const onSuccess = state.payload?.onSuccess as ((deckData: DeckData) => Promise<void> | void) | undefined;
     const initialFormat = (state.payload?.format as FormatKey | undefined) || "Standard";
     const initialDeckBoxColor = (state.payload?.deckBoxColor as string | undefined) || "#ffffff";
@@ -50,7 +52,7 @@ export function CreateDeckDrawer() {
 
     const handleCreate = async () => {
         if (!deckName.trim()) {
-            alert("Please enter a deck name");
+            showToast("Please enter a deck name", "warning");
             return;
         }
 

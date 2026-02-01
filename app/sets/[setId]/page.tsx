@@ -698,8 +698,7 @@ export default function SetDetailPage({ params }: PageProps) {
                             }
                         }
                     } catch (err) {
-                        // Error adding cards to binder
-                        alert(err instanceof Error ? err.message : "Failed to add cards to binder");
+                        showToast(err instanceof Error ? err.message : "Failed to add cards to binder", "error");
                         throw err;
                     }
                 }}

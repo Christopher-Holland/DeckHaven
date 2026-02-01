@@ -17,10 +17,12 @@ import type { ScryfallCard } from "@/app/lib/scryfall";
 import AddToCollectionControl from "@/app/components/AddToCollectionControl";
 import AddToWishlist from "@/app/components/AddToWishlist";
 import Loading from "@/app/components/Loading";
+import { useToast } from "@/app/components/ToastContext";
 
 function SearchContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { showToast } = useToast();
     const query = searchParams.get("q") || "";
     
     const [searchQuery, setSearchQuery] = useState(query);
@@ -49,11 +51,8 @@ function SearchContent() {
                 const wishlistResponse = await fetch("/api/wishlist");
                 if (wishlistResponse.ok) {
                     const wishlistData = await wishlistResponse.json();
-                    const wishlistSet = new Set<string>();
-                    wishlistData.items?.forEach((item: { cardId: string }) => {
-                        wishlistSet.add(item.cardId);
-                    });
-                    setWishlistedCards(wishlistSet);
+                    const ids = wishlistData.wishlist || [];
+                    setWishlistedCards(new Set(ids));
                 }
             } catch (err) {
                 // Silently fail - user data is optional
@@ -126,35 +125,37 @@ function SearchContent() {
                 return next;
             });
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Failed to update collection");
+            showToast(err instanceof Error ? err.message : "Failed to update collection", "error");
         }
     };
 
     const handleWishlistToggle = async (cardId: string) => {
         try {
             const isWishlisted = wishlistedCards.has(cardId);
+            const newWishlisted = !isWishlisted;
             const response = await fetch("/api/wishlist", {
-                method: isWishlisted ? "DELETE" : "POST",
+                method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cardId }),
+                body: JSON.stringify({ cardId, isWishlisted: newWishlisted }),
             });
 
             if (!response.ok) {
-                throw new Error("Failed to update wishlist");
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data.error || "Failed to update wishlist");
             }
 
             // Update local state
             setWishlistedCards(prev => {
                 const next = new Set(prev);
-                if (isWishlisted) {
-                    next.delete(cardId);
-                } else {
+                if (newWishlisted) {
                     next.add(cardId);
+                } else {
+                    next.delete(cardId);
                 }
                 return next;
             });
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Failed to update wishlist");
+            showToast(err instanceof Error ? err.message : "Failed to update wishlist", "error");
         }
     };
 
