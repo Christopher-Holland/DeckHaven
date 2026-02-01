@@ -18,6 +18,7 @@ import {
     defaultAccentColor,
     getThemeColors
 } from "@/app/lib/themes";
+import { logger } from "@/app/lib/logger";
 
 interface ThemeContextType {
     baseTheme: BaseThemeId;
@@ -83,7 +84,7 @@ export function DeckHavenThemeProvider({ children }: { children: ReactNode }) {
 
     const setBaseTheme = (themeId: BaseThemeId) => {
         if (!baseThemes[themeId]) {
-            console.warn(`Base theme ${themeId} not found, using default`);
+            logger.warn(`Base theme ${themeId} not found, using default`);
             setBaseThemeState(defaultBaseTheme);
             localStorage.setItem("deckhaven-base-theme", defaultBaseTheme);
             return;
@@ -94,7 +95,7 @@ export function DeckHavenThemeProvider({ children }: { children: ReactNode }) {
 
     const setAccentColor = (colorId: AccentColorId) => {
         if (!accentColors[colorId]) {
-            console.warn(`Accent color ${colorId} not found, using default`);
+            logger.warn(`Accent color ${colorId} not found, using default`);
             setAccentColorState(defaultAccentColor);
             localStorage.setItem("deckhaven-accent-color", defaultAccentColor);
             return;

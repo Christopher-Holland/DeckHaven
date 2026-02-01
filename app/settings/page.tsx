@@ -7,6 +7,7 @@ import { useToast } from "@/app/components/ToastContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeckHavenTheme } from "@/app/components/ThemeContext";
 import { baseThemes, accentColors, type BaseThemeId, type AccentColorId } from "@/app/lib/themes";
+import { logger } from "@/app/lib/logger";
 
 type Tab = "account" | "appearance" | "security" | "notifications" | "about";
 
@@ -169,8 +170,7 @@ function SecurityPanel({ user, showToast }: { user: ReturnType<typeof useUser>; 
                          searchParams.get("reset_token");
         const resetParam = searchParams.get("reset");
         
-        // Log all params for debugging
-        console.log("SecurityPanel - URL params:", {
+        logger.debug("SecurityPanel - URL params:", {
             code: searchParams.get("code"),
             reset_code: searchParams.get("reset_code"),
             token: searchParams.get("token"),
@@ -178,7 +178,7 @@ function SecurityPanel({ user, showToast }: { user: ReturnType<typeof useUser>; 
             reset: searchParams.get("reset"),
             allParams: Object.fromEntries(searchParams.entries()),
         });
-        
+
         if (resetCode) {
             setCode(resetCode);
             setStep("reset");

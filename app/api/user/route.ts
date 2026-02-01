@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
+import { logger } from "@/app/lib/logger";
 
 export async function PATCH(request: NextRequest) {
     try {
@@ -43,7 +44,7 @@ export async function PATCH(request: NextRequest) {
             } catch {
                 errorData = { message: errorText || response.statusText };
             }
-            console.error("Stack Auth API error:", {
+            logger.error("Stack Auth API error:", {
                 status: response.status,
                 statusText: response.statusText,
                 error: errorData,
@@ -55,7 +56,7 @@ export async function PATCH(request: NextRequest) {
 
         return NextResponse.json({ user: updatedUser });
     } catch (error) {
-        console.error("Error updating user:", error);
+        logger.error("Error updating user:", error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : "Failed to update user" },
             { status: 500 }
@@ -94,7 +95,7 @@ export async function DELETE(request: NextRequest) {
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Error deleting user:", error);
+        logger.error("Error deleting user:", error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : "Failed to delete user" },
             { status: 500 }

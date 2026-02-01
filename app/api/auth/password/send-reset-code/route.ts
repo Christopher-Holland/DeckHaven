@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/app/lib/logger";
 
 export async function POST(request: NextRequest) {
     try {
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
             } catch {
                 errorData = { message: errorText || response.statusText };
             }
-            console.error("Stack Auth send reset code error:", {
+            logger.error("Stack Auth send reset code error:", {
                 status: response.status,
                 statusText: response.statusText,
                 error: errorData,
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ success: result.success });
     } catch (error) {
-        console.error("Error sending reset code:", error);
+        logger.error("Error sending reset code:", error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : "Failed to send reset code" },
             { status: 500 }

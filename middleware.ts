@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { stackServerApp } from "./app/lib/stack";
 import { prisma } from "./app/lib/prisma";
+import { logger } from "./app/lib/logger";
 
 // Routes that require authentication
 const protectedRoutes = [
@@ -55,7 +56,7 @@ export async function middleware(request: NextRequest) {
                 },
             });
         } catch (error) {
-            console.error("Middleware error:", error);
+            logger.error("Middleware error:", error);
             // Continue to page even if sync fails
         }
     }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/app/lib/logger";
 
 export async function POST(request: NextRequest) {
     try {
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
             } catch {
                 errorData = { message: errorText || response.statusText };
             }
-            console.error("Stack Auth password reset error:", {
+            logger.error("Stack Auth password reset error:", {
                 status: response.status,
                 statusText: response.statusText,
                 error: errorData,
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ success: result.success });
     } catch (error) {
-        console.error("Error resetting password:", error);
+        logger.error("Error resetting password:", error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : "Failed to reset password" },
             { status: 500 }
