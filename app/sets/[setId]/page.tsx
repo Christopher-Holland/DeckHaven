@@ -18,8 +18,9 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowLeftIcon, Filter, FilterIcon } from "lucide-react";
-import SetCards from "./SetCards";
+import SetCards, { SET_CARD_HEIGHT } from "./SetCards";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import Loading from "@/app/components/Loading";
 import CardModal from "./cardModal";
@@ -39,7 +40,6 @@ export default function SetDetailPage({ params }: PageProps) {
     const { showToast } = useToast();
     const [setId, setSetId] = useState<string | null>(null);
     const [setName, setSetName] = useState<string>("");
-    const [cards, setCards] = useState<ScryfallCard[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [ownedCounts, setOwnedCounts] = useState<Map<string, number>>(new Map());
@@ -57,10 +57,21 @@ export default function SetDetailPage({ params }: PageProps) {
         rarity: "all",
         manaValue: "all",
     });
-    const [allCards, setAllCards] = useState<ScryfallCard[]>([]); // Store all cards before filtering
-    const [filteredCards, setFilteredCards] = useState<ScryfallCard[]>([]); // Store filtered cards
-    const [displayedCount, setDisplayedCount] = useState(60); // Number of cards to display (10 rows × 6 cols)
-    const CARDS_PER_BATCH = 60; // Load 60 cards per batch (10 rows)
+    const [allCards, setAllCards] = useState<ScryfallCard[]>([]);
+    const [filteredCards, setFilteredCards] = useState<ScryfallCard[]>([]);
+
+    const GRID_COLUMNS = 5;
+    const GRID_GAP = 24;
+    const ROW_HEIGHT = SET_CARD_HEIGHT + GRID_GAP;
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    const rowCount = Math.ceil(filteredCards.length / GRID_COLUMNS);
+    const rowVirtualizer = useVirtualizer({
+        count: rowCount,
+        getScrollElement: () => scrollContainerRef.current,
+        estimateSize: () => ROW_HEIGHT,
+        overscan: 2,
+    });
     // Resolve dynamic route param
     useEffect(() => {
         params.then((p) => setSetId(p.setId));
@@ -169,8 +180,6 @@ export default function SetDetailPage({ params }: PageProps) {
 
                 setAllCards(allCards);
                 setFilteredCards(allCards);
-                setCards(allCards.slice(0, CARDS_PER_BATCH)); // Show first batch initially
-                setDisplayedCount(CARDS_PER_BATCH);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load set");
             } finally {
@@ -316,8 +325,6 @@ export default function SetDetailPage({ params }: PageProps) {
         }
 
         setFilteredCards(filtered);
-        setCards(filtered.slice(0, CARDS_PER_BATCH)); // Show first batch of filtered results
-        setDisplayedCount(CARDS_PER_BATCH);
     };
 
     const clearFilters = () => {
@@ -329,64 +336,6 @@ export default function SetDetailPage({ params }: PageProps) {
         };
         setFilters(clearedFilters);
         setFilteredCards(allCards);
-        setCards(allCards.slice(0, CARDS_PER_BATCH));
-        setDisplayedCount(CARDS_PER_BATCH);
-    };
-
-    // Intersection Observer for infinite scroll
-    const filteredCardsRef = useRef(filteredCards);
-    const observerRef = useRef<IntersectionObserver | null>(null);
-    const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        filteredCardsRef.current = filteredCards;
-    }, [filteredCards]);
-
-    // Set up/recreate observer when sentinel element or displayedCount changes
-    useEffect(() => {
-        const sentinel = sentinelRef.current;
-        if (!sentinel) return;
-
-        // Clean up existing observer
-        if (observerRef.current) {
-            observerRef.current.disconnect();
-            observerRef.current = null;
-        }
-
-        // Only set up observer if we have more cards to load
-        if (displayedCount >= filteredCardsRef.current.length) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting) {
-                    setDisplayedCount((currentCount) => {
-                        const currentFiltered = filteredCardsRef.current;
-                        const newCount = currentCount + CARDS_PER_BATCH;
-                        if (newCount <= currentFiltered.length) {
-                            setCards(currentFiltered.slice(0, newCount));
-                            return newCount;
-                        }
-                        return currentCount;
-                    });
-                }
-            },
-            {
-                rootMargin: "200px", // Start loading 200px before reaching the sentinel
-            }
-        );
-
-        observer.observe(sentinel);
-        observerRef.current = observer;
-
-        return () => {
-            observer.disconnect();
-            observerRef.current = null;
-        };
-    }, [displayedCount, filteredCards.length]);
-
-    // Callback ref to store sentinel element reference
-    const sentinelRefCallback = (node: HTMLDivElement | null) => {
-        sentinelRef.current = node;
     };
 
     if (loading) {
@@ -436,7 +385,7 @@ export default function SetDetailPage({ params }: PageProps) {
       "
         >
             {/* Header */}
-            <section className="mb-6 flex items-center sticky top-0 border-b border-black/10 dark:border-[var(--theme-border)]/10 bg-white dark:bg-[var(--theme-bg)] z-10">
+            <section className="flex items-center sticky top-0 border-b border-black/10 dark:border-[var(--theme-border)]/10 bg-white dark:bg-[var(--theme-bg)] z-10 pb-4">
                 {/* Left: Back Button */}
                 <div className="flex-1 flex justify-start">
                     <button
@@ -465,7 +414,6 @@ export default function SetDetailPage({ params }: PageProps) {
                     </h2>
                     <p className="text-sm opacity-70 mt-1">
                         {filteredCards.length} card{filteredCards.length !== 1 ? "s" : ""} {filteredCards.length !== allCards.length ? "filtered" : "in this set"}
-                        {displayedCount < filteredCards.length && ` (showing ${displayedCount})`}
                     </p>
                 </div>
 
@@ -520,7 +468,7 @@ export default function SetDetailPage({ params }: PageProps) {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        const displayedCardIds = new Set(cards.map(c => c.id));
+                                        const displayedCardIds = new Set(filteredCards.map(c => c.id));
                                         setSelectedCardIds(displayedCardIds);
                                     }}
                                     className="
@@ -599,58 +547,78 @@ export default function SetDetailPage({ params }: PageProps) {
                     </div>
                 </div>
             </section>
-            {/* Cards Grid */}
-            <section className="grid grid-cols-1 md:grid-cols-6 gap-6">
-                {cards.map((card) => {
-                    const ownedCount = ownedCounts.get(card.id) || 0;
-                    const cardImage = card.image_uris?.normal ||
-                        card.image_uris?.large ||
-                        card.image_uris?.small ||
-                        card.card_faces?.[0]?.image_uris?.normal ||
-                        "/images/DeckHaven-Shield.png";
-                    const cardDescription = card.oracle_text ||
-                        card.type_line ||
-                        card.card_faces?.[0]?.oracle_text ||
-                        "";
+            {/* Virtualized Cards Grid — viewport starts at header bottom border */}
+            <section
+                ref={scrollContainerRef}
+                className="overflow-auto"
+                style={{ height: "calc(100vh - 12.5rem)" }}
+            >
+                <div
+                    style={{
+                        height: `${rowVirtualizer.getTotalSize()}px`,
+                        width: "100%",
+                        position: "relative",
+                    }}
+                >
+                    {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                        const startIndex = virtualRow.index * GRID_COLUMNS;
+                        const rowCards = filteredCards.slice(startIndex, startIndex + GRID_COLUMNS);
+                        return (
+                            <div
+                                key={virtualRow.key}
+                                className="absolute left-0 w-full px-6 grid grid-cols-1 md:grid-cols-5 gap-6"
+                                style={{
+                                    height: ROW_HEIGHT,
+                                    top: 0,
+                                    transform: `translateY(${virtualRow.start}px)`,
+                                }}
+                            >
+                                {rowCards.map((card) => {
+                                    const ownedCount = ownedCounts.get(card.id) || 0;
+                                    const cardImage =
+                                        card.image_uris?.normal ||
+                                        card.image_uris?.large ||
+                                        card.image_uris?.small ||
+                                        card.card_faces?.[0]?.image_uris?.normal ||
+                                        "/images/DeckHaven-Shield.png";
+                                    const cardDescription =
+                                        card.oracle_text ||
+                                        card.type_line ||
+                                        card.card_faces?.[0]?.oracle_text ||
+                                        "";
 
-                    return (
-                        <SetCards
-                            key={card.id}
-                            id={card.id}
-                            name={card.name}
-                            game="Magic the Gathering"
-                            imageSrc={cardImage}
-                            description={cardDescription}
-                            ownedCount={ownedCount}
-                            collectorNumber={card.collector_number}
-                            onOwnedCountChange={(count) => updateOwnedCount(card.id, count)}
-                            onCardClick={() => handleCardClick(card)}
-                            isWishlisted={wishlistedCards.has(card.id)}
-                            onWishlistToggle={() => toggleWishlist(card.id)}
-                            isSelectionMode={isSelectionMode}
-                            isSelected={selectedCardIds.has(card.id)}
-                            onSelectionToggle={(selected) => {
-                                setSelectedCardIds(prev => {
-                                    const next = new Set(prev);
-                                    if (selected) {
-                                        next.add(card.id);
-                                    } else {
-                                        next.delete(card.id);
-                                    }
-                                    return next;
-                                });
-                            }}
-                        />
-                    );
-                })}
-            </section>
-
-            {/* Scroll Sentinel for infinite scroll */}
-            {displayedCount < filteredCards.length && (
-                <div ref={sentinelRefCallback} className="h-10 flex items-center justify-center py-8">
-                    <div className="text-sm opacity-70">Loading more cards...</div>
+                                    return (
+                                        <SetCards
+                                            key={card.id}
+                                            id={card.id}
+                                            name={card.name}
+                                            game="Magic the Gathering"
+                                            imageSrc={cardImage}
+                                            description={cardDescription}
+                                            ownedCount={ownedCount}
+                                            collectorNumber={card.collector_number}
+                                            onOwnedCountChange={(count) => updateOwnedCount(card.id, count)}
+                                            onCardClick={() => handleCardClick(card)}
+                                            isWishlisted={wishlistedCards.has(card.id)}
+                                            onWishlistToggle={() => toggleWishlist(card.id)}
+                                            isSelectionMode={isSelectionMode}
+                                            isSelected={selectedCardIds.has(card.id)}
+                                            onSelectionToggle={(selected) => {
+                                                setSelectedCardIds((prev) => {
+                                                    const next = new Set(prev);
+                                                    if (selected) next.add(card.id);
+                                                    else next.delete(card.id);
+                                                    return next;
+                                                });
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        );
+                    })}
                 </div>
-            )}
+            </section>
 
             {/* Filters Modal */}
             <SetCardFiltersModal
