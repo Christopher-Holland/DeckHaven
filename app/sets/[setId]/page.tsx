@@ -550,7 +550,7 @@ export default function SetDetailPage({ params }: PageProps) {
             {/* Virtualized Cards Grid — viewport starts at header bottom border */}
             <section
                 ref={scrollContainerRef}
-                className="overflow-auto"
+                className="overflow-auto mt-4"
                 style={{ height: "calc(100vh - 12.5rem)" }}
             >
                 <div
