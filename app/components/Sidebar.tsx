@@ -107,7 +107,7 @@ export default function Sidebar() {
             {/* Brand Name */}
             {!isCollapsed && (
                 <div className="h-14 flex items-center justify-center px-6 border-b border-[var(--theme-border)]">
-                    <span className="text-lg font-bold text-[var(--theme-accent)]">DeckHaven</span>
+                    <span className="text-lg font-bold text-[var(--theme-fg)]">DeckHaven</span>
                 </div>
             )}
 
@@ -133,8 +133,8 @@ export default function Sidebar() {
                                 transition-all duration-200
                                 ${isCollapsed ? "flex items-center justify-center" : "flex items-center gap-3"}
                                 ${isActive
-                                    ? "text-[var(--theme-accent)] shadow-[0_0_15px_var(--theme-accent)]/30"
-                                    : "text-[var(--theme-fg)] hover:text-[var(--theme-accent)]"
+                                    ? "text-[var(--theme-fg)] shadow-[0_0_15px_var(--theme-fg)]/30"
+                                    : "text-[var(--theme-fg)] hover:text-[var(--theme-fg)]"
                                 }
                             `}
                             title={isCollapsed ? item.name : undefined}

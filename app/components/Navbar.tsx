@@ -34,7 +34,7 @@ function NavbarContent() {
 
             {/* Left: Logo */}
             <div className="flex items-center">
-                <h1 className="text-lg font-bold text-[var(--theme-accent)]">
+                <h1 className="text-lg font-bold text-[var(--theme-fg)]">
                     DeckHaven
                 </h1>
             </div>
@@ -115,7 +115,7 @@ export default function Navbar() {
         <Suspense fallback={
             <header className="h-20 w-full border-b border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-fg)] grid grid-cols-3 items-center px-6 transition-all duration-300">
                 <div className="flex items-center">
-                    <h1 className="text-lg font-bold text-[var(--theme-accent)]">
+                    <h1 className="text-lg font-bold text-[var(--theme-fg)]">
                         DeckHaven
                     </h1>
                 </div>
