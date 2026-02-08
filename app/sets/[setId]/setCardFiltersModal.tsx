@@ -84,14 +84,14 @@ export default function SetCardFiltersModal({
                         overflow-hidden
                         rounded-2xl border
                         bg-[var(--theme-bg)]
-                        border-black/10 dark:border-white/10
+                        border-[var(--theme-border)]
                         text-[var(--theme-fg)]
                         shadow-[0_30px_80px_-35px_rgba(0,0,0,0.60)]
                         flex flex-col
                     "
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 p-4">
+                    <div className="flex items-center justify-between gap-3 border-b border-[var(--theme-border)] p-4">
                         <div className="min-w-0">
                             <h3 className="text-base font-semibold truncate">Filter Cards</h3>
                             <p className="text-xs opacity-70 truncate">Filter cards by type, color, rarity, and mana value.</p>
@@ -101,8 +101,8 @@ export default function SetCardFiltersModal({
                             onClick={onClose}
                             className="
                                 rounded-md px-3 py-1.5 text-sm font-medium
-                                bg-black/5 dark:bg-white/5
-                                hover:bg-[var(--theme-accent)]
+                                bg-[var(--theme-card)]
+                                hover:bg-[var(--theme-accent)] hover:text-white
                                 border border-[var(--theme-border)]
                                 transition-colors
                                 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
@@ -127,8 +127,8 @@ export default function SetCardFiltersModal({
                                     onChange={(e) => setFilters({ ...filters, cardType: e.target.value as SetCardFilters["cardType"] })}
                                     className="
                                         w-full rounded-md border px-3 py-2 text-sm
-                                        bg-white/70 dark:bg-white/5
-                                        border-black/10 dark:border-white/10
+                                        bg-[var(--theme-sidebar)]
+                                        border-[var(--theme-border)]
                                         focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 >
@@ -150,8 +150,8 @@ export default function SetCardFiltersModal({
                                     onChange={(e) => setFilters({ ...filters, color: e.target.value as SetCardFilters["color"] })}
                                     className="
                                         w-full rounded-md border px-3 py-2 text-sm
-                                        bg-white/70 dark:bg-white/5
-                                        border-black/10 dark:border-white/10
+                                        bg-[var(--theme-sidebar)]
+                                        border-[var(--theme-border)]
                                         focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 >
@@ -173,8 +173,8 @@ export default function SetCardFiltersModal({
                                     onChange={(e) => setFilters({ ...filters, rarity: e.target.value as SetCardFilters["rarity"] })}
                                     className="
                                         w-full rounded-md border px-3 py-2 text-sm
-                                        bg-white/70 dark:bg-white/5
-                                        border-black/10 dark:border-white/10
+                                        bg-[var(--theme-sidebar)]
+                                        border-[var(--theme-border)]
                                         focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 >
@@ -196,8 +196,8 @@ export default function SetCardFiltersModal({
                                     onChange={(e) => setFilters({ ...filters, manaValue: e.target.value as SetCardFilters["manaValue"] })}
                                     className="
                                         w-full rounded-md border px-3 py-2 text-sm
-                                        bg-white/70 dark:bg-white/5
-                                        border-black/10 dark:border-white/10
+                                        bg-[var(--theme-sidebar)]
+                                        border-[var(--theme-border)]
                                         focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 >
@@ -212,14 +212,14 @@ export default function SetCardFiltersModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-end gap-2 border-t border-black/10 dark:border-white/10 p-4">
+                    <div className="flex items-center justify-end gap-2 border-t border-[var(--theme-border)] p-4">
                         <button
                             onClick={handleClear}
                             className="
                                 rounded-md px-4 py-2 text-sm font-medium
-                                bg-black/5 dark:bg-white/5
-                                hover:bg-black/10 dark:hover:bg-white/10
-                                border border-black/10 dark:border-white/10
+                                bg-[var(--theme-card)]
+                                hover:opacity-90
+                                border border-[var(--theme-border)]
                                 transition-colors
                             "
                         >
