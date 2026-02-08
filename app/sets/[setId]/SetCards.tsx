@@ -69,7 +69,7 @@ export default function SetCards({
 
     return (
         <div
-            className="flex flex-col gap-2 h-full min-h-0 overflow-hidden"
+            className="flex flex-col gap-2 h-full min-h-0 overflow-visible"
             style={{ height: SET_CARD_HEIGHT }}
         >
             {/* Card area: flex-1 with overflow-hidden so content stays inside */}
@@ -86,7 +86,7 @@ export default function SetCards({
                 tabIndex={onCardClick ? 0 : undefined}
                 className={`
           group relative rounded-lg border border-[var(--theme-border)]
-          bg-[var(--theme-sidebar)] p-3 flex flex-col min-h-0 flex-1 overflow-hidden
+          bg-[var(--theme-sidebar)] p-3 flex flex-col min-h-0 flex-1
           ${onCardClick ? "cursor-pointer" : ""}
           transition-all duration-200 ease-out
           ${isOwned ? "opacity-100" : "opacity-70 grayscale"}
@@ -115,11 +115,9 @@ export default function SetCards({
                 </div>
 
                 {/* Image: fills remaining space in card */}
-                <div className="w-full flex-1 min-h-0 flex items-center justify-center">
-                    <div
-                        className="w-full rounded overflow-hidden"
-                        style={{ aspectRatio: "488 / 680" }}
-                    >
+                {/* Image: fit inside fixed-height card without overflow */}
+                <div className="flex-1 min-h-0 flex items-center justify-center">
+                    <div className="h-full max-h-full aspect-[488/680] w-auto max-w-full rounded overflow-hidden">
                         {imageSrc && (
                             <img
                                 src={imageSrc}

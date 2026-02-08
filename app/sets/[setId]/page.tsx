@@ -225,6 +225,59 @@ export default function SetDetailPage({ params }: PageProps) {
         }
     };
 
+    const addSelectedToCollection = async () => {
+        const ids = Array.from(selectedCardIds);
+        if (ids.length === 0) return;
+
+        const previousCounts = new Map<string, number>();
+        ids.forEach((id) => previousCounts.set(id, ownedCounts.get(id) || 0));
+
+        // Optimistically add 1 of each selected card
+        setOwnedCounts((prev) => {
+            const next = new Map(prev);
+            ids.forEach((id) => {
+                const current = next.get(id) || 0;
+                next.set(id, current + 1);
+            });
+            return next;
+        });
+
+        const results = await Promise.allSettled(
+            ids.map((cardId) => {
+                const newQty = (previousCounts.get(cardId) || 0) + 1;
+                return fetch("/api/collection", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ cardId, quantity: newQty }),
+                });
+            })
+        );
+
+        const failed = results
+            .map((r, i) => (r.status === "rejected" || (r.status === "fulfilled" && !r.value.ok) ? ids[i] : null))
+            .filter((id): id is string => id != null);
+
+        if (failed.length > 0) {
+            setOwnedCounts((prev) => {
+                const next = new Map(prev);
+                failed.forEach((id) => {
+                    const orig = previousCounts.get(id) ?? 0;
+                    if (orig === 0) next.delete(id);
+                    else next.set(id, orig);
+                });
+                return next;
+            });
+            const added = ids.length - failed.length;
+            if (added > 0) {
+                showToast(`Added ${added} of ${ids.length} cards to collection. Some failed.`, "error");
+            } else {
+                showToast("Failed to add cards to collection.", "error");
+            }
+        } else {
+            showToast(`Added ${ids.length} card${ids.length === 1 ? "" : "s"} to collection.`, "success");
+        }
+    };
+
     const toggleWishlist = async (cardId: string) => {
         const isWishlisted = wishlistedCards.has(cardId);
         const newWishlisted = !isWishlisted;
@@ -487,6 +540,23 @@ export default function SetDetailPage({ params }: PageProps) {
 
                                 {selectedCardIds.size > 0 && (
                                     <>
+                                        <button
+                                            type="button"
+                                            onClick={addSelectedToCollection}
+                                            className="
+                flex items-center gap-2
+                text-sm opacity-80
+                border border-[var(--theme-border)]
+                bg-[var(--theme-sidebar)]
+                rounded-md p-2
+                hover:bg-black/10 dark:hover:bg-white/10
+                hover:opacity-100
+                transition-opacity
+              "
+                                        >
+                                            Add to Collection ({selectedCardIds.size})
+                                        </button>
+
                                         <button
                                             type="button"
                                             onClick={() => setIsSelectBinderModalOpen(true)}
