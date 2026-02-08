@@ -52,10 +52,10 @@ export default function Sidebar() {
         <aside className={`
             ${isCollapsed ? "w-16" : "w-64"}
             h-full 
-            bg-[var(--theme-sidebar)]
+            bg-[var(--theme-bg)]
             text-[var(--theme-fg)]
             flex flex-col 
-            border-r border-[var(--theme-sidebar-border)]
+            border-r border-[var(--theme-border)]
             transition-all duration-300 ease-in-out
             relative
         `}>
@@ -106,7 +106,7 @@ export default function Sidebar() {
 
             {/* Brand Name */}
             {!isCollapsed && (
-                <div className="h-14 flex items-center justify-center px-6 border-b border-[var(--theme-sidebar-border)]">
+                <div className="h-14 flex items-center justify-center px-6 border-b border-[var(--theme-border)]">
                     <span className="text-lg font-bold text-[var(--theme-accent)]">DeckHaven</span>
                 </div>
             )}
@@ -148,7 +148,7 @@ export default function Sidebar() {
 
             {/* Footer */}
             {!isCollapsed && (
-                <div className="px-6 py-4 border-t border-[var(--theme-sidebar-border)] text-xs text-[var(--theme-accent)]">
+                <div className="px-6 py-4 border-t border-[var(--theme-border)] text-xs text-[var(--theme-accent)]">
                     © DeckHaven
                 </div>
             )}

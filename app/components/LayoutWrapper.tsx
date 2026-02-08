@@ -45,7 +45,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
             <div className="flex flex-col flex-1 transition-all duration-300">
                 <Navbar />
                 <BrandNav />
-                <main className="flex-1 overflow-y-auto p-0 min-h-0 transition-all duration-300">
+                <main className="flex-1 overflow-y-auto p-0 min-h-0 bg-[var(--theme-bg)] text-[var(--theme-fg)] transition-all duration-300">
                     {children}
                 </main>
             </div>

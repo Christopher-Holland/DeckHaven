@@ -30,7 +30,7 @@ function NavbarContent() {
     };
 
     return (
-        <header className="h-20 w-full border-b border-[var(--theme-border)] bg-[var(--theme-sidebar)] text-[var(--theme-fg)] grid grid-cols-3 items-center px-6 transition-all duration-300">
+        <header className="h-20 w-full border-b border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-fg)] grid grid-cols-3 items-center px-6 transition-all duration-300">
 
             {/* Left: Logo */}
             <div className="flex items-center">
@@ -82,7 +82,7 @@ function NavbarContent() {
                             }}
                             className="
                                 px-3 py-1.5 rounded-md text-sm
-                                bg-[var(--theme-sidebar)]
+                                bg-[var(--theme-card)]
                                 border border-[var(--theme-border)]
                                 hover:bg-[var(--theme-accent)] hover:text-white
                                 transition-colors
@@ -96,7 +96,7 @@ function NavbarContent() {
                         onClick={() => router.push("/auth/signin")}
                         className="
                             px-3 py-1.5 rounded-md text-sm
-                            bg-[var(--theme-sidebar)]
+                            bg-[var(--theme-card)]
                             border border-[var(--theme-border)]
                             hover:bg-[var(--theme-accent)] hover:text-white
                             transition-colors
@@ -113,7 +113,7 @@ function NavbarContent() {
 export default function Navbar() {
     return (
         <Suspense fallback={
-            <header className="h-20 w-full border-b border-[var(--theme-border)] bg-[var(--theme-sidebar)] text-[var(--theme-fg)] grid grid-cols-3 items-center px-6 transition-all duration-300">
+            <header className="h-20 w-full border-b border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-fg)] grid grid-cols-3 items-center px-6 transition-all duration-300">
                 <div className="flex items-center">
                     <h1 className="text-lg font-bold text-[var(--theme-accent)]">
                         DeckHaven
