@@ -2,9 +2,9 @@
  * Set Cards Component
  *
  * Displays an individual card within a set detail page with uniform height for
- * virtualized grids. Shows card name, image (fixed aspect ratio), description,
- * collector number, and owned count. Cards with 0 owned copies are displayed
- * with reduced opacity and grayscale until added to the collection.
+ * virtualized grids. Shows card name, image, and collector number. Add to
+ * collection and wishlist controls appear below. Cards with 0 owned copies
+ * use reduced opacity and grayscale until added to the collection.
  *
  * @component
  */
@@ -16,7 +16,7 @@ import AddToCollectionControl from "../../components/AddToCollectionControl";
 import AddToWishlist from "../../components/AddToWishlist";
 
 /** Fixed height per card (card + controls) for virtualized grid row height. */
-export const SET_CARD_HEIGHT = 500;
+export const SET_CARD_HEIGHT = 525;
 
 export type SetCardsProps = {
     id?: string;
@@ -69,10 +69,10 @@ export default function SetCards({
 
     return (
         <div
-            className="flex flex-col gap-2 h-full min-h-0"
+            className="flex flex-col gap-2 h-full min-h-0 overflow-hidden"
             style={{ height: SET_CARD_HEIGHT }}
         >
-            {/* Card area: fixed layout for uniform size */}
+            {/* Card area: flex-1 with overflow-hidden so content stays inside */}
             <div
                 onClick={onCardClick}
                 onKeyDown={(e) => {
@@ -86,11 +86,11 @@ export default function SetCards({
                 tabIndex={onCardClick ? 0 : undefined}
                 className={`
           group relative rounded-lg border border-[var(--theme-border)]
-          bg-[var(--theme-sidebar)] p-3 flex flex-col min-h-0 flex-1
+          bg-[var(--theme-sidebar)] p-3 flex flex-col min-h-0 flex-1 overflow-hidden
           ${onCardClick ? "cursor-pointer" : ""}
           transition-all duration-200 ease-out
           ${isOwned ? "opacity-100" : "opacity-70 grayscale"}
-          hover:opacity-100 hover:grayscale-0 hover:-translate-y-0.5
+          hover:opacity-100 hover:grayscale-0 hover:-translate-y-0.1
           hover:border-[var(--theme-accent-hover)] hover:shadow-[0_0_20px_var(--theme-accent)]/20
         `}
             >
@@ -114,35 +114,29 @@ export default function SetCards({
                     )}
                 </div>
 
-                {/* Image: fixed aspect ratio (MTG card ~2.5:3.5) for uniform height */}
-                <div className="relative w-full flex-shrink-0 rounded overflow-hidden" style={{ aspectRatio: "488/680" }}>
-                    {imageSrc && (
-                        <img
-                            src={imageSrc}
-                            alt={name}
-                            className="absolute inset-0 w-full h-full object-cover"
-                        />
-                    )}
+                {/* Image: fills remaining space in card */}
+                <div className="w-full flex-1 min-h-0 flex items-center justify-center">
+                    <div
+                        className="w-full rounded overflow-hidden"
+                        style={{ aspectRatio: "488 / 680" }}
+                    >
+                        {imageSrc && (
+                            <img
+                                src={imageSrc}
+                                alt={name}
+                                className="w-full h-full object-contain"
+                                loading="lazy"
+                            />
+                        )}
+                    </div>
                 </div>
 
-                {/* Description: fixed 2 lines */}
-                {description && (
-                    <p className="text-xs opacity-80 text-center mt-2 line-clamp-2 flex-shrink-0 min-h-[2rem]">
-                        {description}
-                    </p>
-                )}
-
-                {/* Collector number: own row */}
+                {/* Collector number only */}
                 {collectorNumber && (
                     <p className="text-xs opacity-60 text-center flex-shrink-0 mt-1">
                         #{collectorNumber}
                     </p>
                 )}
-
-                {/* Owned count: own row */}
-                <p className="text-xs opacity-70 text-center flex-shrink-0 mt-1 min-h-[1.25rem]">
-                    Owned: {totalOwned}
-                </p>
             </div>
 
             {/* Controls: fixed height */}
