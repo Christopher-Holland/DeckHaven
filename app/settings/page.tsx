@@ -49,7 +49,7 @@ function AppearancePanel() {
                                         transition-all duration-200
                                         ${isSelected
                                             ? "border-[var(--theme-accent)] bg-[var(--theme-accent)]/10"
-                                            : "border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/10 hover:border-[var(--theme-accent)]/50"
+                                            : "border-[var(--theme-border)] bg-[var(--theme-card)] hover:border-[var(--theme-accent)]/50"
                                         }
                                     `}
                                 >
@@ -67,17 +67,17 @@ function AppearancePanel() {
                                     {/* Color Preview */}
                                     <div className="mt-3 flex gap-2">
                                         <div
-                                            className="w-6 h-6 rounded border border-black/10 dark:border-white/10"
+                                            className="w-6 h-6 rounded border border-[var(--theme-border)]"
                                             style={{ backgroundColor: theme.colors.background }}
                                             title="Background"
                                         />
                                         <div
-                                            className="w-6 h-6 rounded border border-black/10 dark:border-white/10"
+                                            className="w-6 h-6 rounded border border-[var(--theme-border)]"
                                             style={{ backgroundColor: theme.colors.sidebar }}
                                             title="Sidebar"
                                         />
                                         <div
-                                            className="w-6 h-6 rounded border border-black/10 dark:border-white/10"
+                                            className="w-6 h-6 rounded border border-[var(--theme-border)]"
                                             style={{ backgroundColor: theme.colors.card }}
                                             title="Card"
                                         />
@@ -104,7 +104,7 @@ function AppearancePanel() {
                                         transition-all duration-200
                                         ${isSelected
                                             ? "border-[var(--theme-accent)] bg-[var(--theme-accent)]/10"
-                                            : "border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/10 hover:border-[var(--theme-accent)]/50"
+                                            : "border-[var(--theme-border)] bg-[var(--theme-card)] hover:border-[var(--theme-accent)]/50"
                                         }
                                     `}
                                 >
@@ -122,7 +122,7 @@ function AppearancePanel() {
                                     {/* Accent Color Preview */}
                                     <div className="mt-3 flex justify-center">
                                         <div
-                                            className="w-full h-8 rounded border border-black/10 dark:border-white/10"
+                                            className="w-full h-8 rounded border border-[var(--theme-border)]"
                                             style={{ backgroundColor: accent.color }}
                                             title={accent.name}
                                         />
@@ -134,7 +134,7 @@ function AppearancePanel() {
                 </div>
 
                 {/* Reduced Motion (placeholder for future feature) */}
-                <div className="rounded-md border border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/10 p-4 opacity-60">
+                <div className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-card)] p-4 opacity-60">
                     <p className="text-sm font-medium">Reduced motion</p>
                     <p className="text-xs opacity-70 mt-1">Turn off animations like page flips. (THIS FEATURE IS NOT AVAILABLE AT THIS TIME)</p>
                 </div>
@@ -307,7 +307,7 @@ function SecurityPanel({ user, showToast }: { user: ReturnType<typeof useUser>; 
 
             <div className="space-y-3">
                 {/* Reset Password */}
-                <div className="rounded-md border border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/10 p-4">
+                <div className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium">Reset password</p>
                         <p className="text-xs opacity-70 mt-1">
@@ -327,7 +327,7 @@ function SecurityPanel({ user, showToast }: { user: ReturnType<typeof useUser>; 
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         disabled={sending}
-                                        className="w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-card)]/70 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50"
+                                        className="w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50"
                                         placeholder="Enter your email address"
                                     />
                                 </div>
@@ -352,7 +352,7 @@ function SecurityPanel({ user, showToast }: { user: ReturnType<typeof useUser>; 
                                         value={code}
                                         onChange={(e) => setCode(e.target.value)}
                                         disabled={resetting}
-                                        className="w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-card)]/70 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50"
+                                        className="w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50"
                                         placeholder="Enter code from email"
                                     />
                                 </div>
@@ -365,7 +365,7 @@ function SecurityPanel({ user, showToast }: { user: ReturnType<typeof useUser>; 
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         disabled={resetting}
-                                        className="w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-card)]/70 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50"
+                                        className="w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50"
                                         placeholder="Enter new password (min 8 characters)"
                                     />
                                 </div>
@@ -378,7 +378,7 @@ function SecurityPanel({ user, showToast }: { user: ReturnType<typeof useUser>; 
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         disabled={resetting}
-                                        className="w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-card)]/70 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50"
+                                        className="w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50"
                                         placeholder="Confirm new password"
                                     />
                                 </div>
@@ -398,7 +398,7 @@ function SecurityPanel({ user, showToast }: { user: ReturnType<typeof useUser>; 
                                             setConfirmPassword("");
                                         }}
                                         disabled={resetting}
-                                        className="px-4 py-2 text-sm font-medium bg-black/5 dark:bg-white/5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+                                        className="px-4 py-2 text-sm font-medium bg-[var(--theme-sidebar)] rounded-md hover:opacity-90 transition-colors disabled:opacity-50"
                                     >
                                         Cancel
                                     </button>
@@ -409,13 +409,13 @@ function SecurityPanel({ user, showToast }: { user: ReturnType<typeof useUser>; 
                 </div>
 
                 {/* Two-factor authentication */}
-                <div className="rounded-md border border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/10 p-4 opacity-60">
+                <div className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-card)] p-4 opacity-60">
                     <p className="text-sm font-medium">Two-factor authentication</p>
                     <p className="text-xs opacity-70 mt-1">Enable 2FA (THIS FEATURE IS NOT AVAILABLE AT THIS TIME).</p>
                 </div>
 
                 {/* Active sessions */}
-                <div className="rounded-md border border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/10 p-4 opacity-60">
+                <div className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-card)] p-4 opacity-60">
                     <p className="text-sm font-medium">Active sessions</p>
                     <p className="text-xs opacity-70 mt-1">Review devices signed into your account. (THIS FEATURE IS NOT AVAILABLE AT THIS TIME)</p>
                 </div>
@@ -567,7 +567,7 @@ function AccountPanel({ user, showToast, router }: { user: ReturnType<typeof use
 
             <div className="space-y-3">
                 {/* Username */}
-                <div className="rounded-md border border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/10 p-4">
+                <div className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                     <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium">Username</p>
@@ -578,7 +578,7 @@ function AccountPanel({ user, showToast, router }: { user: ReturnType<typeof use
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     disabled={saving}
-                                    className="mt-2 w-full rounded-md px-3 py-2 text-sm bg-white/70 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e] disabled:opacity-50"
+                                    className="mt-2 w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50"
                                     placeholder="Enter username"
                                 />
                             ) : (
@@ -602,7 +602,7 @@ function AccountPanel({ user, showToast, router }: { user: ReturnType<typeof use
                                             setUsername(user.displayName || "");
                                         }}
                                         disabled={saving}
-                                        className="p-2 rounded-md bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+                                        className="p-2 rounded-md bg-[var(--theme-sidebar)] hover:opacity-90 transition-colors disabled:opacity-50"
                                         aria-label="Cancel"
                                     >
                                         <X className="w-4 h-4" />
@@ -611,7 +611,7 @@ function AccountPanel({ user, showToast, router }: { user: ReturnType<typeof use
                             ) : (
                                 <button
                                     onClick={() => setEditingUsername(true)}
-                                    className="p-2 rounded-md bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                                    className="p-2 rounded-md bg-[var(--theme-sidebar)] hover:opacity-90 transition-colors"
                                     aria-label="Edit username"
                                 >
                                     <Edit2 className="w-4 h-4" />
@@ -622,7 +622,7 @@ function AccountPanel({ user, showToast, router }: { user: ReturnType<typeof use
                 </div>
 
                 {/* Email */}
-                <div className="rounded-md border border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/10 p-4">
+                <div className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                     <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium">Email</p>
@@ -633,7 +633,7 @@ function AccountPanel({ user, showToast, router }: { user: ReturnType<typeof use
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={saving}
-                                    className="mt-2 w-full rounded-md px-3 py-2 text-sm bg-white/70 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e] disabled:opacity-50"
+                                    className="mt-2 w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50"
                                     placeholder="Enter email"
                                 />
                             ) : (
@@ -662,7 +662,7 @@ function AccountPanel({ user, showToast, router }: { user: ReturnType<typeof use
                                             setEmail(user.primaryEmail || "");
                                         }}
                                         disabled={saving}
-                                        className="p-2 rounded-md bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+                                        className="p-2 rounded-md bg-[var(--theme-sidebar)] hover:opacity-90 transition-colors disabled:opacity-50"
                                         aria-label="Cancel"
                                     >
                                         <X className="w-4 h-4" />
@@ -671,7 +671,7 @@ function AccountPanel({ user, showToast, router }: { user: ReturnType<typeof use
                             ) : (
                                 <button
                                     onClick={() => setEditingEmail(true)}
-                                    className="p-2 rounded-md bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                                    className="p-2 rounded-md bg-[var(--theme-sidebar)] hover:opacity-90 transition-colors"
                                     aria-label="Edit email"
                                 >
                                     <Edit2 className="w-4 h-4" />
@@ -705,7 +705,7 @@ function AccountPanel({ user, showToast, router }: { user: ReturnType<typeof use
                                         <button
                                             onClick={() => setShowDeleteConfirm(false)}
                                             disabled={deleting}
-                                            className="px-3 py-1.5 text-xs font-medium bg-black/5 dark:bg-white/5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+                                            className="px-3 py-1.5 text-xs font-medium bg-[var(--theme-sidebar)] rounded-md hover:opacity-90 transition-colors disabled:opacity-50"
                                         >
                                             Cancel
                                         </button>
@@ -770,8 +770,8 @@ export default function SettingsPage() {
                 {/* Left Nav */}
                 <aside
                     className="
-            rounded-lg border border-black/10 dark:border-white/10
-            bg-white/70 dark:bg-white/5 backdrop-blur
+            rounded-lg border border-[var(--theme-border)]
+            bg-[var(--theme-card)] backdrop-blur
             p-2 h-fit
           "
                 >
@@ -785,8 +785,8 @@ export default function SettingsPage() {
                 {/* Right Panel */}
                 <div
                     className="
-            rounded-lg border border-black/10 dark:border-white/10
-            bg-white/70 dark:bg-white/5 backdrop-blur
+            rounded-lg border border-[var(--theme-border)]
+            bg-[var(--theme-card)] backdrop-blur
             p-4 sm:p-6
           "
                 >
@@ -837,11 +837,11 @@ export default function SettingsPage() {
 
                             {/* Existing info rows */}
                             <div className="space-y-3">
-                                <div className="flex justify-between items-center border-b border-black/10 dark:border-white/10 pb-2">
+                                <div className="flex justify-between items-center border-b border-[var(--theme-border)] pb-2">
                                     <span className="font-medium text-sm">Version</span>
                                     <span className="text-xs opacity-70">v1.0.0</span>
                                 </div>
-                                <div className="flex justify-between items-center border-b border-black/10 dark:border-white/10 pb-2">
+                                <div className="flex justify-between items-center border-b border-[var(--theme-border)] pb-2">
                                     <span className="font-medium text-sm">Credits</span>
                                     <a
                                         href="https://christopher-holland.github.io/portfolio/"
@@ -852,7 +852,7 @@ export default function SettingsPage() {
                                         Created by Chris Holland
                                     </a>
                                 </div>
-                                <div className="flex justify-between items-center border-b border-black/10 dark:border-white/10 pb-2">
+                                <div className="flex justify-between items-center border-b border-[var(--theme-border)] pb-2">
                                     <span className="font-medium text-sm">Scryfall</span>
                                     <a
                                         href="https://scryfall.com"
@@ -896,7 +896,7 @@ function NavItem({
         transition-colors
         ${active
                     ? "bg-[var(--theme-accent)]/15 border border-[var(--theme-accent)]/30"
-                    : "hover:bg-black/5 dark:hover:bg-white/5"
+                    : "hover:bg-[var(--theme-sidebar)]"
                 }
       `}
         >
@@ -933,10 +933,10 @@ function Panel({
                         <div
                             className={`
                               rounded-md border p-4
-                              ${row.link ? "cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors" : ""}
+                              ${row.link ? "cursor-pointer hover:bg-[var(--theme-sidebar)] transition-colors" : ""}
                               ${row.danger
                                     ? "border-red-500/30 dark:border-red-500/40 bg-red-500/5 dark:bg-red-500/10"
-                                    : "border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/10"
+                                    : "border-[var(--theme-border)] bg-[var(--theme-card)]"
                                 }
                             `}
                         >
