@@ -20,7 +20,7 @@
 
 "use client";
 
-import { StarIcon } from "lucide-react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 export type SetCardProps = {
@@ -67,6 +67,15 @@ export default function SetCard({
         if (href) router.push(href);
     };
 
+    // Use same-origin URL for mask (proxy external Scryfall icons so they match theme text color)
+    const maskImageUrl = useMemo(() => {
+        if (!imageSrc) return null;
+        if (imageSrc.startsWith("http")) {
+            return `/api/scryfall/proxy-image?url=${encodeURIComponent(imageSrc)}`;
+        }
+        return imageSrc;
+    }, [imageSrc]);
+
     return (
         <div
             onClick={handleNavigate}
@@ -110,16 +119,24 @@ export default function SetCard({
                 </div>
             )}
 
-            {/* Set Icon with CSS filters for colorization */}
-            {imageSrc && (
-                <div className="flex justify-center mt-4 flex-shrink-0">
-                    <img
-                        src={imageSrc}
-                        alt={name}
-                        className="w-16 h-16 
-                            [filter:brightness(0)_saturate(100%)_invert(58%)_sepia(89%)_saturate(1000%)_hue-rotate(130deg)_brightness(0.9)]
-                            dark:[filter:brightness(0)_saturate(100%)_invert(50%)_sepia(20%)_saturate(500%)_hue-rotate(10deg)_brightness(1.1)]
-                        "
+            {/* Set Icon — same color as text via mask + currentColor (proxied when external so mask works) */}
+            {imageSrc && maskImageUrl && (
+                <div className="flex justify-center mt-4 flex-shrink-0 text-[var(--theme-fg)]">
+                    <div
+                        className="w-16 h-16 opacity-95"
+                        style={{         
+                            backgroundColor: "currentColor",
+                            WebkitMaskImage: `url(${maskImageUrl})`,
+                            maskImage: `url(${maskImageUrl})`,
+                            WebkitMaskSize: "contain",
+                            maskSize: "contain",
+                            WebkitMaskRepeat: "no-repeat",
+                            maskRepeat: "no-repeat",
+                            WebkitMaskPosition: "center",
+                            maskPosition: "center",
+                        }}
+                        role="img"
+                        aria-label={name}
                     />
                 </div>
             )}
@@ -150,7 +167,7 @@ export default function SetCard({
                 </p>
             )}
 
-            
+
         </div>
     );
 }

@@ -207,13 +207,13 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
           absolute right-0 top-0 h-full w-full max-w-md
           bg-[var(--theme-bg)]
           text-[var(--theme-fg)]
-          border-l border-black/10 dark:border-white/10
+          border-l border-[var(--theme-border)]
           shadow-[-20px_0_60px_-25px_rgba(0,0,0,0.55)]
           flex flex-col
         "
             >
                 {/* Header */}
-                <div className="p-4 border-b border-black/10 dark:border-white/10 flex items-start justify-between gap-3">
+                <div className="p-4 border-b border-[var(--theme-border)] flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                         <div className="font-semibold truncate">{safeName}</div>
                         <div className="text-xs opacity-70 truncate">MTG</div>
@@ -223,9 +223,9 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                         onClick={onClose}
                         className="
               rounded-md px-3 py-1.5 text-sm font-medium
-              bg-black/5 dark:bg-white/5
-              hover:bg-black/10 dark:hover:bg-white/10
-              border border-black/10 dark:border-white/10
+              bg-[var(--theme-sidebar)]
+              hover:opacity-90
+              border border-[var(--theme-border)]
               transition-colors
             "
                         aria-label="Close"
@@ -238,7 +238,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                 {/* Card Image */}
                 {cardImage && (
                     <div className="px-4 pt-4">
-                        <div className="rounded-lg overflow-hidden border border-black/10 dark:border-white/10 flex items-center justify-center">
+                        <div className="rounded-lg overflow-hidden border border-[var(--theme-border)] flex items-center justify-center">
                             <img
                                 src={cardImage}
                                 alt={safeName}
@@ -249,7 +249,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                 )}
                 {loadingImage && (
                     <div className="px-4 pt-4">
-                        <div className="rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 aspect-[5/7] flex items-center justify-center">
+                        <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-sidebar)] aspect-[5/7] flex items-center justify-center">
                             <div className="text-xs opacity-70">Loading image...</div>
                         </div>
                     </div>
@@ -258,14 +258,14 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                 {/* Body */}
                 <div className="p-4 overflow-y-auto space-y-4">
                     {/* Quantity */}
-                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Quantity</div>
 
                         <div className="mt-2 flex items-center gap-2">
                             <button
                                 type="button"
                                 onClick={() => setQuantity((q) => Math.max(0, q - 1))}
-                                className="px-3 py-2 rounded-md bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                                className="px-3 py-2 rounded-md bg-[var(--theme-sidebar)] hover:opacity-90 border border-[var(--theme-border)] transition-colors"
                             >
                                 –
                             </button>
@@ -277,8 +277,8 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                                 onChange={(e) => setQuantity(Math.max(0, Number(e.target.value)))}
                                 className="
                   w-24 rounded-md border px-3 py-2 text-sm text-center
-                  bg-white/70 dark:bg-white/5
-                  border-black/10 dark:border-white/10
+                  bg-[var(--theme-sidebar)]
+                  border-[var(--theme-border)]
                   focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                 "
                             />
@@ -286,7 +286,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                             <button
                                 type="button"
                                 onClick={() => setQuantity((q) => q + 1)}
-                                className="px-3 py-2 rounded-md bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                                className="px-3 py-2 rounded-md bg-[var(--theme-sidebar)] hover:opacity-90 border border-[var(--theme-border)] transition-colors"
                             >
                                 +
                             </button>
@@ -294,7 +294,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     </div>
 
                     {/* Foil */}
-                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                         <label className="flex items-center justify-between gap-3">
                             <div>
                                 <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Foil</div>
@@ -312,7 +312,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
 
                     {/* Condition + Language */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+                        <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                             <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Condition</div>
                             <input
                                 value={condition}
@@ -320,14 +320,14 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                                 placeholder="e.g. NM, LP"
                                 className="
                   mt-2 w-full rounded-md border px-3 py-2 text-sm
-                  bg-white/70 dark:bg-white/5
-                  border-black/10 dark:border-white/10
+                  bg-[var(--theme-sidebar)]
+                  border-[var(--theme-border)]
                   focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                 "
                             />
                         </div>
 
-                        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+                        <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                             <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Language</div>
                             <input
                                 value={language}
@@ -335,8 +335,8 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                                 placeholder="en"
                                 className="
                   mt-2 w-full rounded-md border px-3 py-2 text-sm
-                  bg-white/70 dark:bg-white/5
-                  border-black/10 dark:border-white/10
+                  bg-[var(--theme-sidebar)]
+                  border-[var(--theme-border)]
                   focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                 "
                             />
@@ -344,7 +344,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     </div>
 
                     {/* Tags */}
-                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Tags</div>
                         <div className="text-xs opacity-70 mt-1">Comma-separated (e.g. trade, staple, commander).</div>
                         <input
@@ -353,16 +353,15 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                             placeholder="trade, staple"
                             className="
                 mt-2 w-full rounded-md border px-3 py-2 text-sm
-                bg-white/70 dark:bg-white/5
-                border-black/10 dark:border-white/10
-                focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                dark:focus:ring-[#82664e]
+                bg-[var(--theme-sidebar)]
+                border-[var(--theme-border)]
+                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
               "
                         />
                     </div>
 
                     {/* Notes */}
-                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Notes</div>
                         <textarea
                             value={notes}
@@ -371,17 +370,16 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                             placeholder="Optional notes…"
                             className="
                 mt-2 w-full rounded-md border px-3 py-2 text-sm
-                bg-white/70 dark:bg-white/5
-                border-black/10 dark:border-white/10
-                focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                dark:focus:ring-[#82664e]
+                bg-[var(--theme-sidebar)]
+                border-[var(--theme-border)]
+                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                 resize-none
               "
                         />
                     </div>
 
                     {/* Decks Section */}
-                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-2">
                             In Decks
                         </div>
@@ -398,7 +396,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                                         }}
                                         className="
                                             w-full text-left text-xs px-2 py-1 rounded
-                                            hover:bg-black/5 dark:hover:bg-white/5
+                                            hover:bg-[var(--theme-sidebar)]
                                             transition-colors
                                             truncate
                                         "
@@ -413,7 +411,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     </div>
 
                     {/* Binders Section */}
-                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-2">
                             In Binders
                         </div>
@@ -430,7 +428,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                                         }}
                                         className="
                                             w-full text-left text-xs px-2 py-1 rounded
-                                            hover:bg-black/5 dark:hover:bg-white/5
+                                            hover:bg-[var(--theme-sidebar)]
                                             transition-colors
                                             truncate
                                         "
@@ -446,14 +444,14 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-black/10 dark:border-white/10 flex items-center justify-end gap-2">
+                <div className="p-4 border-t border-[var(--theme-border)] flex items-center justify-end gap-2">
                     <button
                         onClick={onClose}
                         className="
               rounded-md px-4 py-2 text-sm font-medium
-              bg-black/5 dark:bg-white/5
-              hover:bg-black/10 dark:hover:bg-white/10
-              border border-black/10 dark:border-white/10
+              bg-[var(--theme-sidebar)]
+              hover:opacity-90
+              border border-[var(--theme-border)]
               transition-colors
             "
                     >

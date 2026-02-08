@@ -385,7 +385,7 @@ export default function SetDetailPage({ params }: PageProps) {
       "
         >
             {/* Header */}
-            <section className="flex items-center sticky top-0 border-b border-black/10 dark:border-[var(--theme-border)]/10 bg-white dark:bg-[var(--theme-bg)] z-10 pb-4">
+            <section className="flex items-center sticky top-0 border-b border-[var(--theme-border)] bg-[var(--theme-bg)] z-10 pb-4">
                 {/* Left: Back Button */}
                 <div className="flex-1 flex justify-start">
                     <button

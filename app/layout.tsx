@@ -19,6 +19,7 @@ import { ToastProvider } from "./components/ToastContext";
 import LayoutWrapper from "./components/LayoutWrapper";
 import { GameFilterProvider } from "./components/GameFilterContext";
 import ToastContainer from "./components/Toast";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { DrawerProvider } from "./components/Drawer/drawerProvider";
 import { DrawerHost } from "./components/Drawer/DrawerHost";
 import type { Metadata } from "next";
@@ -53,17 +54,19 @@ export default function RootLayout({ children }: RootLayoutProps) {
                             <Suspense fallback={<Loading />}>
                                 <ThemeProvider>
                                     <DeckHavenThemeProvider>
-                                        <SidebarProvider>
-                                            <ToastProvider>
-                                                <DrawerProvider>
-                                                    <LayoutWrapper>
-                                                        {children}
-                                                    </LayoutWrapper>
-                                                    <ToastContainer />
-                                                    <DrawerHost />
-                                                </DrawerProvider>
-                                            </ToastProvider>
-                                        </SidebarProvider>
+                                        <ErrorBoundary>
+                                            <SidebarProvider>
+                                                <ToastProvider>
+                                                    <DrawerProvider>
+                                                        <LayoutWrapper>
+                                                            {children}
+                                                        </LayoutWrapper>
+                                                        <ToastContainer />
+                                                        <DrawerHost />
+                                                    </DrawerProvider>
+                                                </ToastProvider>
+                                            </SidebarProvider>
+                                        </ErrorBoundary>
                                     </DeckHavenThemeProvider>
                                 </ThemeProvider>
                             </Suspense>

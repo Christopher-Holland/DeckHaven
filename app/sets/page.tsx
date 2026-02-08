@@ -140,7 +140,7 @@ export default function Sets() {
                             dark:hover:shadow-[0_0_30px_rgba(66,201,156,0.35)]
                             "
                     >
-                        {/* Game Image */}
+                        {/* Game Image (DeckHaven logo) */}
                         <img
                             src={game.imageSrc}
                             alt={game.name}
