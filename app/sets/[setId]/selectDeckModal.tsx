@@ -100,14 +100,14 @@ export default function SelectDeckModal({
                         overflow-hidden
                         rounded-2xl border
                         bg-[var(--theme-bg)]
-                        border-black/10 dark:border-white/10
+                        border-[var(--theme-border)]
                         text-[var(--theme-fg)]
                         shadow-[0_30px_80px_-35px_rgba(0,0,0,0.60)]
                         flex flex-col
                     "
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 p-4">
+                    <div className="flex items-center justify-between gap-3 border-b border-[var(--theme-border)] p-4">
                         <div className="min-w-0">
                             <h3 className="text-base font-semibold truncate">Select Deck</h3>
                             <p className="text-xs opacity-70 truncate">
@@ -123,8 +123,8 @@ export default function SelectDeckModal({
                             disabled={!!adding}
                             className="
                                 rounded-md px-3 py-1.5 text-sm font-medium
-                                bg-black/5 dark:bg-white/5
-                                hover:bg-[var(--theme-accent)]
+                                bg-[var(--theme-sidebar)]
+                                hover:bg-[var(--theme-accent)] hover:text-white
                                 border border-[var(--theme-border)]
                                 transition-colors
                                 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
@@ -157,9 +157,9 @@ export default function SelectDeckModal({
                                     disabled={quantity <= 1 || !!adding}
                                     className="
                                         rounded-md px-3 py-1.5 text-sm font-medium
-                                        bg-black/5 dark:bg-white/5
-                                        hover:bg-black/10 dark:hover:bg-white/10
-                                        border border-black/10 dark:border-white/10
+                                        bg-[var(--theme-sidebar)]
+                                        hover:opacity-90
+                                        border border-[var(--theme-border)]
                                         transition-colors
                                         disabled:opacity-50 disabled:cursor-not-allowed
                                     "
@@ -178,8 +178,8 @@ export default function SelectDeckModal({
                                     disabled={!!adding}
                                     className="
                                         w-20 text-center rounded-md border px-3 py-1.5 text-sm
-                                        bg-white/70 dark:bg-white/5
-                                        border-black/10 dark:border-white/10
+                                        bg-[var(--theme-sidebar)]
+                                        border-[var(--theme-border)]
                                         focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                         disabled:opacity-50 disabled:cursor-not-allowed
                                     "
@@ -190,9 +190,9 @@ export default function SelectDeckModal({
                                     disabled={quantity >= 99 || !!adding}
                                     className="
                                         rounded-md px-3 py-1.5 text-sm font-medium
-                                        bg-black/5 dark:bg-white/5
-                                        hover:bg-black/10 dark:hover:bg-white/10
-                                        border border-black/10 dark:border-white/10
+                                        bg-[var(--theme-sidebar)]
+                                        hover:opacity-90
+                                        border border-[var(--theme-border)]
                                         transition-colors
                                         disabled:opacity-50 disabled:cursor-not-allowed
                                     "
@@ -222,9 +222,9 @@ export default function SelectDeckModal({
                                         disabled={!!adding}
                                         className="
                                             text-left rounded-lg border p-4
-                                            border-black/10 dark:border-white/10
-                                            bg-white/70 dark:bg-white/5
-                                            hover:bg-black/5 dark:hover:bg-white/10
+                                            border-[var(--theme-border)]
+                                            bg-[var(--theme-sidebar)]
+                                            hover:bg-[var(--theme-accent)]/20
                                             transition-colors
                                             disabled:opacity-50 disabled:cursor-not-allowed
                                         "
@@ -252,15 +252,15 @@ export default function SelectDeckModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-end gap-2 border-t border-black/10 dark:border-white/10 p-4">
+                    <div className="flex items-center justify-end gap-2 border-t border-[var(--theme-border)] p-4">
                         <button
                             onClick={onClose}
                             disabled={!!adding}
                             className="
                                 rounded-md px-4 py-2 text-sm font-medium
-                                bg-black/5 dark:bg-white/5
-                                hover:bg-black/10 dark:hover:bg-white/10
-                                border border-black/10 dark:border-white/10
+                                bg-[var(--theme-sidebar)]
+                                hover:opacity-90
+                                border border-[var(--theme-border)]
                                 transition-colors
                                 disabled:opacity-50 disabled:cursor-not-allowed
                             "

@@ -202,7 +202,7 @@ export default function AddToBinderModal({
                 onMouseDown={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-start justify-between gap-3 p-4 border-b border-black/10 dark:border-white/10">
+                <div className="flex items-start justify-between gap-3 p-4 border-b border-[var(--theme-border)]">
                     <div className="min-w-0">
                         <h3 className="text-lg font-semibold truncate">Add a card to binder</h3>
                         {pendingSlotNumber !== null && (
@@ -216,9 +216,9 @@ export default function AddToBinderModal({
                         type="button"
                         onClick={onClose}
                         className="
-              p-2 rounded-md bg-black/5 dark:bg-white/5
-              hover:bg-black/10 dark:hover:bg-white/10 transition-colors
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]
+              p-2 rounded-md bg-[var(--theme-sidebar)]
+              hover:opacity-90 border border-[var(--theme-border)] transition-colors
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
             "
                         aria-label="Close"
                     >
@@ -281,7 +281,7 @@ export default function AddToBinderModal({
                                         className={`
                                             flex items-center justify-between gap-3
                                             rounded-lg p-3
-                                            border border-black/10 dark:border-white/10
+                                            border border-[var(--theme-border)]
                                             transition-opacity
                                             ${isInCollection 
                                                 ? "bg-[var(--theme-sidebar)]" 
@@ -324,8 +324,8 @@ export default function AddToBinderModal({
                                             className="
                                                 inline-flex items-center gap-2
                                                 px-3 py-2 rounded-md text-sm font-medium
-                                                bg-black/5 dark:bg-white/5
-                                                hover:bg-black/10 dark:hover:bg-white/10
+                                                bg-[var(--theme-sidebar)]
+                                                hover:bg-[var(--theme-accent)]/20
                                                 border border-[var(--theme-border)]
                                                 disabled:opacity-50 disabled:cursor-not-allowed
                                                 transition-colors

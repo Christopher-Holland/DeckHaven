@@ -94,7 +94,8 @@ export default function CardModal({
               px-2 py-1 rounded-md
               text-sm opacity-70
               hover:opacity-100
-              hover:bg-black/10 dark:hover:bg-white/10
+              hover:bg-[var(--theme-sidebar)]
+              border border-transparent hover:border-[var(--theme-border)]
               transition
             "
                     >

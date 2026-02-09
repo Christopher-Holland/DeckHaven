@@ -114,15 +114,16 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
                 onMouseDown={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-start justify-between gap-3 p-4 border-b border-black/10 dark:border-white/10">
+                <div className="flex items-start justify-between gap-3 p-4 border-b border-[var(--theme-border)]">
                     <h3 className="text-lg font-semibold">New Binder</h3>
                     <button
                         type="button"
                         onClick={onClose}
                         className="
               p-2 rounded-md
-              bg-black/5 dark:bg-white/5
-              hover:bg-black/10 dark:hover:bg-white/10
+              bg-[var(--theme-sidebar)]
+              hover:opacity-90
+              border border-[var(--theme-border)]
               transition-colors
               focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
             "
@@ -182,8 +183,7 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
                     mt-1 w-full rounded-md px-3 py-2 text-sm
                     bg-[var(--theme-sidebar)]
                     border border-[var(--theme-border)]
-                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                    dark:focus:ring-[#82664e]
+                    focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                   "
                                 placeholder="Enter binder name"
                             />
@@ -201,8 +201,7 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
                     mt-1 w-full rounded-md px-3 py-2 text-sm
                     bg-[var(--theme-sidebar)]
                     border border-[var(--theme-border)]
-                    focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                    dark:focus:ring-[#82664e]
+                    focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                     resize-none
                   "
                                 placeholder="Optional description..."
@@ -301,15 +300,16 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
                     </div>
 
                     {/* Footer */}
-                    <div className="mt-6 pt-4 border-t border-black/10 dark:border-white/10 flex items-center justify-end gap-2">
+                    <div className="mt-6 pt-4 border-t border-[var(--theme-border)] flex items-center justify-end gap-2">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={saving}
                             className="
               px-3 py-2 rounded-md text-sm
-              bg-black/5 dark:bg-white/5
-              hover:bg-black/10 dark:hover:bg-white/10
+              bg-[var(--theme-sidebar)]
+              hover:opacity-90
+              border border-[var(--theme-border)]
               transition-colors
               disabled:opacity-50 disabled:cursor-not-allowed
             "

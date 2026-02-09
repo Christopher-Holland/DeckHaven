@@ -44,7 +44,7 @@ export default function ConfirmDeleteModal({
                 className="
           relative w-[min(420px,92vw)]
           rounded-xl
-          border border-black/10 dark:border-white/10
+          border border-[var(--theme-border)]
           bg-[var(--theme-bg)]
           text-[var(--theme-fg)]
           shadow-2xl
@@ -52,7 +52,7 @@ export default function ConfirmDeleteModal({
                 onMouseDown={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-start justify-between p-4 border-b border-black/10 dark:border-white/10">
+                <div className="flex items-start justify-between p-4 border-b border-[var(--theme-border)]">
                     <div className="flex items-center gap-2">
                         {destructive && (
                             <Trash2 className="w-5 h-5 text-red-500" />
@@ -65,8 +65,9 @@ export default function ConfirmDeleteModal({
                         onClick={onCancel}
                         className="
               p-2 rounded-md
-              bg-black/5 dark:bg-white/5
-              hover:bg-black/10 dark:hover:bg-white/10
+              bg-[var(--theme-sidebar)]
+              hover:opacity-90
+              border border-[var(--theme-border)]
               transition-colors
             "
                         aria-label="Close"
@@ -81,16 +82,16 @@ export default function ConfirmDeleteModal({
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-end gap-2 p-4 border-t border-black/10 dark:border-white/10">
+                <div className="flex items-center justify-end gap-2 p-4 border-t border-[var(--theme-border)]">
                     <button
                         type="button"
                         onClick={onCancel}
                         disabled={loading}
                         className="
               px-4 py-2 rounded-md text-sm
-              bg-black/5 dark:bg-white/5
-              hover:bg-black/10 dark:hover:bg-white/10
-              border border-black/10 dark:border-white/10
+              bg-[var(--theme-sidebar)]
+              hover:opacity-90
+              border border-[var(--theme-border)]
               transition-colors
               disabled:opacity-50 disabled:cursor-not-allowed
             "

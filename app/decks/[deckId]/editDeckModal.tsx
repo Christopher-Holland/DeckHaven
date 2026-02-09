@@ -131,14 +131,14 @@ export default function EditDeckModal({
                         overflow-hidden
                         rounded-2xl border
                         bg-[var(--theme-bg)]
-                        border-black/10 dark:border-white/10
+                        border-[var(--theme-border)]
                         text-[var(--theme-fg)]
                         shadow-[0_30px_80px_-35px_rgba(0,0,0,0.60)]
                         flex flex-col
                     "
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between gap-3 border-b border-black/10 dark:border-white/10 p-4">
+                    <div className="flex items-center justify-between gap-3 border-b border-[var(--theme-border)] p-4">
                         <div className="min-w-0">
                             <h3 className="text-base font-semibold truncate">Edit Deck</h3>
                             <p className="text-xs opacity-70 truncate">Update your deck information and appearance.</p>
@@ -149,8 +149,8 @@ export default function EditDeckModal({
                             disabled={saving}
                             className="
                                 rounded-md px-3 py-1.5 text-sm font-medium
-                                bg-black/5 dark:bg-white/5
-                                hover:bg-[var(--theme-accent)]
+                                bg-[var(--theme-sidebar)]
+                                hover:bg-[var(--theme-accent)] hover:text-white
                                 border border-[var(--theme-border)]
                                 transition-colors
                                 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
@@ -187,8 +187,8 @@ export default function EditDeckModal({
                                         disabled={saving}
                                         className="
                                             w-full rounded-md border px-3 py-2 text-sm
-                                            bg-white/70 dark:bg-white/5
-                                            border-black/10 dark:border-white/10
+                                            bg-[var(--theme-sidebar)]
+                                            border-[var(--theme-border)]
                                             focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                             disabled:opacity-50 disabled:cursor-not-allowed
                                         "
@@ -208,8 +208,8 @@ export default function EditDeckModal({
                                         disabled={saving}
                                         className="
                                             w-full rounded-md border px-3 py-2 text-sm
-                                            bg-white/70 dark:bg-white/5
-                                            border-black/10 dark:border-white/10
+                                            bg-[var(--theme-sidebar)]
+                                            border-[var(--theme-border)]
                                             focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                             resize-none
                                             disabled:opacity-50 disabled:cursor-not-allowed
@@ -228,8 +228,8 @@ export default function EditDeckModal({
                                         disabled={saving}
                                         className="
                                             w-full rounded-md border px-3 py-2 text-sm
-                                            bg-white/70 dark:bg-white/5
-                                            border-black/10 dark:border-white/10
+                                            bg-[var(--theme-sidebar)]
+                                            border-[var(--theme-border)]
                                             focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                             disabled:opacity-50 disabled:cursor-not-allowed
                                         "
@@ -248,8 +248,8 @@ export default function EditDeckModal({
                                     <div
                                         className="
                                             rounded-md border px-3 py-2 text-sm
-                                            bg-black/5 dark:bg-white/5
-                                            border-black/10 dark:border-white/10
+                                            bg-[var(--theme-sidebar)]
+                                            border-[var(--theme-border)]
                                         "
                                     >
                                         {rules.category}
@@ -283,7 +283,7 @@ export default function EditDeckModal({
 
                                 {/* Notes */}
                                 {rules.notes && rules.notes.length > 0 ? (
-                                    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 p-4">
+                                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70">
                                             Notes
                                         </div>
@@ -298,14 +298,14 @@ export default function EditDeckModal({
 
                             {/* Column 3: Appearance */}
                             <div className="space-y-4">
-                                <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 p-4">
+                                <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                                     <div className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-3">
                                         Appearance
                                     </div>
 
                                     <div className="space-y-3">
                                         {/* Deck Box Color */}
-                                        <div className="flex items-center justify-between gap-3 rounded-lg border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 px-3 py-2">
+                                        <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-sidebar)] px-3 py-2">
                                             <div className="min-w-0">
                                                 <div className="text-xs font-medium opacity-80">Deck Box</div>
                                                 <div className="text-xs opacity-60 truncate">{deckBoxColor}</div>
@@ -319,7 +319,7 @@ export default function EditDeckModal({
                                                 disabled={saving}
                                                 className="
                                                     h-7 w-7 rounded-md
-                                                    border border-black/10 dark:border-white/10
+                                                    border border-[var(--theme-border)]
                                                     overflow-hidden cursor-pointer
                                                     bg-transparent p-0
                                                     disabled:opacity-50 disabled:cursor-not-allowed
@@ -335,7 +335,7 @@ export default function EditDeckModal({
                                         </div>
 
                                         {/* Trim Color */}
-                                        <div className="flex items-center justify-between gap-3 rounded-lg border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 px-3 py-2">
+                                        <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-sidebar)] px-3 py-2">
                                             <div className="min-w-0">
                                                 <div className="text-xs font-medium opacity-80">Trim</div>
                                                 <div className="text-xs opacity-60 truncate">{trimColor}</div>
@@ -351,7 +351,7 @@ export default function EditDeckModal({
                                                     disabled={saving}
                                                     className="
                                                     h-7 w-7 rounded-md
-                                                    border border-black/10 dark:border-white/10
+                                                    border border-[var(--theme-border)]
                                                     overflow-hidden cursor-pointer
                                                     bg-transparent p-0
                                                     disabled:opacity-50 disabled:cursor-not-allowed
@@ -388,21 +388,21 @@ export default function EditDeckModal({
                                                 disabled={saving}
                                                 className="
                                                     inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium
-                                                    border border-black/10 dark:border-white/10
-                                                    bg-black/5 dark:bg-white/5
-                                                    hover:bg-black/10 dark:hover:bg-white/10
+                                                    border border-[var(--theme-border)]
+                                                    bg-[var(--theme-sidebar)]
+                                                    hover:bg-[var(--theme-accent)]/20
                                                     transition-colors
                                                     disabled:opacity-50 disabled:cursor-not-allowed
                                                 "
                                             >
                                                 <span className="flex items-center gap-1.5">
                                                     <span
-                                                        className="h-3 w-3 rounded-sm border border-black/10 dark:border-white/10"
+                                                        className="h-3 w-3 rounded-sm border border-[var(--theme-border)]"
                                                         style={{ backgroundColor: p.box }}
                                                         aria-hidden
                                                     />
                                                     <span
-                                                        className="h-3 w-3 rounded-sm border border-black/10 dark:border-white/10"
+                                                        className="h-3 w-3 rounded-sm border border-[var(--theme-border)]"
                                                         style={{ backgroundColor: p.trim }}
                                                         aria-hidden
                                                     />
@@ -413,7 +413,7 @@ export default function EditDeckModal({
                                     </div>
 
                                     {/* Tiny preview strip */}
-                                    <div className="mt-3 rounded-lg border border-black/10 dark:border-white/10 overflow-hidden">
+                                    <div className="mt-3 rounded-lg border border-[var(--theme-border)] overflow-hidden">
                                         <div className="h-10" style={{ backgroundColor: deckBoxColor }} />
                                         <div className="h-2" style={{ backgroundColor: trimColor }} />
                                     </div>
@@ -423,15 +423,15 @@ export default function EditDeckModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-end gap-2 border-t border-black/10 dark:border-white/10 p-4">
+                    <div className="flex items-center justify-end gap-2 border-t border-[var(--theme-border)] p-4">
                         <button
                             onClick={onClose}
                             disabled={saving}
                             className="
                                 rounded-md px-4 py-2 text-sm font-medium
-                                bg-black/5 dark:bg-white/5
-                                hover:bg-black/10 dark:hover:bg-white/10
-                                border border-black/10 dark:border-white/10
+                                bg-[var(--theme-sidebar)]
+                                hover:opacity-90
+                                border border-[var(--theme-border)]
                                 transition-colors
                                 disabled:opacity-50 disabled:cursor-not-allowed
                             "
@@ -460,7 +460,7 @@ export default function EditDeckModal({
 
 function RuleCard({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4">
+        <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
             <div className="text-xs font-semibold uppercase tracking-wide opacity-70">
                 {label}
             </div>

@@ -258,7 +258,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                 {/* Body */}
                 <div className="p-4 overflow-y-auto space-y-4">
                     {/* Quantity */}
-                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Quantity</div>
 
                         <div className="mt-2 flex items-center gap-2">
@@ -294,7 +294,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     </div>
 
                     {/* Foil */}
-                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                         <label className="flex items-center justify-between gap-3">
                             <div>
                                 <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Foil</div>
@@ -312,7 +312,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
 
                     {/* Condition + Language */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
+                        <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                             <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Condition</div>
                             <input
                                 value={condition}
@@ -327,7 +327,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                             />
                         </div>
 
-                        <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
+                        <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                             <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Language</div>
                             <input
                                 value={language}
@@ -344,7 +344,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     </div>
 
                     {/* Tags */}
-                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Tags</div>
                         <div className="text-xs opacity-70 mt-1">Comma-separated (e.g. trade, staple, commander).</div>
                         <input
@@ -361,7 +361,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     </div>
 
                     {/* Notes */}
-                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Notes</div>
                         <textarea
                             value={notes}
@@ -379,7 +379,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     </div>
 
                     {/* Decks Section */}
-                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-2">
                             In Decks
                         </div>
@@ -411,7 +411,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     </div>
 
                     {/* Binders Section */}
-                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-2">
                             In Binders
                         </div>
