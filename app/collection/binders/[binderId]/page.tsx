@@ -102,17 +102,25 @@ export default function BinderPage() {
                     // Failed to fetch collection
                 }
 
-                // Fetch card details from Scryfall
+                // Fetch card details from Scryfall (batch API to avoid N+1)
+                const cardIds = [...new Set(cards.map((bc: { cardId: string }) => bc.cardId).filter(Boolean))];
                 const detailsMap = new Map<string, ScryfallCard>();
-                for (const bc of cards) {
+                if (cardIds.length > 0) {
                     try {
-                        const cardResponse = await fetch(`/api/scryfall/card/${bc.cardId}`);
-                        if (cardResponse.ok) {
-                            const cardData = await cardResponse.json();
-                            detailsMap.set(bc.cardId, cardData);
+                        const batchResponse = await fetch("/api/scryfall/cards/batch", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: cardIds }),
+                        });
+                        if (batchResponse.ok) {
+                            const batchData = await batchResponse.json();
+                            const cardsObj = batchData.cards || {};
+                            Object.entries(cardsObj).forEach(([id, card]) => {
+                                detailsMap.set(id, card as ScryfallCard);
+                            });
                         }
                     } catch (err) {
-                        // Failed to fetch card
+                        // Failed to fetch cards
                     }
                 }
                 setCardDetails(detailsMap);
@@ -1112,23 +1120,33 @@ export default function BinderPage() {
                         const data = await response.json();
                         setBinderCards(data.binder?.binderCards || []);
 
-                        // Refetch card details for new cards
+                        // Refetch card details for new cards (batch to avoid N+1)
                         const newCards = data.binder?.binderCards || [];
-                        const detailsMap = new Map<string, ScryfallCard>();
-                        for (const bc of newCards) {
-                            if (!cardDetails.has(bc.cardId)) {
-                                try {
-                                    const cardResponse = await fetch(`/api/scryfall/card/${bc.cardId}`);
-                                    if (cardResponse.ok) {
-                                        const cardData = await cardResponse.json();
-                                        detailsMap.set(bc.cardId, cardData);
-                                    }
-                                } catch (err) {
-                                    // Failed to fetch card
+                        const idsToFetch = newCards
+                            .map((bc: { cardId: string }) => bc.cardId)
+                            .filter((id: string) => id && !cardDetails.has(id));
+                        if (idsToFetch.length > 0) {
+                            try {
+                                const batchResponse = await fetch("/api/scryfall/cards/batch", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ ids: idsToFetch }),
+                                });
+                                if (batchResponse.ok) {
+                                    const batchData = await batchResponse.json();
+                                    const cardsObj = batchData.cards || {};
+                                    setCardDetails((prev) => {
+                                        const next = new Map(prev);
+                                        Object.entries(cardsObj).forEach(([id, card]) => {
+                                            next.set(id, card as ScryfallCard);
+                                        });
+                                        return next;
+                                    });
                                 }
+                            } catch (err) {
+                                // Failed to fetch cards
                             }
                         }
-                        setCardDetails(prev => new Map([...prev, ...detailsMap]));
                     }
                 }}
             />

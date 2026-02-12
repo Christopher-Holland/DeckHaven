@@ -118,3 +118,37 @@ export type ScryfallSet = {
 export async function getSets() {
     return scryfallFetch<{ object: "list"; data: ScryfallSet[] }>(`/sets`);
 }
+
+const SCRYFALL_COLLECTION_CHUNK_SIZE = 75;
+
+/**
+ * Fetches multiple cards by Scryfall ID in a single batched request.
+ * Uses Scryfall's /cards/collection endpoint (max 75 per request).
+ * Chunks automatically for larger sets.
+ *
+ * @param ids - Array of Scryfall card IDs (UUIDs)
+ * @returns Map of cardId -> ScryfallCard for successfully fetched cards
+ */
+export async function getCardsByIds(ids: string[]): Promise<Map<string, ScryfallCard>> {
+    const result = new Map<string, ScryfallCard>();
+    const uniqueIds = [...new Set(ids)].filter(Boolean);
+
+    for (let i = 0; i < uniqueIds.length; i += SCRYFALL_COLLECTION_CHUNK_SIZE) {
+        const chunk = uniqueIds.slice(i, i + SCRYFALL_COLLECTION_CHUNK_SIZE);
+        const identifiers = chunk.map((id) => ({ id }));
+
+        const list = await scryfallFetch<ScryfallList<ScryfallCard>>(`/cards/collection`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ identifiers }),
+        });
+
+        if (list.data) {
+            for (const card of list.data) {
+                result.set(card.id, card);
+            }
+        }
+    }
+
+    return result;
+}
