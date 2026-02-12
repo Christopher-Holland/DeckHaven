@@ -94,7 +94,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 }
 
                 // Fetch card details from Scryfall (batch API to avoid N+1)
-                const cardIds = [...new Set(cards.map((bc) => bc.cardId).filter(Boolean))];
+                const cardIds = [...new Set(cards.map((bc: { cardId: string }) => bc.cardId).filter(Boolean))];
                 const detailsMap = new Map<string, ScryfallCard>();
                 if (cardIds.length > 0) {
                     try {
