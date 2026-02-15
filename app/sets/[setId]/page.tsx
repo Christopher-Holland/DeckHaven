@@ -735,6 +735,8 @@ export default function SetDetailPage({ params }: PageProps) {
                                 }
                             }
                         }
+                        const totalAdded = cardsToAdd.length * quantity;
+                        showToast(`Added ${totalAdded} card${totalAdded === 1 ? "" : "s"} to binder.`, "success");
                     } catch (err) {
                         showToast(err instanceof Error ? err.message : "Failed to add cards to binder", "error");
                         throw err;
@@ -759,6 +761,7 @@ export default function SetDetailPage({ params }: PageProps) {
 
                     if (cardsToAdd.length === 0) return;
 
+                    let successCount = 0;
                     try {
                         // Add each card with the specified quantity
                         for (const cardId of cardsToAdd) {
@@ -778,6 +781,16 @@ export default function SetDetailPage({ params }: PageProps) {
                                 // Continue processing other cards instead of throwing
                                 continue;
                             }
+                            successCount++;
+                        }
+                        if (successCount > 0) {
+                            const totalAdded = successCount * quantity;
+                            showToast(
+                                successCount === cardsToAdd.length
+                                    ? `Added ${totalAdded} card${totalAdded === 1 ? "" : "s"} to deck.`
+                                    : `Added ${successCount * quantity} of ${cardsToAdd.length * quantity} cards to deck. Some failed.`,
+                                successCount === cardsToAdd.length ? "success" : "warning"
+                            );
                         }
                     } catch (err) {
                         // Error adding cards to deck
