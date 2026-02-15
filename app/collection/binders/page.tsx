@@ -256,7 +256,7 @@ export default function BindersPage() {
                                         <div
                                             className={`
                                             w-full max-w-[90%]
-                                            rounded-md border border-white/20 bg-black/20 backdrop-blur-[1px]
+                                            rounded-md border border-black/30 dark:border-white/30 bg-[var(--theme-fg)]/20 backdrop-blur-[1px]
                                             px-4 py-3
                                             ${coverTextClass}
                                             `}

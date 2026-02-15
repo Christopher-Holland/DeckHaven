@@ -445,8 +445,8 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                                         className="
                                             w-[84%] h-[86%]
                                             rounded-md
-                                            border border-black/15 dark:border-white/15
-                                            bg-white/40 dark:bg-black/15
+                                            border border-[var(--theme-border)]
+                                            bg-[var(--theme-sidebar)]/60
                                             shadow-inner
                                             flex items-center justify-center
                                         "
@@ -558,8 +558,8 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
                 <div
                     className="
                         rounded-xl
-                        border border-black/15
-                        bg-white/80
+                        border border-[var(--theme-border)]
+                        bg-[var(--theme-sidebar)]
                         backdrop-blur
                         px-4 py-3
                         text-[var(--theme-fg)]

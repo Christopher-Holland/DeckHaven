@@ -247,8 +247,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                         w-16 h-10 rounded-md
                                         border border-[var(--theme-border)]
                                         cursor-pointer
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 />
                                 <input
@@ -260,8 +259,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                         flex-1 rounded-md px-3 py-2 text-sm
                                         bg-[var(--theme-sidebar)]
                                         border border-[var(--theme-border)]
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 />
                             </div>
@@ -279,8 +277,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                         w-16 h-10 rounded-md
                                         border border-[var(--theme-border)]
                                         cursor-pointer
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 />
                                 <input
@@ -292,8 +289,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                         flex-1 rounded-md px-3 py-2 text-sm
                                         bg-[var(--theme-sidebar)]
                                         border border-[var(--theme-border)]
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 />
                             </div>
@@ -311,8 +307,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                         w-16 h-10 rounded-md
                                         border border-[var(--theme-border)]
                                         cursor-pointer
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 />
                                 <input
@@ -324,8 +319,7 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
                                         flex-1 rounded-md px-3 py-2 text-sm
                                         bg-[var(--theme-sidebar)]
                                         border border-[var(--theme-border)]
-                                        focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-                                        dark:focus:ring-[#82664e]
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                                     "
                                 />
                             </div>

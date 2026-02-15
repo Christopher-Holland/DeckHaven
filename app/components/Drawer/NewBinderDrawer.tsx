@@ -86,7 +86,7 @@ export function NewBinderDrawer() {
                     value={selectedGame}
                     onChange={(e) => setSelectedGame(e.target.value)}
                     required
-                    className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-white/70 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]">
+                    className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]">
                     <option value="all">Favorites (All Games)</option>
                     <option value="mtg">Magic the Gathering</option>
                     <option value="pokemon">Pokémon</option>
@@ -101,7 +101,7 @@ export function NewBinderDrawer() {
                     value={size}
                     onChange={(e) => setSize(e.target.value)}
                     required
-                    className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-white/70 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                    className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                 >
                     <option value="2x2">2x2</option>
                     <option value="3x3">3x3</option>
@@ -117,7 +117,7 @@ export function NewBinderDrawer() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-white/70 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                    className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                     placeholder="Enter binder name"
                 />
             </label>
@@ -129,7 +129,7 @@ export function NewBinderDrawer() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-white/70 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e] resize-none"
+                    className="mt-1 w-full rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] resize-none"
                     placeholder="Optional description..."
                 />
             </label>
@@ -142,14 +142,14 @@ export function NewBinderDrawer() {
                         type="color"
                         value={coverColor}
                         onChange={(e) => setCoverColor(e.target.value)}
-                        className="w-16 h-10 rounded-md border border-black/10 dark:border-white/10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                        className="w-16 h-10 rounded-md border border-[var(--theme-border)] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                     />
                     <input
                         type="text"
                         value={coverColor}
                         onChange={(e) => setCoverColor(e.target.value)}
                         placeholder="#ffffff"
-                        className="flex-1 rounded-md px-3 py-2 text-sm bg-white/70 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                        className="flex-1 rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                     />
                 </div>
             </label>
@@ -162,14 +162,14 @@ export function NewBinderDrawer() {
                         type="color"
                         value={spineColor}
                         onChange={(e) => setSpineColor(e.target.value)}
-                        className="w-16 h-10 rounded-md border border-black/10 dark:border-white/10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                        className="w-16 h-10 rounded-md border border-[var(--theme-border)] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                     />
                     <input
                         type="text"
                         value={spineColor}
                         onChange={(e) => setSpineColor(e.target.value)}
                         placeholder="#1f2937"
-                        className="flex-1 rounded-md px-3 py-2 text-sm bg-white/70 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                        className="flex-1 rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                     />
                 </div>
             </label>
@@ -182,25 +182,25 @@ export function NewBinderDrawer() {
                         type="color"
                         value={pageColor}
                         onChange={(e) => setPageColor(e.target.value)}
-                        className="w-16 h-10 rounded-md border border-black/10 dark:border-white/10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                        className="w-16 h-10 rounded-md border border-[var(--theme-border)] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                     />
                     <input
                         type="text"
                         value={pageColor}
                         onChange={(e) => setPageColor(e.target.value)}
                         placeholder="#f6ead6"
-                        className="flex-1 rounded-md px-3 py-2 text-sm bg-white/70 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#42c99c] dark:focus:ring-[#82664e]"
+                        className="flex-1 rounded-md px-3 py-2 text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                     />
                 </div>
             </label>
 
             {/* Footer */}
-            <div className="mt-6 pt-4 border-t border-black/10 dark:border-white/10 flex items-center justify-end gap-2">
+            <div className="mt-6 pt-4 border-t border-[var(--theme-border)] flex items-center justify-end gap-2">
                 <button
                     type="button"
                     onClick={close}
                     disabled={saving}
-                    className="px-3 py-2 rounded-md text-sm bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-2 rounded-md text-sm bg-[var(--theme-sidebar)] border border-[var(--theme-border)] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Cancel
                 </button>
