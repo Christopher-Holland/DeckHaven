@@ -37,18 +37,23 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get all decks for the user with their card counts
+        // Get all decks for the user with total card count (sum of quantities)
         const decks = await prisma.deck.findMany({
             where: { userId: dbUser.id },
             orderBy: { createdAt: "desc" },
             include: {
-                _count: {
-                    select: { deckCards: true },
-                },
+                deckCards: { select: { quantity: true } },
             },
         });
 
-        return NextResponse.json({ decks });
+        // Map to include totalCards (sum of quantities) for each deck
+        const decksWithTotals = decks.map((deck) => {
+            const totalCards = deck.deckCards.reduce((sum, dc) => sum + dc.quantity, 0);
+            const { deckCards, ...deckWithoutCards } = deck;
+            return { ...deckWithoutCards, totalCards };
+        });
+
+        return NextResponse.json({ decks: decksWithTotals });
     } catch (error) {
         return NextResponse.json(
             { error: "Failed to fetch decks" },
@@ -141,13 +146,13 @@ export async function POST(request: NextRequest) {
                 trimColor: trimColor || null,
             },
             include: {
-                _count: {
-                    select: { deckCards: true },
-                },
+                deckCards: { select: { quantity: true } },
             },
         });
 
-        return NextResponse.json({ deck });
+        const totalCards = deck.deckCards.reduce((sum, dc) => sum + dc.quantity, 0);
+        const { deckCards, ...deckWithoutCards } = deck;
+        return NextResponse.json({ deck: { ...deckWithoutCards, totalCards } });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Failed to create deck";
         return NextResponse.json(

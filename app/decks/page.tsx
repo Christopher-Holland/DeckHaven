@@ -63,7 +63,7 @@ function DeckBox({
 }: DeckBoxProps) {
     const deckBoxColor = deck.deckBoxColor || "#ffffff";
     const trimColor = deck.trimColor || "#1f2937";
-    const cardCount = deck._count.deckCards;
+    const cardCount = deck.totalCards ?? 0;
     const formatText = deck.format || "Unknown Format";
     const subtitle = `${formatText} • ${cardCount} card${cardCount !== 1 ? "s" : ""}`;
     

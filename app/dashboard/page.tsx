@@ -28,9 +28,7 @@ import { tcgNews } from "../data/tcgNews";
 type Deck = {
     id: string;
     name: string;
-    _count?: {
-        deckCards: number;
-    };
+    totalCards?: number;
 };
 
 type Binder = {
@@ -211,8 +209,8 @@ export default function Dashboard() {
                                         className="block text-xs opacity-90 hover:opacity-100 hover:underline transition-opacity"
                                     >
                                         {deck.name}
-                                        {typeof deck._count?.deckCards === "number" ? (
-                                            <span className="opacity-70"> • {deck._count.deckCards} cards</span>
+                                        {typeof deck.totalCards === "number" ? (
+                                            <span className="opacity-70"> • {deck.totalCards} cards</span>
                                         ) : null}
                                     </Link>
                                 ))}

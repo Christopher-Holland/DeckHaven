@@ -9,9 +9,7 @@ type Deck = {
     description: string | null;
     format: string | null;
     game: string;
-    _count?: {
-        deckCards: number;
-    };
+    totalCards?: number;
 };
 
 type SelectDeckModalProps = {
@@ -238,7 +236,7 @@ export default function SelectDeckModal({
                                                     </div>
                                                 )}
                                                 <div className="text-xs opacity-60 mt-1">
-                                                    {deck.format || "No format"} • {deck._count?.deckCards || 0} card{deck._count?.deckCards !== 1 ? "s" : ""}
+                                                    {deck.format || "No format"} • {deck.totalCards ?? 0} card{(deck.totalCards ?? 0) !== 1 ? "s" : ""}
                                                 </div>
                                             </div>
                                             {adding === deck.id && (
