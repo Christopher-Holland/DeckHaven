@@ -9,6 +9,7 @@ import { EditBinderDrawer } from "./EditBinderDrawer";
 import { NewBinderDrawer } from "./NewBinderDrawer";
 import { EditDeckDrawer } from "./EditDeckDrawer";
 import { CreateDeckDrawer } from "./CreateDeckDrawer";
+import { BinderCardDrawer } from "./BinderCardDrawer";
 
 export function DrawerHost() {
     const { state } = useDrawer();
@@ -20,6 +21,13 @@ export function DrawerHost() {
             return (
                 <Drawer title="Card View">
                     <div className="text-sm opacity-80">Card view drawer not yet implemented</div>
+                </Drawer>
+            );
+
+        case "BINDER_CARD_VIEW":
+            return (
+                <Drawer title="">
+                    <BinderCardDrawer />
                 </Drawer>
             );
 

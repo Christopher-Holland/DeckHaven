@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Edit, Plus, Trash, X, ChevronLeft, ChevronRight, Trash2, RotateCcw, SkipBack, SkipForward } from "lucide-react";
+import { Edit, Plus, Trash, X, ChevronLeft, ChevronRight, SkipBack, SkipForward, GripVertical } from "lucide-react";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import AddToBinderModal from "../addToBinderModal";
 import { useRouter, useParams } from "next/navigation";
@@ -38,6 +38,7 @@ export default function BinderPage() {
     const user = useUser();
     const { open } = useDrawer();
     const { showToast } = useToast();
+    const [rearranging, setRearranging] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [isFlipping, setIsFlipping] = useState(false);
@@ -56,10 +57,7 @@ export default function BinderPage() {
     const [collectionCardQuantities, setCollectionCardQuantities] = useState<Map<string, number>>(new Map());
     const [draggedCard, setDraggedCard] = useState<{ id: string; cardId: string; slotNumber: number } | null>(null);
     const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
-    const [dragOverTrash, setDragOverTrash] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
-    const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
     const [addingToCollection, setAddingToCollection] = useState<string | null>(null);
 
     // Fetch binder data when page loads
@@ -374,6 +372,7 @@ export default function BinderPage() {
                 const cards = data.binder?.binderCards || [];
                 setBinderCards(cards);
             }
+            showToast("Card moved.", "success");
         } catch (error) {
             showToast(error instanceof Error ? error.message : "Failed to move card", "error");
         }
@@ -400,6 +399,7 @@ export default function BinderPage() {
                 const cards = data.binder?.binderCards || [];
                 setBinderCards(cards);
             }
+            showToast("Card removed from binder.", "success");
         } catch (error) {
             showToast(error instanceof Error ? error.message : "Failed to delete card", "error");
         }
@@ -429,6 +429,7 @@ export default function BinderPage() {
             if (!response.ok) {
                 throw new Error("Failed to add card to collection");
             }
+            showToast("Card added to collection.", "success");
         } catch (error) {
             // Revert on error
             setCollectionCardQuantities((prev) => {
@@ -443,6 +444,47 @@ export default function BinderPage() {
             showToast(error instanceof Error ? error.message : "Failed to add card to collection", "error");
         } finally {
             setAddingToCollection(null);
+        }
+    };
+
+    // Handle removing a card from collection (keeps it in binder, card becomes grayed out)
+    const handleRemoveFromCollection = async (cardId: string) => {
+        const currentQuantity = collectionCardQuantities.get(cardId) || 0;
+        if (currentQuantity <= 0) return;
+
+        const newQuantity = currentQuantity - 1;
+
+        try {
+            // Optimistically update UI
+            setCollectionCardQuantities((prev) => {
+                const next = new Map(prev);
+                if (newQuantity === 0) {
+                    next.delete(cardId);
+                } else {
+                    next.set(cardId, newQuantity);
+                }
+                return next;
+            });
+
+            // Save to database
+            const response = await fetch("/api/collection", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cardId, quantity: newQuantity }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to remove card from collection");
+            }
+            showToast("Card removed from collection.", "success");
+        } catch (error) {
+            // Revert on error
+            setCollectionCardQuantities((prev) => {
+                const next = new Map(prev);
+                next.set(cardId, currentQuantity);
+                return next;
+            });
+            showToast(error instanceof Error ? error.message : "Failed to remove card from collection", "error");
         }
     };
 
@@ -496,8 +538,10 @@ export default function BinderPage() {
                                 `}
                                 title={slot?.title ?? (slot ? "Card" : "Empty slot")}
                                 onDragOver={(e) => {
-                                    e.preventDefault();
-                                    setDragOverSlot(slotNumber);
+                                    if (rearranging) {
+                                        e.preventDefault();
+                                        setDragOverSlot(slotNumber);
+                                    }
                                 }}
                                 onDragLeave={() => {
                                     setDragOverSlot(null);
@@ -506,7 +550,7 @@ export default function BinderPage() {
                                     e.preventDefault();
                                     setDragOverSlot(null);
 
-                                    if (draggedCard) {
+                                    if (rearranging && draggedCard) {
                                         handleMoveCard(draggedCard.id, slotNumber);
                                         setDraggedCard(null);
                                     }
@@ -517,17 +561,40 @@ export default function BinderPage() {
 
                                 {slot?.imageUrl ? (
                                     <div
-                                        className="relative h-full w-full group"
-                                        onMouseEnter={() => slot.isInCollection === false && setHoveredCardId(slot.cardId)}
-                                        onMouseLeave={() => setHoveredCardId(null)}
+                                        className={`relative h-full w-full ${!rearranging ? "cursor-pointer" : ""}`}
+                                        onClick={() => {
+                                            if (!rearranging && slot) {
+                                                const cardDetail = cardDetails.get(slot.cardId) ?? { name: slot.title ?? "Unknown Card", image_uris: null };
+                                                open("BINDER_CARD_VIEW", {
+                                                    card: cardDetail,
+                                                    binderCardId: slot.id,
+                                                    cardId: slot.cardId,
+                                                    isInCollection: slot.isInCollection ?? false,
+                                                    onRemove: async () => {
+                                                        await handleDeleteCard(slot.id);
+                                                        const response = await fetch(`/api/binders/${binder?.id}`);
+                                                        if (response.ok) {
+                                                            const data = await response.json();
+                                                            setBinderCards(data.binder?.binderCards || []);
+                                                        }
+                                                    },
+                                                    onAddToCollection: async () => {
+                                                        await handleAddToCollection(slot.cardId);
+                                                    },
+                                                    onRemoveFromCollection: async () => {
+                                                        await handleRemoveFromCollection(slot.cardId);
+                                                    },
+                                                });
+                                            }
+                                        }}
                                     >
                                         <img
                                             src={slot.imageUrl}
                                             alt={slot.title ?? "Card"}
-                                            className={`h-full w-full object-cover cursor-move transition-opacity ${slot.isInCollection === false ? "opacity-60 grayscale" : ""}`}
-                                            draggable
+                                            className={`h-full w-full object-cover transition-opacity ${rearranging ? "cursor-move" : ""} ${slot.isInCollection === false ? "opacity-60 grayscale" : ""}`}
+                                            draggable={rearranging}
                                             onDragStart={(e) => {
-                                                if (slot && slot.slotNumber !== null && slot.slotNumber !== undefined) {
+                                                if (rearranging && slot && slot.slotNumber !== null && slot.slotNumber !== undefined) {
                                                     setDraggedCard({
                                                         id: slot.id,
                                                         cardId: slot.cardId,
@@ -540,33 +607,8 @@ export default function BinderPage() {
                                                 setDraggedCard(null);
                                                 setDragOverSlot(null);
                                             }}
+                                            onClick={(e) => rearranging && e.stopPropagation()}
                                         />
-                                        {/* Hover popup for cards not in collection */}
-                                        {slot.isInCollection === false && hoveredCardId === slot.cardId && (
-                                            <div className="absolute inset-0 flex items-center justify-center z-10">
-                                                <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-lg p-3 shadow-lg">
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleAddToCollection(slot.cardId);
-                                                        }}
-                                                        disabled={addingToCollection === slot.cardId}
-                                                        className="
-                                                            px-3 py-1.5 text-xs font-medium
-                                                            bg-[var(--theme-accent)]
-                                                            text-white
-                                                            rounded-md
-                                                            hover:bg-[var(--theme-accent-hover)]
-                                                            transition-colors
-                                                            disabled:opacity-50 disabled:cursor-not-allowed
-                                                        "
-                                                    >
-                                                        {addingToCollection === slot.cardId ? "Adding..." : "Add to Collection"}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
                                 ) : (
                                     <div className="h-full w-full flex items-center justify-center">
@@ -733,6 +775,24 @@ export default function BinderPage() {
                     </div>
                     <div className="flex items-center gap-2">
                         <button
+                            className={`
+                                    inline-flex items-center gap-2
+                                    px-3 py-2 rounded-md text-sm
+                                    flex-shrink-0
+                                    transition-colors
+                                    border
+                                    ${rearranging
+                                        ? "bg-[var(--theme-accent)]/20 border-[var(--theme-accent)] text-[var(--theme-fg)]"
+                                        : "bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-black/10 dark:border-white/10"
+                                    }
+                                    `}
+                            type="button"
+                            onClick={() => setRearranging((prev) => !prev)}
+                        >
+                            <GripVertical className="w-5 h-5" />
+                            <span className="text-sm">{rearranging ? "Done Rearranging" : "Rearrange"}</span>
+                        </button>
+                        <button
                             className="
                                     inline-flex items-center gap-2
                                     px-3 py-2 rounded-md text-sm
@@ -773,7 +833,6 @@ export default function BinderPage() {
                             type="button"
                             onClick={() => {
                                 if (!binder) return;
-                                setDeleteCardId(null); // Clear card ID to indicate binder deletion
                                 setDeleteModalOpen(true);
                             }}
                             disabled={deleting}
@@ -1038,46 +1097,6 @@ export default function BinderPage() {
                                 To Beginning
                             </button>
 
-                            {/* Recycling Bin */}
-                            <div
-                                className={`
-        flex items-center justify-center
-        w-12 h-12 rounded-full
-        border-2 border-dashed
-        transition-all duration-200
-        ${dragOverTrash
-                                        ? "bg-red-500/20 border-red-500 scale-110"
-                                        : "bg-[var(--theme-sidebar)]/50 border-[var(--theme-border)]"
-                                    }
-        ${draggedCard ? "opacity-100" : "opacity-50"}
-      `}
-                                onDragOver={(e) => {
-                                    e.preventDefault();
-                                    setDragOverTrash(true);
-                                }}
-                                onDragLeave={() => {
-                                    setDragOverTrash(false);
-                                }}
-                                onDrop={(e) => {
-                                    e.preventDefault();
-                                    setDragOverTrash(false);
-
-                                    if (draggedCard) {
-                                        setDeleteCardId(draggedCard.id);
-                                        setDeleteModalOpen(true);
-                                        setDraggedCard(null);
-                                    }
-                                }}
-                                title="Drop card here to remove from binder"
-                            >
-                                <Trash2
-                                    className={`
-          w-5 h-5 transition-colors
-          ${dragOverTrash ? "text-red-500" : "text-[var(--theme-fg)]"}
-        `}
-                                />
-                            </div>
-
                             <button
                                 type="button"
                                 onClick={() => handlePageChange(totalPages)}
@@ -1152,45 +1171,23 @@ export default function BinderPage() {
             />
             <ConfirmDeleteModal
                 open={deleteModalOpen}
-                title={deleteCardId ? "Remove Card from Binder" : "Delete Binder"}
-                message={
-                    deleteCardId
-                        ? "Are you sure you want to remove this card from the binder? This action cannot be undone."
-                        : `Are you sure you want to delete "${binder?.name}"? This cannot be undone.`
-                }
+                title="Delete Binder"
+                message={`Are you sure you want to delete "${binder?.name}"? This cannot be undone.`}
                 loading={deleting}
-                onCancel={() => {
-                    setDeleteModalOpen(false);
-                    setDeleteCardId(null);
-                }}
+                onCancel={() => setDeleteModalOpen(false)}
                 onConfirm={async () => {
-                    if (deleteCardId) {
-                        // Delete card from binder
-                        setDeleting(true);
-                        try {
-                            await handleDeleteCard(deleteCardId);
-                            setDeleteModalOpen(false);
-                            setDeleteCardId(null);
-                        } catch (err) {
-                            // Error is already handled in handleDeleteCard
-                        } finally {
-                            setDeleting(false);
+                    setDeleting(true);
+                    try {
+                        const response = await fetch(`/api/binders/${binder?.id}`, { method: "DELETE" });
+                        if (!response.ok) {
+                            throw new Error("Failed to delete binder");
                         }
-                    } else {
-                        // Delete entire binder
-                        setDeleting(true);
-                        try {
-                            const response = await fetch(`/api/binders/${binder?.id}`, { method: "DELETE" });
-                            if (!response.ok) {
-                                throw new Error("Failed to delete binder");
-                            }
-                            router.push("/collection/binders");
-                        } catch (err) {
-                            showToast(err instanceof Error ? err.message : "Failed to delete binder", "error");
-                        } finally {
-                            setDeleting(false);
-                            setDeleteModalOpen(false);
-                        }
+                        router.push("/collection/binders");
+                    } catch (err) {
+                        showToast(err instanceof Error ? err.message : "Failed to delete binder", "error");
+                    } finally {
+                        setDeleting(false);
+                        setDeleteModalOpen(false);
                     }
                 }}
             />
