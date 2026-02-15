@@ -26,9 +26,7 @@ type Deck = {
     trimColor: string | null;
     createdAt: string;
     updatedAt: string;
-    _count: {
-        deckCards: number;
-    };
+    totalCards?: number;
 };
 
 type DeckBoxProps = {
