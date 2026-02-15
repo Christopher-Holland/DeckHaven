@@ -81,8 +81,8 @@ export default function SetDetailPage({ params }: PageProps) {
     useEffect(() => {
         async function fetchUserData() {
             try {
-                // Fetch collection
-                const collectionResponse = await fetch("/api/collection");
+                // Fetch full collection (high limit) so set cards can show correct owned state
+                const collectionResponse = await fetch("/api/collection?page=1&limit=10000");
                 if (collectionResponse.ok) {
                     const data = await collectionResponse.json();
                     const collectionMap = new Map<string, number>();
