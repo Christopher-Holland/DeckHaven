@@ -60,6 +60,7 @@ export default function CollectionPage() {
     const [editCardList, setEditCardList] = useState<CollectionItem | null>(null);
     const [updatingQuantities, setUpdatingQuantities] = useState<Set<string>>(new Set());
     const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "newest" | "oldest" | "quantity">("newest");
     const [selectedSet, setSelectedSet] = useState<string>("all");
     const [selectedTag, setSelectedTag] = useState<string>("all");
@@ -67,10 +68,18 @@ export default function CollectionPage() {
     const { game } = useGameFilter();
     const { showToast } = useToast();
 
-    // Reset to page 1 when game filter changes
+    const isSearchMode = debouncedSearchQuery.trim().length > 0;
+
+    // Debounce search query (300ms) to avoid refetching on every keystroke
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Reset to page 1 when game filter or search changes
     useEffect(() => {
         setCurrentPage(1);
-    }, [game]);
+    }, [game, debouncedSearchQuery]);
 
     // Fetch collection data
     useEffect(() => {
@@ -81,60 +90,75 @@ export default function CollectionPage() {
                 setLoading(true);
                 setError(null);
 
-                // Build query string with game filter
                 const gameParam = game === "all" ? "" : `&game=${game}`;
-                const response = await fetch(`/api/collection?page=${currentPage}&limit=${itemsPerPage}${gameParam}`);
+                const isSearching = debouncedSearchQuery.trim().length > 0;
+                const page = isSearching ? 1 : currentPage;
+                const limit = isSearching ? 10000 : itemsPerPage;
+
+                const response = await fetch(`/api/collection?page=${page}&limit=${limit}${gameParam}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch collection");
                 }
 
                 const data: CollectionData = await response.json();
 
-                // Fetch card details from Scryfall for each card
+                // Fetch card details: batch when full collection, per-card when paginated
                 const cardsMap = new Map<string, ScryfallCard>();
-                for (const item of data.items) {
-                    try {
-                        const cardResponse = await fetch(`/api/scryfall/card/${item.cardId}`);
-                        if (cardResponse.ok) {
-                            const cardData = await cardResponse.json();
-                            cardsMap.set(item.cardId, cardData);
+                if (data.items.length > 0) {
+                    if (isSearching && data.items.length > 0) {
+                        const ids = [...new Set(data.items.map((i) => i.cardId))];
+                        try {
+                            const batchRes = await fetch("/api/scryfall/cards/batch", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ ids }),
+                            });
+                            if (batchRes.ok) {
+                                const { cards: batchCards } = await batchRes.json();
+                                Object.entries(batchCards).forEach(([id, card]) => {
+                                    cardsMap.set(id, card as ScryfallCard);
+                                });
+                            }
+                        } catch {
+                            // Fallback to per-card if batch fails
                         }
-                    } catch (err) {
-                        // Failed to fetch card
+                    }
+                    for (const item of data.items) {
+                        if (cardsMap.has(item.cardId)) continue;
+                        try {
+                            const cardResponse = await fetch(`/api/scryfall/card/${item.cardId}`);
+                            if (cardResponse.ok) {
+                                const cardData = await cardResponse.json();
+                                cardsMap.set(item.cardId, cardData);
+                            }
+                        } catch {
+                            // Failed to fetch card
+                        }
                     }
                 }
                 setCards(cardsMap);
 
-                // Filter items by game client-side
-                // Since all cards currently come from Scryfall (MTG), we filter based on that
-                // All Scryfall cards are MTG, so:
-                // - If game is "all" or "mtg": show all items
-                // - If game is "pokemon" or "yugioh": show empty (no cards from those games yet)
                 let filteredItems = data.items;
                 let filteredTotal = data.pagination.total;
                 let filteredTotalQuantity = data.pagination.totalQuantity || 0;
 
                 if (game === "pokemon" || game === "yugioh") {
-                    // No cards from these games yet (all cards are from Scryfall/MTG)
                     filteredItems = [];
                     filteredTotal = 0;
                     filteredTotalQuantity = 0;
                 } else if (game === "mtg" || game === "all") {
-                    // Show all cards (all are MTG)
                     filteredItems = data.items;
                     filteredTotal = data.pagination.total;
-                    // Use API's totalQuantity (sum of all quantities) for accurate count
                     filteredTotalQuantity = data.pagination.totalQuantity || 0;
                 }
 
-                // Update collection data with filtered items
                 setCollectionData({
                     items: filteredItems,
                     pagination: {
                         ...data.pagination,
                         total: filteredTotal,
                         totalQuantity: filteredTotalQuantity,
-                        totalPages: Math.ceil(filteredTotal / itemsPerPage),
+                        totalPages: isSearching ? 1 : Math.ceil(filteredTotal / itemsPerPage),
                     },
                 });
             } catch (err) {
@@ -145,7 +169,7 @@ export default function CollectionPage() {
         }
 
         fetchCollection();
-    }, [user, currentPage, game]);
+    }, [user, currentPage, game, debouncedSearchQuery]);
 
     // Handle quantity update
     const handleQuantityUpdate = async (item: CollectionItem, newQuantity: number) => {
@@ -174,14 +198,33 @@ export default function CollectionPage() {
                 throw new Error(errorData.error || "Failed to update quantity");
             }
 
-            // Refresh collection data
+            // Refresh collection data (full fetch when search active, else current page)
             const gameParam = game === "all" ? "" : `&game=${game}`;
-            const collectionResponse = await fetch(`/api/collection?page=${currentPage}&limit=${itemsPerPage}${gameParam}`);
+            const isSearching = debouncedSearchQuery.trim().length > 0;
+            const page = isSearching ? 1 : currentPage;
+            const limit = isSearching ? 10000 : itemsPerPage;
+            const collectionResponse = await fetch(`/api/collection?page=${page}&limit=${limit}${gameParam}`);
             if (collectionResponse.ok) {
                 const data: CollectionData = await collectionResponse.json();
-                
-                // Fetch card details for new items if needed
                 const cardsMap = new Map<string, ScryfallCard>(cards);
+                if (isSearching && data.items.length > 0) {
+                    const ids = [...new Set(data.items.map((i) => i.cardId))];
+                    try {
+                        const batchRes = await fetch("/api/scryfall/cards/batch", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids }),
+                        });
+                        if (batchRes.ok) {
+                            const { cards: batchCards } = await batchRes.json();
+                            Object.entries(batchCards).forEach(([id, card]) => {
+                                cardsMap.set(id, card as ScryfallCard);
+                            });
+                        }
+                    } catch {
+                        // Fallback to per-card below
+                    }
+                }
                 for (const newItem of data.items) {
                     if (!cardsMap.has(newItem.cardId)) {
                         try {
@@ -190,18 +233,15 @@ export default function CollectionPage() {
                                 const cardData = await cardResponse.json();
                                 cardsMap.set(newItem.cardId, cardData);
                             }
-                        } catch (err) {
+                        } catch {
                             // Failed to fetch card
                         }
                     }
                 }
                 setCards(cardsMap);
-                
-                // Filter items by game client-side
                 let filteredItems = data.items;
                 let filteredTotal = data.pagination.total;
                 let filteredTotalQuantity = data.pagination.totalQuantity || 0;
-                
                 if (game === "pokemon" || game === "yugioh") {
                     filteredItems = [];
                     filteredTotal = 0;
@@ -209,17 +249,15 @@ export default function CollectionPage() {
                 } else if (game === "mtg" || game === "all") {
                     filteredItems = data.items;
                     filteredTotal = data.pagination.total;
-                    // Use API's totalQuantity (sum of all quantities) for accurate count
                     filteredTotalQuantity = data.pagination.totalQuantity || 0;
                 }
-
                 setCollectionData({
                     items: filteredItems,
                     pagination: {
                         ...data.pagination,
                         total: filteredTotal,
                         totalQuantity: filteredTotalQuantity,
-                        totalPages: Math.ceil(filteredTotal / itemsPerPage),
+                        totalPages: isSearching ? 1 : Math.ceil(filteredTotal / itemsPerPage),
                     },
                 });
             }
@@ -328,6 +366,18 @@ export default function CollectionPage() {
 
         return items;
     }, [collectionData, cards, searchQuery, selectedSet, selectedTag, sortBy]);
+
+    // When search is active, paginate filtered results client-side
+    const paginatedDisplayItems = useMemo(() => {
+        if (!isSearchMode) return filteredAndSortedItems;
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredAndSortedItems.slice(start, start + itemsPerPage);
+    }, [isSearchMode, filteredAndSortedItems, currentPage, itemsPerPage]);
+
+    const displayTotal = isSearchMode ? filteredAndSortedItems.length : (collectionData?.pagination.total ?? 0);
+    const displayTotalPages = isSearchMode
+        ? Math.ceil(filteredAndSortedItems.length / itemsPerPage)
+        : (collectionData?.pagination.totalPages ?? 1);
 
     // Calculate stats by game
     // Note: Stats are based on the total collection, not just the current page
@@ -626,8 +676,8 @@ export default function CollectionPage() {
                 </div>
 
                 {/* Collection rows */}
-                {filteredAndSortedItems.length > 0 ? (
-                    filteredAndSortedItems.map((item) => {
+                {paginatedDisplayItems.length > 0 ? (
+                    paginatedDisplayItems.map((item) => {
                         const card = cards.get(item.cardId);
                         const cardImage = card?.image_uris?.small || card?.image_uris?.normal || card?.card_faces?.[0]?.image_uris?.small;
                         const cardName = card?.name || "Loading...";
@@ -735,11 +785,11 @@ export default function CollectionPage() {
             </section>
 
             {/* Pagination */}
-            {collectionData && collectionData.pagination.totalPages > 1 && (
+            {collectionData && displayTotalPages > 1 && (
                 <section className="mt-6 flex items-center justify-between">
                     <p className="text-sm opacity-70">
-                        Showing {collectionData.items.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
-                        {Math.min(currentPage * itemsPerPage, collectionData.pagination.total)} of {collectionData.pagination.total} cards
+                        Showing {paginatedDisplayItems.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
+                        {Math.min(currentPage * itemsPerPage, displayTotal)} of {displayTotal} cards
                     </p>
                     <div className="flex items-center gap-2">
                         <button
@@ -763,10 +813,10 @@ export default function CollectionPage() {
                         </button>
 
                         <div className="flex items-center gap-1">
-                            {Array.from({ length: collectionData.pagination.totalPages }, (_, i) => i + 1).map((page) => {
+                            {Array.from({ length: displayTotalPages }, (_, i) => i + 1).map((page) => {
                                 if (
                                     page === 1 ||
-                                    page === collectionData.pagination.totalPages ||
+                                    page === displayTotalPages ||
                                     (page >= currentPage - 1 && page <= currentPage + 1)
                                 ) {
                                     return (
@@ -800,8 +850,8 @@ export default function CollectionPage() {
 
                         <button
                             type="button"
-                            onClick={() => setCurrentPage((p) => Math.min(collectionData.pagination.totalPages, p + 1))}
-                            disabled={currentPage === collectionData.pagination.totalPages}
+                            onClick={() => setCurrentPage((p) => Math.min(displayTotalPages, p + 1))}
+                            disabled={currentPage === displayTotalPages}
                             className="
                             px-3 py-1.5 rounded-md
                             bg-[var(--theme-sidebar)]
@@ -873,35 +923,50 @@ export default function CollectionPage() {
                         throw new Error(errorMessage);
                     }
 
-                    // Refresh collection data
-                    const collectionResponse = await fetch(`/api/collection?page=${currentPage}&limit=${itemsPerPage}`);
+                    // Refresh collection data (full fetch when search active)
+                    const gameParam = game === "all" ? "" : `&game=${game}`;
+                    const isSearching = debouncedSearchQuery.trim().length > 0;
+                    const page = isSearching ? 1 : currentPage;
+                    const limit = isSearching ? 10000 : itemsPerPage;
+                    const collectionResponse = await fetch(`/api/collection?page=${page}&limit=${limit}${gameParam}`);
                     if (!collectionResponse.ok) {
                         throw new Error("Failed to refresh collection data");
                     }
 
                     const data: CollectionData = await collectionResponse.json();
-                    setCollectionData(data);
-
-                    // Refresh card details for all items on current page
-                    const cardsMap = new Map<string, ScryfallCard>();
-                    for (const item of data.items) {
-                        if (cards.has(item.cardId)) {
-                            // Keep existing card data
-                            cardsMap.set(item.cardId, cards.get(item.cardId)!);
-                        } else {
-                            // Fetch missing card data
-                            try {
-                                const cardResponse = await fetch(`/api/scryfall/card/${item.cardId}`);
-                                if (cardResponse.ok) {
-                                    const cardData = await cardResponse.json();
-                                    cardsMap.set(item.cardId, cardData);
-                                }
-                            } catch (err) {
-                                // Failed to fetch card
+                    const cardsMap = new Map<string, ScryfallCard>(cards);
+                    if (isSearching && data.items.length > 0) {
+                        const ids = [...new Set(data.items.map((i) => i.cardId))];
+                        try {
+                            const batchRes = await fetch("/api/scryfall/cards/batch", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ ids }),
+                            });
+                            if (batchRes.ok) {
+                                const { cards: batchCards } = await batchRes.json();
+                                Object.entries(batchCards).forEach(([id, card]) => {
+                                    cardsMap.set(id, card as ScryfallCard);
+                                });
                             }
+                        } catch {
+                            // Fallback to per-card below
+                        }
+                    }
+                    for (const item of data.items) {
+                        if (cardsMap.has(item.cardId)) continue;
+                        try {
+                            const cardResponse = await fetch(`/api/scryfall/card/${item.cardId}`);
+                            if (cardResponse.ok) {
+                                const cardData = await cardResponse.json();
+                                cardsMap.set(item.cardId, cardData);
+                            }
+                        } catch {
+                            // Failed to fetch card
                         }
                     }
                     setCards(cardsMap);
+                    setCollectionData(data);
 
                     // Close modal only after successful save and refresh
                     setEditCardListModalOpen(false);
