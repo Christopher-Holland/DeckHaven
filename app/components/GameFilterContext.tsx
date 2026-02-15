@@ -81,6 +81,16 @@ export function GameFilterProvider({ children }: { children: ReactNode }) {
         setGameState(stored);
     }, []);
 
+    // When navigating to /sets with a game filter already selected, redirect to browse
+    // so the user sees sets for their selected game without having to re-select
+    useEffect(() => {
+        if (!mounted) return;
+        if (pathname === "/sets" && gameState !== "all") {
+            const gameId = gameKeyToUrlMap[gameState];
+            router.replace(`/sets/browse?game=${gameId}`, { scroll: false });
+        }
+    }, [pathname, gameState, mounted, router]);
+
     // Sync URL param to state when it changes (from browser navigation)
     useEffect(() => {
         if (!mounted) return;
