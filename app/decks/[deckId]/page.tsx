@@ -239,7 +239,7 @@ export default function DeckPage() {
                 const errorData = await response.json().catch(() => ({ error: "Failed to update card quantity" }));
                 const errorMessage = errorData.error || "Failed to update card quantity";
                 showToast(errorMessage, "error");
-                return;
+                throw new Error(errorMessage);
             }
 
             // Update local state
@@ -252,8 +252,10 @@ export default function DeckPage() {
                     prev.map((dc) => (dc.id === deckCard.id ? { ...dc, quantity: newQuantity } : dc))
                 );
             }
+            showToast(newQuantity > 0 ? "Card quantity updated." : "Card removed from deck.", "success");
         } catch (err) {
             showToast(err instanceof Error ? err.message : "Failed to update card quantity", "error");
+            throw err;
         }
     };
 
@@ -270,6 +272,7 @@ export default function DeckPage() {
 
             // Remove from local state
             setDeckCards((prev) => prev.filter((dc) => dc.id !== deckCardId));
+            showToast("Card removed from deck.", "success");
         } catch (err) {
             showToast(err instanceof Error ? err.message : "Failed to remove card from deck", "error");
         }
@@ -609,15 +612,38 @@ export default function DeckPage() {
 
                                         const ownedCount = ownedCounts.get(deckCard.cardId) || 0;
                                         const missing = ownedCount === 0;
+                                        const formatKey = (deck?.format || "Standard") as FormatKey;
+                                        const formatRules = FORMAT_RULES[formatKey] as FormatRules | undefined;
+                                        const isSingletonFormat = formatRules?.singleton ?? false;
 
                                         return (
-                                            <div
+                                            <button
                                                 key={deckCard.id}
+                                                type="button"
+                                                onClick={() =>
+                                                    open("DECK_CARD_VIEW", {
+                                                        card: scryfallCard,
+                                                        deckCardId: deckCard.id,
+                                                        cardId: deckCard.cardId,
+                                                        quantity: deckCard.quantity,
+                                                        isSingletonFormat,
+                                                        onQuantityChange: async (newQuantity: number) => {
+                                                            await updateDeckCardQuantity(deckCard, newQuantity);
+                                                        },
+                                                        onRemove: async () => {
+                                                            await removeCardFromDeck(deckCard.id);
+                                                        },
+                                                    })
+                                                }
                                                 className={`
                           rounded-lg border p-3
                           border-[var(--theme-border)]
                           bg-[var(--theme-sidebar)]
                           flex flex-col gap-2
+                          text-left
+                          cursor-pointer
+                          hover:ring-2 hover:ring-[var(--theme-accent)]/50
+                          transition-all
                           ${missing ? "opacity-80" : ""}
                         `}
                                             >
@@ -664,49 +690,10 @@ export default function DeckPage() {
                                                     )}
                                                 </div>
 
-                                                {/* Owned indicator (no +/- control here) */}
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <div className="text-xs font-semibold">
-                                                        In deck: <span className="text-sm">x{deckCard.quantity}</span>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-1 border border-black/10 dark:border-white/10 rounded-md overflow-hidden">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => updateDeckCardQuantity(deckCard, deckCard.quantity - 1)}
-                                                            className="px-2 py-1 hover:bg-black/10 dark:hover:bg-white/10"
-                                                            aria-label="Remove one copy"
-                                                        >
-                                                            –
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => updateDeckCardQuantity(deckCard, deckCard.quantity + 1)}
-                                                            className="px-2 py-1 hover:bg-black/10 dark:hover:bg-white/10"
-                                                            aria-label="Add one copy"
-                                                        >
-                                                            +
-                                                        </button>
-                                                         
-                                                    </div>
+                                                <div className="text-xs font-semibold text-center">
+                                                    In deck: <span className="text-sm">x{deckCard.quantity}</span>
                                                 </div>
-
-                                                <button
-                                                    className="
-                            rounded-lg border p-1
-                            text-sm opacity-70
-                          border-[var(--theme-border)]
-                          bg-[var(--theme-sidebar)]
-                            flex flex-col gap-2
-                            hover:opacity-95
-                            hover:text-red-500
-                            transition-colors
-                          "
-                                                    onClick={() => removeCardFromDeck(deckCard.id)}
-                                                >
-                                                    Remove all copies from Deck
-                                                </button>
-                                            </div>
+                                            </button>
                                         );
                                     })}
                                 </div>

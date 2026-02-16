@@ -6,6 +6,7 @@ export type DrawerType =
     | null
     | "CARD_VIEW"
     | "BINDER_CARD_VIEW"
+    | "DECK_CARD_VIEW"
     | "EDIT_BINDER"
     | "NEW_BINDER"
     | "EDIT_DECK"

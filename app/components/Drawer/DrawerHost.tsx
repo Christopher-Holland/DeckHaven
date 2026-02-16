@@ -10,6 +10,7 @@ import { NewBinderDrawer } from "./NewBinderDrawer";
 import { EditDeckDrawer } from "./EditDeckDrawer";
 import { CreateDeckDrawer } from "./CreateDeckDrawer";
 import { BinderCardDrawer } from "./BinderCardDrawer";
+import { DeckCardDrawer } from "./DeckCardDrawer";
 
 export function DrawerHost() {
     const { state } = useDrawer();
@@ -28,6 +29,13 @@ export function DrawerHost() {
             return (
                 <Drawer title="">
                     <BinderCardDrawer />
+                </Drawer>
+            );
+
+        case "DECK_CARD_VIEW":
+            return (
+                <Drawer title="">
+                    <DeckCardDrawer />
                 </Drawer>
             );
 
