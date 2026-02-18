@@ -12,7 +12,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "audit:a11y": "echo 'Run: npm run dev, then npx lighthouse http://localhost:3000 --only-categories=accessibility --view'"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
@@ -27,12 +28,14 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@axe-core/react": "^4.11.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "prisma": "^6.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"

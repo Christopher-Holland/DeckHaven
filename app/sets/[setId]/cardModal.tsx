@@ -24,7 +24,10 @@
 
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useRef } from "react";
+import { useFocusTrap } from "@/app/lib/useFocusTrap";
+import { useRestoreFocus } from "@/app/lib/useRestoreFocus";
+import { useInitialFocus } from "@/app/lib/useInitialFocus";
 
 type CardModalProps = {
     open: boolean;
@@ -39,32 +42,42 @@ export default function CardModal({
     title,
     children,
 }: CardModalProps) {
-    // Close on ESC
+    const containerRef = useRef<HTMLDivElement>(null);
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+    useFocusTrap(containerRef, open);
+    useRestoreFocus(open);
+    useInitialFocus(containerRef, open, closeButtonRef);
+
     useEffect(() => {
         if (!open) return;
-
         const handleKey = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
         };
-
         document.addEventListener("keydown", handleKey);
         return () => document.removeEventListener("keydown", handleKey);
     }, [open, onClose]);
 
     if (!open) return null;
 
+    const ariaLabel = title ? `${title} card details` : "Card details";
+
     return (
         <div
+            ref={containerRef}
             className="
         fixed inset-0 z-50
         flex items-center justify-center
       "
             role="dialog"
             aria-modal="true"
+            aria-label={ariaLabel}
         >
             {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/50"
+            <button
+                type="button"
+                aria-label="Close modal"
+                className="absolute inset-0 bg-black/50 cursor-default"
                 onClick={onClose}
             />
 
@@ -88,6 +101,8 @@ export default function CardModal({
                         <h2 className="text-lg font-semibold">{title}</h2>
                     )}
                     <button
+                        ref={closeButtonRef}
+                        type="button"
                         onClick={onClose}
                         aria-label="Close modal"
                         className="
@@ -97,9 +112,10 @@ export default function CardModal({
               hover:bg-[var(--theme-sidebar)]
               border border-transparent hover:border-[var(--theme-border)]
               transition
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
             "
                     >
-                        ✕
+                        <span aria-hidden>✕</span>
                     </button>
                 </div>
 

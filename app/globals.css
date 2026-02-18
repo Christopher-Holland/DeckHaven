@@ -16,6 +16,9 @@
   --theme-card: #ffffff;
   --theme-card-border: #000000;
   
+  /* Contrast-safe accent for text (blends with fg to meet WCAG AA) */
+  --theme-accent-text: color-mix(in srgb, var(--theme-accent) 55%, var(--theme-fg));
+
   /* Legacy variables for compatibility */
   --background: var(--theme-bg);
   --foreground: var(--theme-fg);

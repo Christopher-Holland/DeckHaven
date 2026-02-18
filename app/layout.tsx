@@ -22,6 +22,7 @@ import ToastContainer from "./components/Toast";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { DrawerProvider } from "./components/Drawer/drawerProvider";
 import { DrawerHost } from "./components/Drawer/DrawerHost";
+import { AxeReporter } from "./components/AxeReporter";
 import type { Metadata } from "next";
 import { MedievalSharp } from "next/font/google";
 import Loading from "./components/Loading";
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                                             <SidebarProvider>
                                                 <ToastProvider>
                                                     <DrawerProvider>
+                                                        <AxeReporter />
                                                         <LayoutWrapper>
                                                             {children}
                                                         </LayoutWrapper>

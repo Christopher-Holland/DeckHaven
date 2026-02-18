@@ -41,7 +41,7 @@ export default function Loading({
                 transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
             />
             {message && (
-                <span className="text-sm opacity-80">{message}</span>
+                <span className="text-sm text-[var(--theme-fg)] opacity-90">{message}</span>
             )}
         </div>
     );

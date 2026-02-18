@@ -437,11 +437,13 @@ function NavbarContent() {
                                 router.push("/");
                             }}
                             className="
-                                px-3 py-1.5 rounded-md text-sm
+                                px-3 py-1.5 rounded-md text-sm font-medium
                                 bg-[var(--theme-card)]
+                                text-[var(--theme-fg)]
                                 border border-[var(--theme-border)]
                                 hover:bg-[var(--theme-accent)] hover:text-white
                                 transition-colors
+                                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                             "
                         >
                             Sign Out
@@ -451,11 +453,13 @@ function NavbarContent() {
                     <button
                         onClick={() => router.push("/auth/signin")}
                         className="
-                            px-3 py-1.5 rounded-md text-sm
+                            px-3 py-1.5 rounded-md text-sm font-medium
                             bg-[var(--theme-card)]
+                            text-[var(--theme-fg)]
                             border border-[var(--theme-border)]
                             hover:bg-[var(--theme-accent)] hover:text-white
                             transition-colors
+                            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
                         "
                     >
                         Sign In

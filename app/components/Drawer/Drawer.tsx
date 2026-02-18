@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { useDrawer } from "./drawerProvider";
+import { useFocusTrap } from "@/app/lib/useFocusTrap";
+import { useRestoreFocus } from "@/app/lib/useRestoreFocus";
+import { useInitialFocus } from "@/app/lib/useInitialFocus";
 
 export function Drawer({
     title,
@@ -13,6 +16,12 @@ export function Drawer({
 }) {
     const { state, close } = useDrawer();
     const isOpen = state.type !== null;
+    const containerRef = useRef<HTMLDivElement>(null);
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+    useFocusTrap(containerRef, isOpen);
+    useRestoreFocus(isOpen);
+    useInitialFocus(containerRef, isOpen, closeButtonRef);
 
     // Escape to close
     useEffect(() => {
@@ -26,10 +35,13 @@ export function Drawer({
 
     if (!isOpen) return null;
 
+    const ariaLabel = title ? `${title} drawer` : "Drawer";
+
     return (
-        <div className="fixed inset-0 z-50">
+        <div ref={containerRef} className="fixed inset-0 z-50">
             {/* Overlay */}
             <button
+                type="button"
                 aria-label="Close drawer"
                 onClick={close}
                 className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
@@ -47,6 +59,7 @@ export function Drawer({
         "
                 role="dialog"
                 aria-modal="true"
+                aria-label={ariaLabel}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--theme-border)]/25">
@@ -61,9 +74,11 @@ export function Drawer({
                     </div>
 
                     <button
+                        ref={closeButtonRef}
+                        type="button"
                         onClick={close}
-                        className="rounded-md p-2 hover:bg-black/10 dark:hover:bg-white/10 transition"
-                        aria-label="Close"
+                        className="rounded-md p-2 hover:bg-black/10 dark:hover:bg-white/10 transition focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
+                        aria-label="Close drawer"
                     >
                         <X className="w-5 h-5" />
                     </button>

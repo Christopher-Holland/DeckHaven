@@ -112,7 +112,10 @@ export default function Sidebar() {
             )}
 
             {/* Navigation Items */}
-            <nav className={`flex-1 ${isCollapsed ? "px-2 py-4" : "px-3 py-4"} space-y-1`}>
+            <nav
+                className={`flex-1 ${isCollapsed ? "px-2 py-4" : "px-3 py-4"} space-y-1`}
+                aria-label="Main navigation"
+            >
                 {navItems.map((item) => {
                     const isActive = pathname.startsWith(item.href);
                     const Icon = item.icon;
@@ -148,7 +151,7 @@ export default function Sidebar() {
 
             {/* Footer */}
             {!isCollapsed && (
-                <div className="px-6 py-4 border-t border-[var(--theme-border)] text-xs text-[var(--theme-accent)]">
+                <div className="px-6 py-4 border-t border-[var(--theme-border)] text-xs text-[var(--theme-fg)] opacity-75">
                     © DeckHaven
                 </div>
             )}

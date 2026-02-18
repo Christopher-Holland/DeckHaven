@@ -26,6 +26,7 @@ export default function BrandNav() {
 
     return (
         <nav
+            aria-label="Select game"
             className="
         w-full h-12
         border-b border-[var(--theme-border)]
@@ -46,7 +47,7 @@ export default function BrandNav() {
                             onClick={() => setGame(item.key)}
                             className={[
                                 "transition-colors",
-                                active ? "text-[var(--theme-accent)] underline" : "hover:text-[var(--theme-accent)] ",
+                                active ? "text-[var(--theme-accent-text)] underline font-semibold" : "hover:text-[var(--theme-accent-text)]",
                             ].join(" ")}
                             aria-current={active ? "page" : undefined}
                         >

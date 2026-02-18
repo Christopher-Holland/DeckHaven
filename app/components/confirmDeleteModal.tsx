@@ -1,6 +1,10 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { X, Trash2 } from "lucide-react";
+import { useFocusTrap } from "@/app/lib/useFocusTrap";
+import { useRestoreFocus } from "@/app/lib/useRestoreFocus";
+import { useInitialFocus } from "@/app/lib/useInitialFocus";
 
 type Props = {
     open: boolean;
@@ -25,18 +29,39 @@ export default function ConfirmDeleteModal({
     onConfirm,
     onCancel,
 }: Props) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
+    useFocusTrap(containerRef, open);
+    useRestoreFocus(open);
+    useInitialFocus(containerRef, open, cancelButtonRef);
+
+    useEffect(() => {
+        if (!open) return;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onCancel();
+        };
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [open, onCancel]);
+
     if (!open) return null;
 
     return (
         <div
+            ref={containerRef}
             className="fixed inset-0 z-[1000] flex items-center justify-center"
-            role="dialog"
+            role="alertdialog"
             aria-modal="true"
+            aria-labelledby="confirm-delete-title"
+            aria-describedby="confirm-delete-message"
         >
             {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/60"
-                onMouseDown={onCancel}
+            <button
+                type="button"
+                aria-label="Close dialog"
+                className="absolute inset-0 bg-black/60 cursor-default"
+                onClick={onCancel}
             />
 
             {/* Modal */}
@@ -55,9 +80,9 @@ export default function ConfirmDeleteModal({
                 <div className="flex items-start justify-between p-4 border-b border-[var(--theme-border)]">
                     <div className="flex items-center gap-2">
                         {destructive && (
-                            <Trash2 className="w-5 h-5 text-red-500" />
+                            <Trash2 className="w-5 h-5 text-red-500" aria-hidden />
                         )}
-                        <h3 className="text-lg font-semibold">{title}</h3>
+                        <h3 id="confirm-delete-title" className="text-lg font-semibold">{title}</h3>
                     </div>
 
                     <button
@@ -69,21 +94,23 @@ export default function ConfirmDeleteModal({
               hover:opacity-90
               border border-[var(--theme-border)]
               transition-colors
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
             "
                         aria-label="Close"
                     >
-                        <X className="w-4 h-4" />
+                        <X className="w-4 h-4" aria-hidden />
                     </button>
                 </div>
 
                 {/* Body */}
                 <div className="p-4">
-                    <p className="text-sm opacity-80">{message}</p>
+                    <p id="confirm-delete-message" className="text-sm opacity-80">{message}</p>
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-2 p-4 border-t border-[var(--theme-border)]">
                     <button
+                        ref={cancelButtonRef}
                         type="button"
                         onClick={onCancel}
                         disabled={loading}
@@ -94,6 +121,7 @@ export default function ConfirmDeleteModal({
               border border-[var(--theme-border)]
               transition-colors
               disabled:opacity-50 disabled:cursor-not-allowed
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
             "
                     >
                         {cancelLabel}
@@ -104,6 +132,7 @@ export default function ConfirmDeleteModal({
                         onClick={onConfirm}
                         disabled={loading}
                         className={`
+              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
               px-4 py-2 rounded-md text-sm font-medium
               transition-colors
               disabled:opacity-50 disabled:cursor-not-allowed

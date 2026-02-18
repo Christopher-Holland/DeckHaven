@@ -81,6 +81,7 @@ Open [http://localhost:3000](http://localhost:3000). Sign up or sign in to acces
 | `npm run build` | Build for production. |
 | `npm run start` | Start the production server (run after `build`). |
 | `npm run lint` | Run ESLint. |
+| `npm run audit:a11y` | Print instructions for running Lighthouse accessibility audit. |
 | `npm run db:generate` | Generate Prisma Client. |
 | `npm run db:push` | Push Prisma schema to the database (dev). |
 | `npm run db:migrate` | Run Prisma migrations (recommended for production). |
@@ -93,7 +94,7 @@ Open [http://localhost:3000](http://localhost:3000). Sign up or sign in to acces
 - **`stack/`** – Stack Auth client and server setup.
 - **`public/`** – Static assets.
 
-For detailed backend setup (Neon, Stack Auth dashboard steps), see **[SETUP.md](./SETUP.md)**.
+For detailed backend setup (Neon, Stack Auth dashboard steps), see **[SETUP.md](./SETUP.md)**. For accessibility features and audit instructions, see **[ACCESSIBILITY.md](./ACCESSIBILITY.md)**.
 
 ## License
 
