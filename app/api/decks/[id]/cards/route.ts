@@ -1,10 +1,10 @@
 /**
  * Deck Cards API Route
- * 
+ *
  * Handles adding cards to a deck.
- * 
+ *
  * POST: Add a card to a deck
- * 
+ *
  * @route /api/decks/[id]/cards
  */
 
@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
 import { FORMAT_RULES, type FormatKey } from "@/app/lib/mtgFormatRules";
+import { addCardToDeckSchema } from "@/app/lib/schemas/deck";
 
 export async function POST(
     request: NextRequest,
@@ -19,7 +20,7 @@ export async function POST(
 ) {
     try {
         const user = await stackServerApp.getUser();
-        
+
         if (!user) {
             return NextResponse.json(
                 { error: "Unauthorized" },
@@ -28,23 +29,37 @@ export async function POST(
         }
 
         const { id: deckId } = await params;
-        const body = await request.json();
-        const { cardId, quantity } = body;
 
-        if (!cardId || typeof cardId !== "string") {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Invalid request. cardId is required and must be a string." },
+                {
+                    error: "Invalid request body",
+                    details: [{ message: "Request body must be valid JSON" }],
+                },
                 { status: 400 }
             );
         }
 
-        const cardQuantity = quantity || 1;
-        if (typeof cardQuantity !== "number" || cardQuantity < 1) {
+        const parseResult = addCardToDeckSchema.safeParse(body);
+        if (!parseResult.success) {
+            const issues = parseResult.error.issues.map((issue) => ({
+                path: issue.path.join("."),
+                message: issue.message,
+            }));
+            const firstMessage = issues[0]?.message ?? "Validation failed";
             return NextResponse.json(
-                { error: "Invalid request. quantity must be a positive number." },
+                {
+                    error: `Invalid request. ${firstMessage}`,
+                    details: issues,
+                },
                 { status: 400 }
             );
         }
+
+        const { cardId, quantity: cardQuantity } = parseResult.data;
 
         // Get user in database
         const dbUser = await prisma.user.findUnique({
