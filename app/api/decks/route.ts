@@ -1,17 +1,19 @@
 /**
  * Decks API Routes
- * 
+ *
  * Handles CRUD operations for user decks.
- * 
+ *
  * GET: Retrieve all user's decks
  * POST: Create a new deck
- * 
+ *
  * @route /api/decks
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
+import { createDeckSchema } from "@/app/lib/schemas/deck";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 // Get user's decks
 export async function GET(request: NextRequest) {
@@ -74,48 +76,22 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const body = await request.json();
-        const { name, description, format, game, deckBoxColor, trimColor } = body;
-
-        if (!name || typeof name !== "string" || name.trim().length === 0) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Invalid request. name is required and must be a non-empty string." },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
 
-        if (!game || typeof game !== "string" || !["mtg", "pokemon", "yugioh"].includes(game)) {
-            return NextResponse.json(
-                { error: "Invalid request. game is required and must be one of: mtg, pokemon, yugioh." },
-                { status: 400 }
-            );
+        const parseResult = createDeckSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
         }
 
-        // Validate optional fields
-        if (description !== undefined && typeof description !== "string" && description !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. description must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (format !== undefined && typeof format !== "string" && format !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. format must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (deckBoxColor !== undefined && typeof deckBoxColor !== "string" && deckBoxColor !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. deckBoxColor must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (trimColor !== undefined && typeof trimColor !== "string" && trimColor !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. trimColor must be a string or null." },
-                { status: 400 }
-            );
-        }
+        const { name, description, format, game, deckBoxColor, trimColor } = parseResult.data;
 
         // Get or create user in database
         let dbUser = await prisma.user.findUnique({
@@ -138,12 +114,12 @@ export async function POST(request: NextRequest) {
         const deck = await prisma.deck.create({
             data: {
                 userId: dbUser.id,
-                name: name.trim(),
-                description: description?.trim() || null,
-                format: format || null,
-                game: game,
-                deckBoxColor: deckBoxColor || null,
-                trimColor: trimColor || null,
+                name,
+                description,
+                format,
+                game,
+                deckBoxColor,
+                trimColor,
             },
             include: {
                 deckCards: { select: { quantity: true } },

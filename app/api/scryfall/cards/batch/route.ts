@@ -12,20 +12,28 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getCardsByIds } from "@/app/lib/scryfall";
+import { batchCardsSchema } from "@/app/lib/schemas/scryfall";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const ids = body.ids;
-
-        if (!Array.isArray(ids) || ids.length === 0) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "ids array is required and must not be empty" },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
 
-        const validIds = ids.filter((id: unknown) => typeof id === "string" && id.trim().length > 0);
+        const parseResult = batchCardsSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
+        }
+
+        const { ids } = parseResult.data;
+        const validIds = ids.filter((id) => id.trim().length > 0);
         if (validIds.length === 0) {
             return NextResponse.json({ cards: {} });
         }

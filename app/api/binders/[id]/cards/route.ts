@@ -1,16 +1,18 @@
 /**
  * Binder Cards API Route
- * 
+ *
  * Handles adding cards to a binder with slot tracking.
- * 
+ *
  * POST: Add a card to a specific slot in a binder
- * 
+ *
  * @route /api/binders/[id]/cards
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
+import { addCardToBinderSchema } from "@/app/lib/schemas/binder";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 export async function POST(
     request: NextRequest,
@@ -27,22 +29,23 @@ export async function POST(
         }
 
         const { id: binderId } = await params;
-        const body = await request.json();
-        const { cardId, slotNumber } = body;
 
-        if (!cardId || typeof cardId !== "string") {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Invalid request. cardId is required and must be a string." },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
 
-        if (slotNumber !== undefined && slotNumber !== null && (typeof slotNumber !== "number" || slotNumber < 0)) {
-            return NextResponse.json(
-                { error: "Invalid request. slotNumber must be a non-negative number or null." },
-                { status: 400 }
-            );
+        const parseResult = addCardToBinderSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
         }
+
+        const { cardId, slotNumber } = parseResult.data;
 
         // Get user in database
         const dbUser = await prisma.user.findUnique({

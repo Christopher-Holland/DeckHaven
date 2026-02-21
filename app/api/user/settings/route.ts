@@ -11,6 +11,8 @@ import { prisma } from "@/app/lib/prisma";
 import { defaultBaseTheme, defaultAccentColor } from "@/app/lib/themes";
 import type { BaseThemeId, AccentColorId } from "@/app/lib/themes";
 import { baseThemes, accentColors } from "@/app/lib/themes";
+import { userSettingsSchema } from "@/app/lib/schemas/user";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 async function getDbUser() {
     const user = await stackServerApp.getUser();
@@ -67,29 +69,25 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const body = await request.json();
-        const { theme, accent } = body as { theme?: string; accent?: string };
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
+            return NextResponse.json(
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
+                { status: 400 }
+            );
+        }
 
+        const parseResult = userSettingsSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
+        }
+
+        const { theme, accent } = parseResult.data;
         const updateData: { theme?: string; accent?: string } = {};
-
-        if (theme !== undefined) {
-            if (typeof theme !== "string" || !(theme in baseThemes)) {
-                return NextResponse.json(
-                    { error: "Invalid theme" },
-                    { status: 400 }
-                );
-            }
-            updateData.theme = theme;
-        }
-        if (accent !== undefined) {
-            if (typeof accent !== "string" || !(accent in accentColors)) {
-                return NextResponse.json(
-                    { error: "Invalid accent" },
-                    { status: 400 }
-                );
-            }
-            updateData.accent = accent;
-        }
+        if (theme !== undefined) updateData.theme = theme;
+        if (accent !== undefined) updateData.accent = accent;
 
         if (Object.keys(updateData).length === 0) {
             const existing = await prisma.userSettings.findUnique({

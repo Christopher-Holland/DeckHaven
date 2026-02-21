@@ -1,17 +1,19 @@
 /**
  * Binders API Routes
- * 
+ *
  * Handles CRUD operations for user binders.
- * 
+ *
  * GET: Retrieve all user's binders
  * POST: Create a new binder
- * 
+ *
  * @route /api/binders
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
+import { createBinderSchema } from "@/app/lib/schemas/binder";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 // Get user's binders
 export async function GET(request: NextRequest) {
@@ -78,67 +80,22 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const body = await request.json();
-        const { name, description, color, spineColor, pageColor, game, size } = body;
-
-        if (!name || typeof name !== "string" || name.trim().length === 0) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Invalid request. name is required and must be a non-empty string." },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
 
-        // Validate optional fields
-        if (description !== undefined && typeof description !== "string" && description !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. description must be a string or null." },
-                { status: 400 }
-            );
+        const parseResult = createBinderSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
         }
-        if (color !== undefined && typeof color !== "string" && color !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. color must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (spineColor !== undefined && typeof spineColor !== "string" && spineColor !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. spineColor must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (pageColor !== undefined && typeof pageColor !== "string" && pageColor !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. pageColor must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (game !== undefined && game !== null && typeof game !== "string") {
-            return NextResponse.json(
-                { error: "Invalid request. game must be a string or null." },
-                { status: 400 }
-            );
-        }
-        // Validate game value if provided
-        if (game !== undefined && game !== null && !["mtg", "pokemon", "yugioh"].includes(game)) {
-            return NextResponse.json(
-                { error: "Invalid request. game must be one of: mtg, pokemon, yugioh, or null (for favorites/all games)." },
-                { status: 400 }
-            );
-        }
-        if (size !== undefined && size !== null && typeof size !== "string") {
-            return NextResponse.json(
-                { error: "Invalid request. size must be a string or null." },
-                { status: 400 }
-            );
-        }
-        // Validate size value if provided
-        if (size !== undefined && size !== null && !["2x2", "3x3", "4x4"].includes(size)) {
-            return NextResponse.json(
-                { error: "Invalid request. size must be one of: 2x2, 3x3, 4x4, or null." },
-                { status: 400 }
-            );
-        }
+
+        const { name, description, color, spineColor, pageColor, game, size } = parseResult.data;
 
         // Get or create user in database
         let dbUser = await prisma.user.findUnique({
@@ -161,13 +118,13 @@ export async function POST(request: NextRequest) {
         const binder = await prisma.binder.create({
             data: {
                 userId: dbUser.id,
-                name: name.trim(),
-                description: description?.trim() || null,
-                color: color || null,
-                spineColor: spineColor || null,
-                pageColor: pageColor || null,
-                game: game || null, // null means "all" (favorites)
-                size: size || null,
+                name,
+                description,
+                color,
+                spineColor,
+                pageColor,
+                game,
+                size,
             },
             include: {
                 _count: {

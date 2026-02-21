@@ -1,18 +1,20 @@
 /**
  * Deck API Routes (Individual Deck)
- * 
+ *
  * Handles operations for a specific deck.
- * 
+ *
  * GET: Get a single deck with its cards
  * PATCH: Update a deck
  * DELETE: Delete a deck
- * 
+ *
  * @route /api/decks/[id]
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
+import { updateDeckSchema } from "@/app/lib/schemas/deck";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 // Get a single deck with its cards
 export async function GET(
@@ -98,41 +100,23 @@ export async function PATCH(
         }
 
         const { id: deckId } = await params;
-        const body = await request.json();
-        const { name, description, format, deckBoxColor, trimColor } = body;
 
-        if (!name || typeof name !== "string" || name.trim().length === 0) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Invalid request. name is required and must be a non-empty string." },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
 
-        // Validate optional fields
-        if (description !== undefined && typeof description !== "string" && description !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. description must be a string or null." },
-                { status: 400 }
-            );
+        const parseResult = updateDeckSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
         }
-        if (format !== undefined && typeof format !== "string" && format !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. format must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (deckBoxColor !== undefined && typeof deckBoxColor !== "string" && deckBoxColor !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. deckBoxColor must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (trimColor !== undefined && typeof trimColor !== "string" && trimColor !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. trimColor must be a string or null." },
-                { status: 400 }
-            );
-        }
+
+        const { name, description, format, deckBoxColor, trimColor } = parseResult.data;
 
         // Get user in database
         const dbUser = await prisma.user.findUnique({
@@ -165,11 +149,11 @@ export async function PATCH(
         const deck = await prisma.deck.update({
             where: { id: deckId },
             data: {
-                name: name.trim(),
-                description: description?.trim() || null,
-                format: format || null,
-                deckBoxColor: deckBoxColor || null,
-                trimColor: trimColor || null,
+                name,
+                description,
+                format,
+                deckBoxColor,
+                trimColor,
             },
             include: {
                 _count: {

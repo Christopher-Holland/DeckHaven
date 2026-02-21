@@ -1,17 +1,19 @@
 /**
  * Binder API Routes (Individual Binder)
- * 
+ *
  * Handles operations for a specific binder.
- * 
+ *
  * PATCH: Update a binder
  * DELETE: Delete a binder
- * 
+ *
  * @route /api/binders/[id]
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
+import { updateBinderSchema } from "@/app/lib/schemas/binder";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 // Get a single binder with its cards
 export async function GET(
@@ -97,67 +99,23 @@ export async function PATCH(
         }
 
         const { id: binderId } = await params;
-        const body = await request.json();
-        const { name, description, color, spineColor, pageColor, game, size } = body;
 
-        if (!name || typeof name !== "string" || name.trim().length === 0) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Invalid request. name is required and must be a non-empty string." },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
 
-        // Validate optional fields
-        if (description !== undefined && typeof description !== "string" && description !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. description must be a string or null." },
-                { status: 400 }
-            );
+        const parseResult = updateBinderSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
         }
-        if (color !== undefined && typeof color !== "string" && color !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. color must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (spineColor !== undefined && typeof spineColor !== "string" && spineColor !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. spineColor must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (pageColor !== undefined && typeof pageColor !== "string" && pageColor !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. pageColor must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (game !== undefined && game !== null && typeof game !== "string") {
-            return NextResponse.json(
-                { error: "Invalid request. game must be a string or null." },
-                { status: 400 }
-            );
-        }
-        // Validate game value if provided
-        if (game !== undefined && game !== null && !["mtg", "pokemon", "yugioh"].includes(game)) {
-            return NextResponse.json(
-                { error: "Invalid request. game must be one of: mtg, pokemon, yugioh, or null (for favorites/all games)." },
-                { status: 400 }
-            );
-        }
-        if (size !== undefined && size !== null && typeof size !== "string") {
-            return NextResponse.json(
-                { error: "Invalid request. size must be a string or null." },
-                { status: 400 }
-            );
-        }
-        // Validate size value if provided
-        if (size !== undefined && size !== null && !["2x2", "3x3", "4x4"].includes(size)) {
-            return NextResponse.json(
-                { error: "Invalid request. size must be one of: 2x2, 3x3, 4x4, or null." },
-                { status: 400 }
-            );
-        }
+
+        const { name, description, color, spineColor, pageColor, game, size } = parseResult.data;
 
         // Get user in database
         const dbUser = await prisma.user.findUnique({
@@ -190,13 +148,13 @@ export async function PATCH(
         const binder = await prisma.binder.update({
             where: { id: binderId },
             data: {
-                name: name.trim(),
-                description: description?.trim() || null,
-                color: color || null,
-                spineColor: spineColor || null,
-                pageColor: pageColor || null,
-                game: game || null, // null means "all" (favorites)
-                size: size || null,
+                name,
+                description,
+                color,
+                spineColor,
+                pageColor,
+                game,
+                size,
             },
             include: {
                 _count: {

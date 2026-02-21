@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { logger } from "@/app/lib/logger";
+import { userUpdateSchema } from "@/app/lib/schemas/user";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 export async function PATCH(request: NextRequest) {
     try {
@@ -9,10 +11,22 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const body = await request.json();
-        const { display_name, primary_email } = body;
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
+            return NextResponse.json(
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
+                { status: 400 }
+            );
+        }
 
-        // Build update data object - only include fields that are provided
+        const parseResult = userUpdateSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
+        }
+
+        const { display_name, primary_email } = parseResult.data;
         const updateData: { display_name?: string; primary_email?: string } = {};
         if (display_name !== undefined) updateData.display_name = display_name;
         if (primary_email !== undefined) updateData.primary_email = primary_email;

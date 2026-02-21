@@ -13,6 +13,7 @@ import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
 import { FORMAT_RULES, type FormatKey } from "@/app/lib/mtgFormatRules";
 import { addCardToDeckSchema } from "@/app/lib/schemas/deck";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 export async function POST(
     request: NextRequest,
@@ -45,18 +46,7 @@ export async function POST(
 
         const parseResult = addCardToDeckSchema.safeParse(body);
         if (!parseResult.success) {
-            const issues = parseResult.error.issues.map((issue) => ({
-                path: issue.path.join("."),
-                message: issue.message,
-            }));
-            const firstMessage = issues[0]?.message ?? "Validation failed";
-            return NextResponse.json(
-                {
-                    error: `Invalid request. ${firstMessage}`,
-                    details: issues,
-                },
-                { status: 400 }
-            );
+            return validationErrorResponse(parseResult.error);
         }
 
         const { cardId, quantity: cardQuantity } = parseResult.data;

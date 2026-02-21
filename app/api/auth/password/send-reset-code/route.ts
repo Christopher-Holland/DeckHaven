@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/app/lib/logger";
+import { sendResetCodeSchema } from "@/app/lib/schemas/auth";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const { email } = body;
-
-        if (!email) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Email is required" },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
+
+        const parseResult = sendResetCodeSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
+        }
+
+        const { email } = parseResult.data;
 
         const projectId = process.env.NEXT_PUBLIC_STACK_PROJECT_ID || process.env.STACK_PROJECT_ID || "";
         const publishableKey = process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || "";

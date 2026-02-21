@@ -1,11 +1,11 @@
 /**
  * Deck Card API Route (Individual Card)
- * 
+ *
  * Handles operations for a specific card in a deck.
- * 
+ *
  * PATCH: Update a card's quantity in a deck
  * DELETE: Remove a card from a deck
- * 
+ *
  * @route /api/decks/[id]/cards/[deckCardId]
  */
 
@@ -13,6 +13,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
 import { FORMAT_RULES, type FormatKey } from "@/app/lib/mtgFormatRules";
+import { updateDeckCardQuantitySchema } from "@/app/lib/schemas/deck";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 export async function PATCH(
     request: NextRequest,
@@ -29,15 +31,23 @@ export async function PATCH(
         }
 
         const { id: deckId, deckCardId } = await params;
-        const body = await request.json();
-        const { quantity } = body;
 
-        if (typeof quantity !== "number" || quantity < 0) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Invalid request. quantity is required and must be a non-negative number." },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
+
+        const parseResult = updateDeckCardQuantitySchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
+        }
+
+        const { quantity } = parseResult.data;
 
         // Get user in database
         const dbUser = await prisma.user.findUnique({

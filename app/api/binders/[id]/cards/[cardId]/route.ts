@@ -1,17 +1,19 @@
 /**
  * Binder Card API Route (Individual Card)
- * 
+ *
  * Handles operations for a specific card in a binder.
- * 
+ *
  * PATCH: Move/swap a card to a new slot
  * DELETE: Remove a card from the binder
- * 
+ *
  * @route /api/binders/[id]/cards/[cardId]
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
+import { moveBinderCardSchema } from "@/app/lib/schemas/binder";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 // Move a card to a new slot (swap if target slot is occupied)
 export async function PATCH(
@@ -29,15 +31,23 @@ export async function PATCH(
         }
 
         const { id: binderId, cardId } = await params;
-        const body = await request.json();
-        const { newSlotNumber } = body;
 
-        if (typeof newSlotNumber !== "number" || newSlotNumber < 0) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Invalid request. newSlotNumber must be a non-negative number." },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
+
+        const parseResult = moveBinderCardSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
+        }
+
+        const { newSlotNumber } = parseResult.data;
 
         // Get user in database
         const dbUser = await prisma.user.findUnique({

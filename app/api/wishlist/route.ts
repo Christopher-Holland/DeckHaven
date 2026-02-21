@@ -1,18 +1,20 @@
 /**
  * Wishlist API Routes
- * 
+ *
  * Handles operations for user wishlists.
- * 
+ *
  * GET: Retrieve all cards in user's wishlist
  * POST: Add a card to the wishlist
  * DELETE: Remove a card from the wishlist
- * 
+ *
  * @route /api/wishlist
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
+import { wishlistToggleSchema } from "@/app/lib/schemas/wishlist";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 // Get user's wishlist
 export async function GET(request: NextRequest) {
@@ -66,15 +68,22 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const body = await request.json();
-        const { cardId, isWishlisted } = body;
-
-        if (!cardId || typeof isWishlisted !== "boolean") {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Invalid request. cardId and isWishlisted (boolean) are required." },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
+
+        const parseResult = wishlistToggleSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
+        }
+
+        const { cardId, isWishlisted } = parseResult.data;
 
         // Get or create user in database
         let dbUser = await prisma.user.findUnique({

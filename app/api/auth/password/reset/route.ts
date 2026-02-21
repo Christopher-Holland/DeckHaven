@@ -1,24 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/app/lib/logger";
+import { resetPasswordSchema } from "@/app/lib/schemas/auth";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const { password, code } = body;
-
-        if (!password || !code) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Both password and code are required" },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
 
-        if (password.length < 8) {
-            return NextResponse.json(
-                { error: "Password must be at least 8 characters long" },
-                { status: 400 }
-            );
+        const parseResult = resetPasswordSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
         }
+
+        const { password, code } = parseResult.data;
 
         const projectId = process.env.NEXT_PUBLIC_STACK_PROJECT_ID || process.env.STACK_PROJECT_ID || "";
         const publishableKey = process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || "";

@@ -1,18 +1,20 @@
 /**
  * Collection API Routes
- * 
+ *
  * Handles CRUD operations for user card collections.
- * 
+ *
  * GET: Retrieve all cards in user's collection
  * POST: Add or update a card in the collection
  * DELETE: Remove a card from the collection
- * 
+ *
  * @route /api/collection
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
+import { addToCollectionSchema } from "@/app/lib/schemas/collection";
+import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
 // Get user's collection
 export async function GET(request: NextRequest) {
@@ -112,47 +114,22 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const body = await request.json();
-        const { cardId, quantity, condition, language, notes, isFoil, tags } = body;
-
-        if (!cardId || typeof quantity !== "number" || quantity < 0) {
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
             return NextResponse.json(
-                { error: "Invalid request. cardId and quantity (>= 0) are required." },
+                { error: "Invalid request body", details: [{ message: "Request body must be valid JSON" }] },
                 { status: 400 }
             );
         }
 
-        // Validate optional fields
-        if (condition !== undefined && typeof condition !== "string" && condition !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. condition must be a string or null." },
-                { status: 400 }
-            );
+        const parseResult = addToCollectionSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationErrorResponse(parseResult.error);
         }
-        if (language !== undefined && typeof language !== "string" && language !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. language must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (notes !== undefined && typeof notes !== "string" && notes !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. notes must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (tags !== undefined && typeof tags !== "string" && tags !== null) {
-            return NextResponse.json(
-                { error: "Invalid request. tags must be a string or null." },
-                { status: 400 }
-            );
-        }
-        if (isFoil !== undefined && typeof isFoil !== "boolean") {
-            return NextResponse.json(
-                { error: "Invalid request. isFoil must be a boolean." },
-                { status: 400 }
-            );
-        }
+
+        const { cardId, quantity, condition, language, notes, isFoil, tags } = parseResult.data;
 
         // Get or create user in database
         let dbUser = await prisma.user.findUnique({
@@ -192,32 +169,21 @@ export async function POST(request: NextRequest) {
                 quantity,
             };
 
-            // Frontend always sends these fields (as null if not set), so we can always include them
-            if (condition !== undefined) {
-                cleanUpdateData.condition = condition || null;
-            }
-            if (language !== undefined) {
-                cleanUpdateData.language = language ? language.toLowerCase() : null;
-            }
-            if (notes !== undefined) {
-                cleanUpdateData.notes = notes || null;
-            }
-            if (tags !== undefined) {
-                cleanUpdateData.tags = tags || null;
-            }
-            if (isFoil !== undefined) {
-                cleanUpdateData.isFoil = isFoil;
-            }
+            cleanUpdateData.condition = condition ?? null;
+            cleanUpdateData.language = language ?? null;
+            cleanUpdateData.notes = notes ?? null;
+            cleanUpdateData.tags = tags ?? null;
+            if (isFoil !== undefined) cleanUpdateData.isFoil = isFoil;
 
             // Build create data - include all fields with defaults
             const createData = {
                 userId: dbUser.id,
                 cardId,
                 quantity,
-                condition: condition || null,
-                language: language ? language.toLowerCase() : null,
-                notes: notes || null,
-                tags: tags || null,
+                condition,
+                language,
+                notes,
+                tags,
                 isFoil: isFoil ?? false,
             };
 
