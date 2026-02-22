@@ -1,6 +1,8 @@
 "use client";
 
+import { Suspense } from "react";
 import { SignIn } from "@stackframe/stack";
+import Loading from "@/app/components/Loading";
 
 export default function SignInPage() {
     return (
@@ -11,7 +13,9 @@ export default function SignInPage() {
       text-[var(--theme-fg)]
     ">
             <div className="w-full max-w-md">
-                <SignIn automaticRedirect />
+                <Suspense fallback={<Loading fullPage={false} />}>
+                    <SignIn automaticRedirect />
+                </Suspense>
             </div>
         </main>
     );

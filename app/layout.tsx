@@ -55,8 +55,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <Script id="theme-init" strategy="beforeInteractive">
                     {getThemeInitScript()}
                 </Script>
-                <GameFilterProvider>
-                    <StackProvider app={stackClientApp}>
+                <Suspense fallback={<Loading />}>
+                    <GameFilterProvider>
+                        <StackProvider app={stackClientApp}>
                         <StackTheme theme={stackTheme}>
                             <Suspense fallback={<Loading />}>
                                 <ThemeProvider>
@@ -79,8 +80,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
                                 </ThemeProvider>
                             </Suspense>
                         </StackTheme>
-                    </StackProvider>
-                </GameFilterProvider>
+                        </StackProvider>
+                    </GameFilterProvider>
+                </Suspense>
             </body>
         </html>
     );
