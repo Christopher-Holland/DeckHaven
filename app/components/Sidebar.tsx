@@ -59,54 +59,74 @@ export default function Sidebar() {
             transition-all duration-300 ease-in-out
             relative
         `}>
-            {/* Collapse Toggle Button */}
-            <button
-                onClick={toggleSidebar}
-                className="
-                    absolute -right-3 top-20
-                    z-50
-                    w-6 h-6
-                    rounded-full
-                    bg-[var(--theme-accent)]
-                    text-white
-                    flex items-center justify-center
-                    shadow-lg
-                    hover:bg-[var(--theme-accent-hover)]
-                    transition-colors
-                "
-                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            {/* Logo / Brand + Toggle */}
+            <div
+                className={`relative flex border-b border-[var(--theme-border)]
+    ${isCollapsed ? "flex-col items-center gap-2 py-3" : "items-center justify-center py-4"}
+  `}
             >
                 {isCollapsed ? (
-                    <ChevronRight className="w-4 h-4" />
+                    <>
+                        <img
+                            src="/images/DeckHaven-Shield.png"
+                            alt="DeckHaven"
+                            width={48}
+                            height={48}
+                            className="rounded-full shadow-[0_0_20px_rgba(130,102,78,0.2)] dark:shadow-[0_0_30px_rgba(66,201,156,0.35)]"
+                        />
+                        <button
+                            onClick={toggleSidebar}
+                            className="
+                                h-8 w-8 shrink-0
+                                rounded-lg
+                                border border-[var(--theme-border)]
+                                bg-[var(--theme-bg)]
+                                text-[var(--theme-fg)]
+                                shadow-sm
+                                opacity-70 hover:opacity-100
+                                hover:bg-[var(--theme-bg-elevated)]
+                                transition
+                                flex items-center justify-center
+                            "
+                            aria-label="Expand sidebar"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </>
                 ) : (
-                    <ChevronLeft className="w-4 h-4" />
-                )}
-            </button>
-
-            {/* Logo / Brand */}
-            <div className={`flex items-center justify-center ${isCollapsed ? "py-2" : "py-4"}`}>
-                {isCollapsed ? (
-                    <img
-                        src="/images/DeckHaven-Shield.png"
-                        alt="DeckHaven"
-                        width={48}
-                        height={48}
-                        className="rounded-full shadow-[0_0_20px_rgba(130,102,78,0.2)] dark:shadow-[0_0_30px_rgba(66,201,156,0.35)]"
-                    />
-                ) : (
-                    <img
-                        src="/images/DeckHaven-Shield.png"
-                        alt="DeckHaven"
-                        width={128}
-                        height={128}
-                        className="rounded-full shadow-[0_0_25px_rgba(130,102,78,0.25)] dark:shadow-[0_0_25px_rgba(66,201,156,0.35)]"
-                    />
+                    <>
+                        <img
+                            src="/images/DeckHaven-Shield.png"
+                            alt="DeckHaven"
+                            width={128}
+                            height={128}
+                            className="rounded-full shadow-[0_0_25px_rgba(130,102,78,0.25)] dark:shadow-[0_0_25px_rgba(66,201,156,0.35)]"
+                        />
+                        <button
+                            onClick={toggleSidebar}
+                            className="
+                                absolute right-3 top-3 z-10
+                                h-8 w-8
+                                rounded-lg
+                                border border-[var(--theme-border)]
+                                bg-[var(--theme-bg)]
+                                text-[var(--theme-fg)]
+                                shadow-sm
+                                opacity-70 hover:opacity-100
+                                hover:bg-[var(--theme-bg-elevated)]
+                                transition
+                                flex items-center justify-center
+                            "
+                            aria-label="Collapse sidebar"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </button>
+                    </>
                 )}
             </div>
-
             {/* Brand Name */}
             {!isCollapsed && (
-                <div className="h-14 flex items-center justify-center px-6 border-b border-[var(--theme-border)]">
+                <div className="h-14 flex items-center justify-center px-6 border border-[var(--theme-border)]">
                     <span className="text-lg font-bold text-[var(--theme-fg)]">DeckHaven</span>
                 </div>
             )}
