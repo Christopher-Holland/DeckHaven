@@ -1,6 +1,9 @@
-export default function Loading() {
+import Loading from "./components/Loading";
 
-  // Stack uses React Suspense, which will render this page while user data is being fetched.
-  // See: https://nextjs.org/docs/app/api-reference/file-conventions/loading
-  return <></>;
+/**
+ * Next.js route-level loading UI.
+ * Shown during page-to-page navigation. Uses Loading component for consistent centering.
+ */
+export default function RouteLoading() {
+    return <Loading />;
 }

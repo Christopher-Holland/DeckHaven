@@ -185,7 +185,7 @@ function SearchContent() {
                 {/* Results */}
                 {loading && (
                     <div className="flex justify-center py-12">
-                        <Loading message="Searching..." />
+                        <Loading message="Searching..." fullPage={false} />
                     </div>
                 )}
 

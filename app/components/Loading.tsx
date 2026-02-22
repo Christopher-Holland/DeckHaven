@@ -3,10 +3,12 @@
  * 
  * Displays an animated spinning wheel loading indicator.
  * Supports customizable size and optional loading message.
+ * When fullPage is true (default), centers the spinner in the viewport.
  * 
  * @component
  * @example
  * <Loading message="Loading sets..." size="lg" />
+ * <Loading message="Searching..." fullPage={false} />
  */
 
 "use client";
@@ -18,11 +20,14 @@ type LoadingProps = {
     message?: string;
     /** Size of the spinner: "sm", "md", or "lg" */
     size?: "sm" | "md" | "lg";
+    /** When true (default), centers spinner in viewport. When false, inline only. */
+    fullPage?: boolean;
 };
 
 export default function Loading({
     message = "Loading...",
     size = "md",
+    fullPage = true,
 }: LoadingProps) {
     const sizeClasses = {
         sm: "w-4 h-4 border-2",
@@ -30,8 +35,8 @@ export default function Loading({
         lg: "w-12 h-12 border-[3px]",
     };
 
-    return (
-        <div className="flex flex-col items-center justify-center gap-3">
+    const spinner = (
+        <div className="flex flex-col items-center justify-center gap-6">
             <motion.div
                 className={`rounded-full ${sizeClasses[size]} border-[var(--theme-accent)]`}
                 style={{
@@ -45,4 +50,14 @@ export default function Loading({
             )}
         </div>
     );
+
+    if (fullPage) {
+        return (
+            <div className="flex min-h-[calc(100vh-8rem)] w-full items-center justify-center">
+                {spinner}
+            </div>
+        );
+    }
+
+    return spinner;
 }
