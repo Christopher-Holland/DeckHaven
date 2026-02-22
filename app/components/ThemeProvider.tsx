@@ -24,7 +24,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     return (
         <NextThemesProvider
             attribute="class"
-            defaultTheme="light"
+            defaultTheme="dark"
             enableSystem={true}
             storageKey="deckhaven-theme"
             disableTransitionOnChange={false}

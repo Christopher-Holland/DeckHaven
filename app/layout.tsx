@@ -9,8 +9,11 @@
  */
 
 import { Suspense } from "react";
+import Script from "next/script";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackClientApp } from "../stack/client";
+import { stackTheme } from "./lib/stack-theme";
+import { getThemeInitScript } from "./lib/theme-init-script";
 import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { DeckHavenThemeProvider } from "./components/ThemeContext";
@@ -49,9 +52,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={`flex h-screen ${medievalSharp.className}`}>
+                <Script id="theme-init" strategy="beforeInteractive">
+                    {getThemeInitScript()}
+                </Script>
                 <GameFilterProvider>
                     <StackProvider app={stackClientApp}>
-                        <StackTheme>
+                        <StackTheme theme={stackTheme}>
                             <Suspense fallback={<Loading />}>
                                 <ThemeProvider>
                                     <DeckHavenThemeProvider>

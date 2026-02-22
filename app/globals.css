@@ -5,17 +5,18 @@
 
 /* DeckHaven Theme CSS Variables */
 :root {
-  /* Default theme colors (DeckHaven Light) */
-  --theme-bg: #f6ead6;
-  --theme-fg: #193f44;
-  --theme-accent: #42c99c;
+  /* Default theme colors (DeckHaven Dark) - matches defaultBaseTheme to prevent flash */
+  --theme-bg: #0f2a2c;
+  --theme-fg: #e8d5b8;
+  --theme-accent: #82664e;
   --theme-accent-secondary: #82664e;
-  --theme-border: #42c99c;
-  --theme-sidebar: #e8d5b8;
-  --theme-sidebar-border: #42c99c;
-  --theme-card: #ffffff;
-  --theme-card-border: #000000;
-  
+  --theme-border: #82664e;
+  --theme-sidebar: #113033;
+  --theme-sidebar-border: #82664e;
+  --theme-card: #1a3a3d;
+  --theme-card-border: #ffffff;
+  --theme-accent-hover: #9d7a5f;
+
   /* Contrast-safe accent for text (blends with fg to meet WCAG AA) */
   --theme-accent-text: color-mix(in srgb, var(--theme-accent) 55%, var(--theme-fg));
 
