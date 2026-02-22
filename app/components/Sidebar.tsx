@@ -162,7 +162,7 @@ export default function Sidebar() {
                             `}
                             title={isCollapsed ? item.name : undefined}
                         >
-                            <Icon className={isCollapsed ? "w-5 h-5" : "w-4 h-4"} />
+                            <Icon className={isCollapsed ? "w-5 h-5" : "w-4 h-4"} strokeWidth={2.75} />
                             {!isCollapsed && <span>{item.name}</span>}
                         </Link>
                     );
