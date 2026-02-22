@@ -15,7 +15,7 @@ import { prisma } from "@/app/lib/prisma";
 import { moveBinderCardSchema } from "@/app/lib/schemas/binder";
 import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
-// Move a card to a new slot (swap if target slot is occupied)
+/** Moving a card to an occupied slot triggers a swap. Atomic via Prisma transaction to prevent race conditions. */
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string; cardId: string }> }
@@ -49,7 +49,6 @@ export async function PATCH(
 
         const { newSlotNumber } = parseResult.data;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -61,7 +60,6 @@ export async function PATCH(
             );
         }
 
-        // Check if binder exists and belongs to user
         const binder = await prisma.binder.findFirst({
             where: {
                 id: binderId,
@@ -76,7 +74,6 @@ export async function PATCH(
             );
         }
 
-        // Determine max cards based on binder size
         const size = binder.size || "3x3";
         const maxCards = size === "2x2" ? 160 : size === "4x4" ? 480 : 360;
 
@@ -87,7 +84,6 @@ export async function PATCH(
             );
         }
 
-        // Find the card being moved
         const cardToMove = await prisma.binderCard.findFirst({
             where: {
                 id: cardId,
@@ -102,7 +98,6 @@ export async function PATCH(
             );
         }
 
-        // Check if target slot is occupied
         const cardInTargetSlot = await prisma.binderCard.findFirst({
             where: {
                 binderId: binderId,
@@ -114,7 +109,6 @@ export async function PATCH(
         const oldSlotNumber = cardToMove.slotNumber;
 
         if (cardInTargetSlot) {
-            // Swap the cards
             await prisma.$transaction([
                 prisma.binderCard.update({
                     where: { id: cardId },
@@ -132,7 +126,6 @@ export async function PATCH(
                 swappedCard: { id: cardInTargetSlot.id, slotNumber: oldSlotNumber },
             });
         } else {
-            // Just move the card
             const updatedCard = await prisma.binderCard.update({
                 where: { id: cardId },
                 data: { slotNumber: newSlotNumber },
@@ -152,7 +145,6 @@ export async function PATCH(
     }
 }
 
-// Delete a card from the binder
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string; cardId: string }> }
@@ -169,7 +161,6 @@ export async function DELETE(
 
         const { id: binderId, cardId } = await params;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -181,7 +172,6 @@ export async function DELETE(
             );
         }
 
-        // Check if binder exists and belongs to user
         const binder = await prisma.binder.findFirst({
             where: {
                 id: binderId,
@@ -196,7 +186,6 @@ export async function DELETE(
             );
         }
 
-        // Find and delete the card
         const card = await prisma.binderCard.findFirst({
             where: {
                 id: cardId,

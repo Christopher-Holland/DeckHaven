@@ -29,8 +29,7 @@ export async function POST(request: NextRequest) {
             throw new Error("Stack Auth configuration missing");
         }
 
-        // Call Stack Auth API to send reset code
-        // This is a client endpoint, so we use publishable key
+        // Client-initiated operation; uses publishable key (not secret).
         const response = await fetch("https://api.stack-auth.com/api/v1/auth/password/send-reset-code", {
             method: "POST",
             headers: {

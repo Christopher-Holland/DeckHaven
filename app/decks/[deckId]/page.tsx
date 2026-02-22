@@ -95,7 +95,6 @@ export default function DeckPage() {
         fetchDeck();
     }, [user, deckId]);
 
-    // Fetch card details and collection when deckCards change
     useEffect(() => {
         if (deckCards.length === 0) return;
 
@@ -103,7 +102,6 @@ export default function DeckPage() {
             try {
                 setLoadingCards(true);
 
-                // Fetch collection
                 const collectionResponse = await fetch("/api/collection");
                 if (collectionResponse.ok) {
                     const collectionData = await collectionResponse.json();
@@ -114,19 +112,15 @@ export default function DeckPage() {
                     setOwnedCounts(collectionMap);
                 }
 
-                // Fetch card details from Scryfall
                 const cardDetailsMap = new Map<string, ScryfallCard>();
                 const uniqueCardIds = [...new Set(deckCards.map((dc) => dc.cardId))];
 
                 for (const cardId of uniqueCardIds) {
                     try {
-                        // Strip "c:" prefix if present (for commanders) when fetching from Scryfall
                         const actualCardId = cardId.startsWith("c:") ? cardId.replace(/^c:/, "") : cardId;
-                        
-                        // Skip if we already have this card (handles both with and without "c:" prefix)
+
                         if (cardDetailsMap.has(actualCardId) || cardDetailsMap.has(cardId)) {
                             if (cardId.startsWith("c:") && cardDetailsMap.has(actualCardId)) {
-                                // Store commander under both keys for easy lookup
                                 cardDetailsMap.set(cardId, cardDetailsMap.get(actualCardId)!);
                             }
                             continue;
@@ -136,19 +130,18 @@ export default function DeckPage() {
                         if (cardResponse.ok) {
                             const cardData = await cardResponse.json();
                             cardDetailsMap.set(actualCardId, cardData);
-                            // If this is a commander (c: prefix), also store under the prefixed key
                             if (cardId.startsWith("c:")) {
                                 cardDetailsMap.set(cardId, cardData);
                             }
                         }
-                    } catch (err) {
-                        // Failed to fetch card
+                    } catch {
+                        // Scryfall failures: missing card data won't display details; deck still renders.
                     }
                 }
 
                 setCardDetails(cardDetailsMap);
-            } catch (err) {
-                // Error fetching card details
+            } catch {
+                // Collection/card fetch failures don't block deck display; owned counts may be empty.
             } finally {
                 setLoadingCards(false);
             }
@@ -157,14 +150,12 @@ export default function DeckPage() {
         fetchCardDetails();
     }, [deckCards]);
 
-    // Calculate total card count (sum of quantities, excluding commander)
     const totalCards = useMemo(() => {
         return deckCards
             .filter((deckCard) => !deckCard.cardId.startsWith("c:"))
             .reduce((sum, deckCard) => sum + deckCard.quantity, 0);
     }, [deckCards]);
 
-    // Get target card count based on format rules
     const targetCards = useMemo(() => {
         if (!deck?.format) return null;
         
@@ -175,13 +166,10 @@ export default function DeckPage() {
         return rules.exactCards ?? rules.minCards ?? null;
     }, [deck]);
 
-    // Group cards by type (ONE tile per unique card, keep quantity on the deckCard)
-    // Exclude commander cards (they're shown separately)
     const cardsByType = useMemo(() => {
         const grouped = new Map<string, Array<{ deckCard: DeckCard; scryfallCard: ScryfallCard }>>();
 
         deckCards.forEach((deckCard) => {
-            // Skip commander cards (they have "c:" prefix and are shown separately)
             if (deckCard.cardId.startsWith("c:")) return;
             
             const scryfallCard = cardDetails.get(deckCard.cardId);
@@ -212,7 +200,6 @@ export default function DeckPage() {
             grouped.get(cardType)!.push({ deckCard, scryfallCard });
         });
 
-        // Sort types: Creatures, Lands, Instants, Sorceries, Artifacts, Enchantments, Planeswalkers, Battles, Other
         const typeOrder = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Battle", "Land", "Other"];
         const sorted = new Map<string, Array<{ deckCard: DeckCard; scryfallCard: ScryfallCard }>>();
 
@@ -242,12 +229,9 @@ export default function DeckPage() {
                 throw new Error(errorMessage);
             }
 
-            // Update local state
             if (newQuantity === 0) {
-                // Remove from deck
                 setDeckCards((prev) => prev.filter((dc) => dc.id !== deckCard.id));
             } else {
-                // Update quantity
                 setDeckCards((prev) =>
                     prev.map((dc) => (dc.id === deckCard.id ? { ...dc, quantity: newQuantity } : dc))
                 );
@@ -270,7 +254,6 @@ export default function DeckPage() {
                 throw new Error(errorData.error || "Failed to remove card from deck");
             }
 
-            // Remove from local state
             setDeckCards((prev) => prev.filter((dc) => dc.id !== deckCardId));
             showToast("Card removed from deck.", "success");
         } catch (err) {
@@ -278,26 +261,20 @@ export default function DeckPage() {
         }
     };
 
-    // Handle setting commander
     const handleSetCommander = async (cardId: string) => {
         try {
-            // First, handle existing commander(s) - restore them to the deck as regular cards
             const existingCommanders = deckCards.filter((dc) => dc.cardId.startsWith("c:"));
             for (const commander of existingCommanders) {
-                // Strip "c:" prefix to get the actual card ID
                 const actualCardId = commander.cardId.replace(/^c:/, "");
-                
-                // Delete the commander entry
+
                 await fetch(`/api/decks/${deckId}/cards/${commander.id}`, {
                     method: "DELETE",
                 });
 
-                // Check if this card already exists in the deck as a regular card
                 const existingRegularCard = deckCards.find(
-                    (dc) => dc.cardId === actualCardId && !dc.cardId.startsWith("c:")
+                    (dc) => dc.cardId === actualCardId &&                     !dc.cardId.startsWith("c:")
                 );
 
-                // If it doesn't exist as a regular card, add it back to the deck
                 if (!existingRegularCard) {
                     await fetch(`/api/decks/${deckId}/cards`, {
                         method: "POST",
@@ -310,8 +287,6 @@ export default function DeckPage() {
                 }
             }
 
-            // Check if the new commander card already exists in the deck as a regular card
-            // If so, remove it first (since it's becoming the commander)
             const existingNewCommanderCard = deckCards.find(
                 (dc) => dc.cardId === cardId && !dc.cardId.startsWith("c:")
             );
@@ -322,7 +297,6 @@ export default function DeckPage() {
                 });
             }
 
-            // Add new commander with "c:" prefix
             const commanderCardId = `c:${cardId}`;
             const response = await fetch(`/api/decks/${deckId}/cards`, {
                 method: "POST",
@@ -340,7 +314,6 @@ export default function DeckPage() {
                 return;
             }
 
-            // Refresh deck cards
             const deckResponse = await fetch(`/api/decks/${deckId}`);
             if (deckResponse.ok) {
                 const data = await deckResponse.json();

@@ -16,7 +16,6 @@ import { prisma } from "@/app/lib/prisma";
 import { wishlistToggleSchema } from "@/app/lib/schemas/wishlist";
 import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
-// Get user's wishlist
 export async function GET(request: NextRequest) {
     try {
         const user = await stackServerApp.getUser();
@@ -28,7 +27,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get or create user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -56,7 +54,6 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// Add or remove card from wishlist
 export async function POST(request: NextRequest) {
     try {
         const user = await stackServerApp.getUser();
@@ -85,13 +82,11 @@ export async function POST(request: NextRequest) {
 
         const { cardId, isWishlisted } = parseResult.data;
 
-        // Get or create user in database
         let dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
 
         if (!dbUser) {
-            // Create user if doesn't exist
             dbUser = await prisma.user.create({
                 data: {
                     stackUserId: user.id,
@@ -103,7 +98,6 @@ export async function POST(request: NextRequest) {
         }
 
         if (isWishlisted) {
-            // Add to wishlist
             await prisma.wishlist.upsert({
                 where: {
                     userId_cardId: {
@@ -118,7 +112,6 @@ export async function POST(request: NextRequest) {
                 },
             });
         } else {
-            // Remove from wishlist
             await prisma.wishlist.deleteMany({
                 where: {
                     userId: dbUser.id,

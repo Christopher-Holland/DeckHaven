@@ -32,11 +32,9 @@ function SearchContent() {
     const [ownedCards, setOwnedCards] = useState<Map<string, number>>(new Map());
     const [wishlistedCards, setWishlistedCards] = useState<Set<string>>(new Set());
 
-    // Fetch owned cards and wishlist
     useEffect(() => {
         async function fetchUserData() {
             try {
-                // Fetch collection
                 const collectionResponse = await fetch("/api/collection?page=1&limit=1000");
                 if (collectionResponse.ok) {
                     const collectionData = await collectionResponse.json();
@@ -47,22 +45,20 @@ function SearchContent() {
                     setOwnedCards(ownedMap);
                 }
 
-                // Fetch wishlist
                 const wishlistResponse = await fetch("/api/wishlist");
                 if (wishlistResponse.ok) {
                     const wishlistData = await wishlistResponse.json();
                     const ids = wishlistData.wishlist || [];
                     setWishlistedCards(new Set(ids));
                 }
-            } catch (err) {
-                // Silently fail - user data is optional
+            } catch {
+                // User data (collection/wishlist) is optional; search works without it.
             }
         }
 
         fetchUserData();
     }, []);
 
-    // Perform search when query changes
     useEffect(() => {
         if (!query.trim()) {
             setResults([]);
@@ -114,7 +110,6 @@ function SearchContent() {
                 throw new Error("Failed to update collection");
             }
 
-            // Update local state
             setOwnedCards(prev => {
                 const next = new Map(prev);
                 if (quantity > 0) {
@@ -144,7 +139,6 @@ function SearchContent() {
                 throw new Error(data.error || "Failed to update wishlist");
             }
 
-            // Update local state
             setWishlistedCards(prev => {
                 const next = new Set(prev);
                 if (newWishlisted) {

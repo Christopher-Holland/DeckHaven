@@ -16,7 +16,6 @@ import { prisma } from "@/app/lib/prisma";
 import { updateDeckSchema } from "@/app/lib/schemas/deck";
 import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
-// Get a single deck with its cards
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -33,7 +32,6 @@ export async function GET(
 
         const { id: deckId } = await params;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -45,7 +43,6 @@ export async function GET(
             );
         }
 
-        // Get deck with its cards
         const deck = await prisma.deck.findFirst({
             where: {
                 id: deckId,
@@ -84,7 +81,6 @@ export async function GET(
     }
 }
 
-// Update a deck
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -118,7 +114,6 @@ export async function PATCH(
 
         const { name, description, format, deckBoxColor, trimColor } = parseResult.data;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -130,7 +125,6 @@ export async function PATCH(
             );
         }
 
-        // Check if deck exists and belongs to user
         const existingDeck = await prisma.deck.findFirst({
             where: {
                 id: deckId,
@@ -145,7 +139,6 @@ export async function PATCH(
             );
         }
 
-        // Update deck
         const deck = await prisma.deck.update({
             where: { id: deckId },
             data: {

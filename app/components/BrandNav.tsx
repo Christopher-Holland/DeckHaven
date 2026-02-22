@@ -21,7 +21,7 @@ const items: { key: GameKey; label: string }[] = [
 ];
 
 export default function BrandNav() {
-    const { isCollapsed } = useSidebar(); // keeping since you already had it
+    const { isCollapsed } = useSidebar();
     const { game, setGame } = useGameFilter();
 
     return (

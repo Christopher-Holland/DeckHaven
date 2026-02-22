@@ -47,7 +47,6 @@ export async function POST(
 
         const { cardId, slotNumber } = parseResult.data;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -59,7 +58,6 @@ export async function POST(
             );
         }
 
-        // Check if binder exists and belongs to user
         const binder = await prisma.binder.findFirst({
             where: {
                 id: binderId,
@@ -74,13 +72,12 @@ export async function POST(
             );
         }
 
-        // Determine grid size and limits
+        // Binder size limits prevent unbounded growth. Max cards: 2x2=160, 3x3=360, 4x4=480 (20 pages × cards per page).
         const size = binder.size || "3x3";
         const cardsPerPage = size === "2x2" ? 4 : size === "4x4" ? 16 : 9;
         const maxPages = 20;
-        const maxCards = size === "2x2" ? 160 : size === "4x4" ? 480 : 360; // 3x3 default
-        
-        // Check total card count
+        const maxCards = size === "2x2" ? 160 : size === "4x4" ? 480 : 360;
+
         const totalCards = await prisma.binderCard.count({
             where: { binderId: binderId },
         });
@@ -91,11 +88,9 @@ export async function POST(
                 { status: 400 }
             );
         }
-        
-        // Calculate target slot number
+
         let targetSlotNumber: number | null = slotNumber ?? null;
 
-        // If no preferred slot, find first empty slot
         if (targetSlotNumber === null) {
             const existingCards = await prisma.binderCard.findMany({
                 where: {
@@ -107,8 +102,7 @@ export async function POST(
             });
 
             const usedSlots = new Set(existingCards.map(c => c.slotNumber).filter(slot => slot !== null));
-            
-            // Find first available slot (0 to maxCards-1)
+
             for (let i = 0; i < maxCards; i++) {
                 if (!usedSlots.has(i)) {
                     targetSlotNumber = i;
@@ -116,7 +110,6 @@ export async function POST(
                 }
             }
 
-            // If all slots are filled (shouldn't happen due to maxCards check above)
             if (targetSlotNumber === null) {
                 return NextResponse.json(
                     { error: "Binder is full. No available slots." },
@@ -124,8 +117,7 @@ export async function POST(
                 );
             }
         }
-        
-        // Validate slot number is within bounds
+
         if (targetSlotNumber < 0 || targetSlotNumber >= maxCards) {
             return NextResponse.json(
                 { error: `Invalid slot number. Must be between 0 and ${maxCards - 1}.` },
@@ -133,7 +125,6 @@ export async function POST(
             );
         }
 
-        // Check if target slot is already occupied
         const existingCardInSlot = await prisma.binderCard.findFirst({
             where: {
                 binderId: binderId,
@@ -148,7 +139,7 @@ export async function POST(
             );
         }
 
-        // Create new binder card (allow multiple copies of the same card)
+        // Multiple copies of the same card are allowed in binders (unlike decks with format restrictions).
         const binderCard = await prisma.binderCard.create({
             data: {
                 binderId: binderId,

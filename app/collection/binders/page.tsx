@@ -7,18 +7,6 @@
  * @route /collection/binders
  */
 
-
-// TODO: Add ability to add cards to binders
-// TODO: Add ability to remove cards from binders
-// TODO: Add ability to edit layout of cards in binders - move cards around, like a drag and drop interface
-// TODO: Add ability to delete cards
-// TODO: Add ability pagination
-// TODO: Add page flipping animaiton for the binder pages
-// TODO: Add ability to export binders as CSV
-// TODO: Add ability to import binders from CSV
-// TODO: Add ability to export binders as JSON
-// TODO: Add ability to import binders from JSON
-
 "use client";
 
 import { useState, useEffect } from "react";

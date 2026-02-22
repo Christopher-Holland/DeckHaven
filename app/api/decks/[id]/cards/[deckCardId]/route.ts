@@ -49,7 +49,6 @@ export async function PATCH(
 
         const { quantity } = parseResult.data;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -61,7 +60,6 @@ export async function PATCH(
             );
         }
 
-        // Check if deck exists and belongs to user
         const deck = await prisma.deck.findFirst({
             where: {
                 id: deckId,
@@ -76,7 +74,6 @@ export async function PATCH(
             );
         }
 
-        // Check if deck card exists and belongs to the deck
         const deckCard = await prisma.deckCard.findFirst({
             where: {
                 id: deckCardId,
@@ -91,7 +88,6 @@ export async function PATCH(
             );
         }
 
-        // If quantity is 0, delete the card
         if (quantity === 0) {
             await prisma.deckCard.delete({
                 where: {
@@ -101,19 +97,16 @@ export async function PATCH(
             return NextResponse.json({ success: true, deckCard: null });
         }
 
-        // Get format rules for this deck
         const formatKey = deck.format as FormatKey;
         const formatRules = formatKey && FORMAT_RULES[formatKey] ? FORMAT_RULES[formatKey] : null;
         const isSingleton = formatRules?.singleton === true;
         const isLimited = formatRules?.category === "Limited";
 
-        // Check copy limits if they apply (basic lands are always unlimited)
         const basicLands = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
         let isBasicLand = false;
 
-        // Check if it's a basic land by fetching from Scryfall
+        // Scryfall API call for card validation. Failures handled gracefully to avoid blocking deck operations.
         try {
-            // Strip "c:" prefix if present (for commander cards)
             const actualCardId = deckCard.cardId.startsWith("c:") ? deckCard.cardId.replace(/^c:/, "") : deckCard.cardId;
             const scryfallResponse = await fetch(`https://api.scryfall.com/cards/${actualCardId}`);
             if (scryfallResponse.ok) {
@@ -121,23 +114,21 @@ export async function PATCH(
                 const cardName = cardData.name || "";
                 isBasicLand = basicLands.includes(cardName);
             }
-        } catch (err) {
-            // Failed to fetch card from Scryfall for basic land check
+        } catch {
+            // Scryfall failures default isBasicLand=false; copy limits apply.
         }
 
-        // Determine copy limit based on format
         let copyLimit: number | null = null;
         if (!isBasicLand) {
             if (isLimited) {
-                copyLimit = null; // No limit for Limited formats
+                copyLimit = null;
             } else if (isSingleton) {
-                copyLimit = 1; // Singleton for Commander-style formats
+                copyLimit = 1;
             } else {
-                copyLimit = 4; // Standard 4 copy limit for Constructed formats
+                copyLimit = 4;
             }
         }
 
-        // Check if new quantity exceeds limit
         if (copyLimit !== null && quantity > copyLimit) {
             const formatName = formatRules?.name || deck.format || "this format";
             if (isSingleton) {
@@ -153,7 +144,6 @@ export async function PATCH(
             }
         }
 
-        // Update the quantity
         const updatedDeckCard = await prisma.deckCard.update({
             where: {
                 id: deckCardId,
@@ -189,7 +179,6 @@ export async function DELETE(
 
         const { id: deckId, deckCardId } = await params;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -201,7 +190,6 @@ export async function DELETE(
             );
         }
 
-        // Check if deck exists and belongs to user
         const deck = await prisma.deck.findFirst({
             where: {
                 id: deckId,
@@ -216,7 +204,6 @@ export async function DELETE(
             );
         }
 
-        // Check if deck card exists and belongs to the deck
         const deckCard = await prisma.deckCard.findFirst({
             where: {
                 id: deckCardId,
@@ -231,7 +218,6 @@ export async function DELETE(
             );
         }
 
-        // Delete the deck card
         await prisma.deckCard.delete({
             where: {
                 id: deckCardId,

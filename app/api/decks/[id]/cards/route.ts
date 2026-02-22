@@ -51,7 +51,6 @@ export async function POST(
 
         const { cardId, quantity: cardQuantity } = parseResult.data;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -63,7 +62,6 @@ export async function POST(
             );
         }
 
-        // Check if deck exists and belongs to user
         const deck = await prisma.deck.findFirst({
             where: {
                 id: deckId,
@@ -78,7 +76,6 @@ export async function POST(
             );
         }
 
-        // Check if card already exists in deck
         const existingCard = await prisma.deckCard.findUnique({
             where: {
                 deckId_cardId: {
@@ -88,19 +85,16 @@ export async function POST(
             },
         });
 
-        // Get format rules for this deck
         const formatKey = deck.format as FormatKey;
         const formatRules = formatKey && FORMAT_RULES[formatKey] ? FORMAT_RULES[formatKey] : null;
         const isSingleton = formatRules?.singleton === true;
         const isLimited = formatRules?.category === "Limited";
 
-        // Basic lands are always unlimited
         const basicLands = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
         let isBasicLand = false;
 
-        // Check if it's a basic land by fetching from Scryfall
+        // Scryfall API call for card validation. Failures handled gracefully to avoid blocking deck operations.
         try {
-            // Strip "c:" prefix if present (for commander cards)
             const actualCardId = cardId.startsWith("c:") ? cardId.replace(/^c:/, "") : cardId;
             const scryfallResponse = await fetch(`https://api.scryfall.com/cards/${actualCardId}`);
             if (scryfallResponse.ok) {
@@ -108,28 +102,23 @@ export async function POST(
                 const cardName = cardData.name || "";
                 isBasicLand = basicLands.includes(cardName);
             }
-        } catch (err) {
-            // Failed to fetch card from Scryfall for basic land check
+        } catch {
+            // Scryfall failures default isBasicLand=false; copy limits apply.
         }
 
-        // Determine copy limit based on format
-        // Limited formats (Draft, Sealed) have no copy limit
-        // Singleton formats (Commander, Brawl) have 1 copy limit
-        // All other formats have 4 copy limit
-        // Basic lands are always unlimited
+        // Format rules: Limited=unlimited, Singleton=1, Constructed=4. Basic lands always unlimited.
         let copyLimit: number | null = null;
         if (!isBasicLand) {
             if (isLimited) {
-                copyLimit = null; // No limit for Limited formats
+                copyLimit = null;
             } else if (isSingleton) {
-                copyLimit = 1; // Singleton for Commander-style formats
+                copyLimit = 1;
             } else {
-                copyLimit = 4; // Standard 4 copy limit for Constructed formats
+                copyLimit = 4;
             }
         }
 
         if (existingCard) {
-            // Check copy limits if they apply
             if (copyLimit !== null) {
                 const newQuantity = existingCard.quantity + cardQuantity;
                 if (newQuantity > copyLimit) {
@@ -148,7 +137,6 @@ export async function POST(
                 }
             }
 
-            // Update quantity
             const deckCard = await prisma.deckCard.update({
                 where: {
                     id: existingCard.id,
@@ -160,7 +148,6 @@ export async function POST(
 
             return NextResponse.json({ deckCard });
         } else {
-            // For new cards, check if quantity exceeds limit
             if (copyLimit !== null && cardQuantity > copyLimit) {
                 const formatName = formatRules?.name || deck.format || "this format";
                 if (isSingleton) {
@@ -176,7 +163,6 @@ export async function POST(
                 }
             }
 
-            // Create new deck card
             const deckCard = await prisma.deckCard.create({
                 data: {
                     deckId: deckId,

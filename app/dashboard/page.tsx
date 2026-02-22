@@ -7,8 +7,6 @@
  * @route /dashboard
  */
 
-// TODO: Figure out API to get the latest TCG News
-
 "use client";
 
 import { useEffect, useState } from "react";

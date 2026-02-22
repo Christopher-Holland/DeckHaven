@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
         const query = q.toLowerCase();
 
-        // Run searches in parallel
+        // Parallel searches for optimal response time; each handler manages its own errors.
         const [cardsResult, setsResult, decksResult, bindersResult] = await Promise.all([
             searchCards(query),
             searchSets(query),
@@ -60,7 +60,6 @@ export async function GET(request: NextRequest) {
 
 async function searchCards(query: string) {
     try {
-        // Use Scryfall's search - supports keywords, partial names, set:code, etc.
         const searchQuery = query;
         const scryfallUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(searchQuery)}&order=released&unique=prints&page=1`;
         const response = await fetch(scryfallUrl, {

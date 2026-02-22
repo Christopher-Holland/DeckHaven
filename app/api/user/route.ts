@@ -31,7 +31,7 @@ export async function PATCH(request: NextRequest) {
         if (display_name !== undefined) updateData.display_name = display_name;
         if (primary_email !== undefined) updateData.primary_email = primary_email;
 
-        // Call Stack Auth REST API directly using server credentials
+        // Uses server credentials (secret key) for admin operations. Never expose secret key to client.
         const projectId = process.env.NEXT_PUBLIC_STACK_PROJECT_ID || process.env.STACK_PROJECT_ID || "";
         const secretKey = process.env.STACK_SECRET_SERVER_KEY || "";
         
@@ -85,7 +85,6 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Call Stack Auth REST API directly using server credentials
         const projectId = process.env.NEXT_PUBLIC_STACK_PROJECT_ID || process.env.STACK_PROJECT_ID || "";
         const secretKey = process.env.STACK_SECRET_SERVER_KEY || "";
         

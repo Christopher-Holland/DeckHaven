@@ -13,7 +13,6 @@ import { stackServerApp } from "./app/lib/stack";
 import { prisma } from "./app/lib/prisma";
 import { logger } from "./app/lib/logger";
 
-// Routes that require authentication
 const protectedRoutes = [
     "/dashboard",
     "/sets",
@@ -26,7 +25,6 @@ const protectedRoutes = [
 export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
-    // Check if route is protected
     const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
 
     if (isProtected) {
@@ -34,13 +32,11 @@ export async function middleware(request: NextRequest) {
             const user = await stackServerApp.getUser();
 
             if (!user) {
-                // Redirect to sign in if not authenticated
                 const signInUrl = new URL("/auth/signin", request.url);
                 signInUrl.searchParams.set("redirect", pathname);
                 return NextResponse.redirect(signInUrl);
             }
 
-            // Sync user with database
             await prisma.user.upsert({
                 where: { stackUserId: user.id },
                 update: {
@@ -57,7 +53,7 @@ export async function middleware(request: NextRequest) {
             });
         } catch (error) {
             logger.error("Middleware error:", error);
-            // Continue to page even if sync fails
+            // Continue to page even if sync fails to prevent auth loops. User sync errors are logged but don't block access.
         }
     }
 

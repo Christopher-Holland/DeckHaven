@@ -15,7 +15,6 @@ import { prisma } from "@/app/lib/prisma";
 import { updateBinderSchema } from "@/app/lib/schemas/binder";
 import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
-// Get a single binder with its cards
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -32,7 +31,6 @@ export async function GET(
 
         const { id: binderId } = await params;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -44,7 +42,6 @@ export async function GET(
             );
         }
 
-        // Get binder with its cards
         const binder = await prisma.binder.findFirst({
             where: {
                 id: binderId,
@@ -83,7 +80,6 @@ export async function GET(
     }
 }
 
-// Update a binder
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -117,7 +113,6 @@ export async function PATCH(
 
         const { name, description, color, spineColor, pageColor, game, size } = parseResult.data;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -129,7 +124,6 @@ export async function PATCH(
             );
         }
 
-        // Check if binder exists and belongs to user
         const existingBinder = await prisma.binder.findFirst({
             where: {
                 id: binderId,
@@ -144,7 +138,6 @@ export async function PATCH(
             );
         }
 
-        // Update binder
         const binder = await prisma.binder.update({
             where: { id: binderId },
             data: {
@@ -173,7 +166,6 @@ export async function PATCH(
     }
 }
 
-// Delete a binder
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -190,7 +182,6 @@ export async function DELETE(
 
         const { id: binderId } = await params;
 
-        // Get user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -202,7 +193,6 @@ export async function DELETE(
             );
         }
 
-        // Check if binder exists and belongs to user
         const existingBinder = await prisma.binder.findFirst({
             where: {
                 id: binderId,
@@ -217,7 +207,6 @@ export async function DELETE(
             );
         }
 
-        // Delete binder (cascade will handle binderCards)
         await prisma.binder.delete({
             where: { id: binderId },
         });

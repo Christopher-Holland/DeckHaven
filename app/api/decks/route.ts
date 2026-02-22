@@ -15,7 +15,6 @@ import { prisma } from "@/app/lib/prisma";
 import { createDeckSchema } from "@/app/lib/schemas/deck";
 import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
-// Get user's decks
 export async function GET(request: NextRequest) {
     try {
         const user = await stackServerApp.getUser();
@@ -27,7 +26,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get or create user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -39,7 +37,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get all decks for the user with total card count (sum of quantities)
         const decks = await prisma.deck.findMany({
             where: { userId: dbUser.id },
             orderBy: { createdAt: "desc" },
@@ -48,7 +45,6 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        // Map to include totalCards (sum of quantities) for each deck
         const decksWithTotals = decks.map((deck) => {
             const totalCards = deck.deckCards.reduce((sum, dc) => sum + dc.quantity, 0);
             const { deckCards, ...deckWithoutCards } = deck;
@@ -64,7 +60,6 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// Create a new deck
 export async function POST(request: NextRequest) {
     try {
         const user = await stackServerApp.getUser();
@@ -93,13 +88,11 @@ export async function POST(request: NextRequest) {
 
         const { name, description, format, game, deckBoxColor, trimColor } = parseResult.data;
 
-        // Get or create user in database
         let dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
 
         if (!dbUser) {
-            // Create user if doesn't exist
             dbUser = await prisma.user.create({
                 data: {
                     stackUserId: user.id,
@@ -110,7 +103,6 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Create deck
         const deck = await prisma.deck.create({
             data: {
                 userId: dbUser.id,

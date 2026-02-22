@@ -59,8 +59,7 @@ export async function scryfallFetch<T>(path: string, init?: RequestInit): Promis
             "Accept": "application/json",
             ...(init?.headers ?? {}),
         },
-        // Cache for 60 seconds to reduce API calls
-        next: { revalidate: 60 },
+        next: { revalidate: 60 }, // 60s cache to reduce Scryfall API load
     });
 
     if (!res.ok) {
@@ -119,7 +118,7 @@ export async function getSets() {
     return scryfallFetch<{ object: "list"; data: ScryfallSet[] }>(`/sets`);
 }
 
-const SCRYFALL_COLLECTION_CHUNK_SIZE = 75;
+const SCRYFALL_COLLECTION_CHUNK_SIZE = 75; // Scryfall /cards/collection limit per request
 
 /**
  * Fetches multiple cards by Scryfall ID in a single batched request.

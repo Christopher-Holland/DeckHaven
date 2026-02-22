@@ -16,7 +16,7 @@ import { prisma } from "@/app/lib/prisma";
 import { addToCollectionSchema } from "@/app/lib/schemas/collection";
 import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
-// Get user's collection
+/** Pagination defaults to 10 items per page. Total count and quantity calculated separately for efficiency. */
 export async function GET(request: NextRequest) {
     try {
         const user = await stackServerApp.getUser();
@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get or create user in database
         const dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
@@ -40,26 +39,19 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get pagination and filter params
         const searchParams = request.nextUrl.searchParams;
         const page = parseInt(searchParams.get("page") || "1", 10);
         const limit = parseInt(searchParams.get("limit") || "10", 10);
         const game = searchParams.get("game") || "all";
         const skip = (page - 1) * limit;
 
-        // Note: Currently all cards come from Scryfall (MTG only)
-        // In the future, we may need to add a game field to the Collection model
-        // For now, we'll filter client-side based on card data from Scryfall
-
-        // Get all collection items (we'll filter by game client-side based on card data)
+        // Currently all cards come from Scryfall (MTG only). Game filter applied client-side.
         const whereClause: { userId: string } = { userId: dbUser.id };
 
-        // Get total count (unique cards)
         const totalCount = await prisma.collection.count({
             where: whereClause,
         });
 
-        // Get total quantity (sum of all quantities)
         const totalQuantityResult = await prisma.collection.aggregate({
             where: whereClause,
             _sum: {
@@ -68,7 +60,6 @@ export async function GET(request: NextRequest) {
         });
         const totalQuantity = totalQuantityResult._sum.quantity || 0;
 
-        // Get paginated collection items
         const collections = await prisma.collection.findMany({
             where: whereClause,
             skip,
@@ -76,7 +67,6 @@ export async function GET(request: NextRequest) {
             orderBy: { updatedAt: "desc" },
         });
 
-        // Also return simple map for backward compatibility
         const collectionMap = new Map<string, number>();
         collections.forEach((item) => {
             collectionMap.set(item.cardId, item.quantity);
@@ -102,7 +92,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// Add or update card in collection
+/** All inputs validated via Zod. quantity=0 deletes. Upsert ensures atomic create/update. */
 export async function POST(request: NextRequest) {
     try {
         const user = await stackServerApp.getUser();
@@ -131,13 +121,11 @@ export async function POST(request: NextRequest) {
 
         const { cardId, quantity, condition, language, notes, isFoil, tags } = parseResult.data;
 
-        // Get or create user in database
         let dbUser = await prisma.user.findUnique({
             where: { stackUserId: user.id },
         });
 
         if (!dbUser) {
-            // Create user if doesn't exist
             dbUser = await prisma.user.create({
                 data: {
                     stackUserId: user.id,
@@ -149,7 +137,6 @@ export async function POST(request: NextRequest) {
         }
 
         if (quantity === 0) {
-            // Remove from collection
             await prisma.collection.deleteMany({
                 where: {
                     userId: dbUser.id,
@@ -157,7 +144,7 @@ export async function POST(request: NextRequest) {
                 },
             });
         } else {
-            // Build update object - frontend always sends all fields, so include them all
+            // Frontend always sends all fields; include them for consistent updates.
             const cleanUpdateData: {
                 quantity: number;
                 condition?: string | null;
@@ -175,7 +162,6 @@ export async function POST(request: NextRequest) {
             cleanUpdateData.tags = tags ?? null;
             if (isFoil !== undefined) cleanUpdateData.isFoil = isFoil;
 
-            // Build create data - include all fields with defaults
             const createData = {
                 userId: dbUser.id,
                 cardId,
@@ -187,7 +173,6 @@ export async function POST(request: NextRequest) {
                 isFoil: isFoil ?? false,
             };
 
-            // Upsert collection item
             await prisma.collection.upsert({
                 where: {
                     userId_cardId: {

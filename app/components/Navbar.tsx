@@ -55,13 +55,12 @@ function NavbarContent() {
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Debounce search query (300ms)
+    // 300ms debounce balances responsiveness with reducing API calls
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    // Fetch search results when debounced query changes
     useEffect(() => {
         if (debouncedQuery.length < 2) {
             setResults(null);
@@ -95,13 +94,11 @@ function NavbarContent() {
         };
     }, [debouncedQuery]);
 
-    // Show dropdown when we have a query
     useEffect(() => {
         setIsOpen(debouncedQuery.length >= 2);
         setFocusedIndex(-1);
     }, [debouncedQuery]);
 
-    // Click outside to close
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
