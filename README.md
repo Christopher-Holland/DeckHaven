@@ -116,6 +116,17 @@ Open [http://localhost:3000](http://localhost:3000). Sign up or sign in to acces
 
 Run the test suite with `npm run test` (watch mode) or `npm run test:run` (single run). Tests use Vitest and Testing Library. See `test/` for test files.
 
+## Deploying to Vercel
+
+1. **Environment variables** – Add all required variables in your Vercel project (Settings → Environment Variables). Your local `.env` is not deployed. Required:
+   - `DATABASE_URL`
+   - `NEXT_PUBLIC_STACK_PROJECT_ID`
+   - `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY`
+   - `STACK_SECRET_SERVER_KEY`
+   - `NEXT_PUBLIC_BASE_URL` (your production URL, e.g. `https://your-app.vercel.app`)
+
+2. **Build** – If you see "Failed to collect page data for /_not-found", it is usually caused by missing environment variables. Ensure they are set for the correct environment (Production, Preview, Development).
+
 ## Documentation
 
 - **[SETUP.md](./SETUP.md)** – Detailed backend setup (Neon, Stack Auth dashboard steps).
