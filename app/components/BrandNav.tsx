@@ -10,7 +10,6 @@
 
 "use client";
 
-import { useSidebar } from "./SidebarContext";
 import { useGameFilter, GameKey } from "./GameFilterContext";
 
 const items: { key: GameKey; label: string }[] = [
@@ -21,7 +20,6 @@ const items: { key: GameKey; label: string }[] = [
 ];
 
 export default function BrandNav() {
-    const { isCollapsed } = useSidebar();
     const { game, setGame } = useGameFilter();
 
     return (
@@ -36,7 +34,7 @@ export default function BrandNav() {
         transition-all duration-300
       "
         >
-            <div className="flex gap-6 justify-center text-md font-medium text-[var(--theme-fg)]">
+            <div className="flex max-w-full gap-3 overflow-x-auto px-1 text-center text-sm font-medium text-[var(--theme-fg)] md:justify-center md:gap-6 md:text-base md:px-0">
                 {items.map((item) => {
                     const active = game === item.key;
 
@@ -46,7 +44,7 @@ export default function BrandNav() {
                             type="button"
                             onClick={() => setGame(item.key)}
                             className={[
-                                "transition-colors",
+                                "shrink-0 whitespace-nowrap transition-colors",
                                 active ? "text-[var(--theme-accent-text)] underline font-semibold" : "hover:text-[var(--theme-accent-text)]",
                             ].join(" ")}
                             aria-current={active ? "page" : undefined}

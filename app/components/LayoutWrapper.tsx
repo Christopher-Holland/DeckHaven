@@ -14,6 +14,7 @@ import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import BrandNav from "./BrandNav";
+import { MobileNav } from "./Drawer/MobileNav";
 
 type LayoutWrapperProps = {
     children: React.ReactNode;
@@ -38,16 +39,17 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
         );
     }
 
-    // Render full layout with sidebar and navigation for all other pages
+    // Full layout: sidebar (desktop only) + top nav; bottom tab bar on mobile only (see MobileNav)
     return (
         <>
             <Sidebar />
-            <div className="flex flex-col flex-1 transition-all duration-300">
+            <div className="relative flex min-w-0 flex-1 flex-col transition-all duration-300 lg:min-h-0">
                 <Navbar />
                 <BrandNav />
-                <main className="flex-1 overflow-y-auto p-0 min-h-0 bg-[var(--theme-bg)] text-[var(--theme-fg)] transition-all duration-300">
+                <main className="flex-1 overflow-y-auto p-0 min-h-0 bg-[var(--theme-bg)] text-[var(--theme-fg)] transition-all duration-300 pb-[max(4.75rem,env(safe-area-inset-bottom)+3.5rem)] lg:pb-0">
                     {children}
                 </main>
+                <MobileNav />
             </div>
         </>
     );

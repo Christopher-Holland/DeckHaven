@@ -50,11 +50,12 @@ export default function Sidebar() {
 
     return (
         <aside className={`
+            hidden lg:flex
             ${isCollapsed ? "w-16" : "w-64"}
             h-full 
             bg-[var(--theme-bg)]
             text-[var(--theme-fg)]
-            flex flex-col 
+            flex-col 
             border-r border-[var(--theme-border)]
             transition-all duration-300 ease-in-out
             relative
