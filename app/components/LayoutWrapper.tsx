@@ -46,9 +46,10 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
             <div className="relative flex min-w-0 flex-1 flex-col transition-all duration-300 lg:min-h-0">
                 <Navbar />
                 <BrandNav />
-                <main className="flex-1 overflow-y-auto p-0 min-h-0 bg-[var(--theme-bg)] text-[var(--theme-fg)] transition-all duration-300 pb-[max(4.75rem,env(safe-area-inset-bottom)+3.5rem)] lg:pb-0">
+                {/* Use div here — each page provides its own <main>; a layout <main> would nest landmarks. */}
+                <div className="flex-1 overflow-y-auto p-0 min-h-0 bg-[var(--theme-bg)] text-[var(--theme-fg)] transition-all duration-300 pb-[max(4.75rem,env(safe-area-inset-bottom)+3.5rem)] lg:pb-0">
                     {children}
-                </main>
+                </div>
                 <MobileNav />
             </div>
         </>
