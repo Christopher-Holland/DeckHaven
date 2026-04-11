@@ -399,82 +399,85 @@ export default function DeckPage() {
       "
         >
             {/* Header */}
-            <section className="flex items-center gap-2 px-4 py-3 border-b border-black/10 dark:border-white/10">
-                <div className="flex-1 flex justify-start">
-                    <button
-                        className="
-              inline-flex items-center gap-2
-              text-sm opacity-70
-              px-3 py-2 rounded-md
-              border border-black/10 dark:border-[var(--theme-border)]/50
-              hover:bg-black/10 dark:hover:bg-[var(--theme-accent)]/10
-              transition-colors
-            "
-                        onClick={() => router.back()}
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        <span>Back to Decks</span>
-                    </button>
-                </div>
-
-                <div className="flex flex-col items-center text-center min-w-0">
-                    <h2 className="text-3xl font-semibold truncate">{deck.name}</h2>
-                    <p className="text-sm opacity-70 mt-1">
+            <section className="border-b border-black/10 px-4 py-3 dark:border-white/10">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
+                {/* Deck title: top on mobile, center column on desktop */}
+                <div className="order-1 min-w-0 text-center md:order-2 md:flex-none md:px-4">
+                    <h2 className="truncate text-2xl font-semibold md:text-3xl">
+                        {deck.name}
+                    </h2>
+                    <p className="mt-1 text-sm opacity-70">
                         {deck.format || "Unknown Format"} •{" "}
-                        {targetCards !== null 
+                        {targetCards !== null
                             ? `${totalCards} out of ${targetCards} cards`
-                            : `${totalCards} card${totalCards !== 1 ? "s" : ""}`
-                        }
+                            : `${totalCards} card${totalCards !== 1 ? "s" : ""}`}
                     </p>
                 </div>
 
-                <div className="flex-1 flex justify-end gap-2">
-                    <button
-                        className="
-              inline-flex items-center gap-2
-              px-3 py-2 rounded-md text-sm
-              bg-[var(--theme-accent)]
-              text-white
-              hover:opacity-95
-              transition-colors
-            "
-                        onClick={() => router.push(`/sets`)}
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add Card
-                    </button>
+                {/* Mobile: Back + Add/Edit one row; desktop: md:contents → 3-column header */}
+                <div className="order-2 flex w-full items-center justify-between gap-2 md:contents">
+                    <div className="flex min-w-0 items-center md:order-1 md:flex-1 md:justify-start">
+                        <button
+                            type="button"
+                            className="
+                                inline-flex items-center gap-2
+                                rounded-md border border-black/10 px-3 py-2 text-sm opacity-70
+                                transition-colors
+                                hover:bg-black/10
+                                dark:border-[var(--theme-border)]/50
+                                dark:hover:bg-[var(--theme-accent)]/10
+                            "
+                            onClick={() => router.back()}
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            <span>Back</span>
+                        </button>
+                    </div>
 
-                    <button
-                        onClick={() => open("EDIT_DECK", {
-                            deck,
-                            onSuccess: async () => {
-                                // Refresh deck data after successful update
-                                try {
-                                    const response = await fetch(`/api/decks/${deckId}`);
-                                    if (response.ok) {
-                                        const data = await response.json();
-                                        if (data.deck) {
-                                            setDeck(data.deck);
-                                            setDeckCards(data.deck.deckCards || []);
-                                        }
-                                    }
-                                } catch (err) {
-                                    // Error refreshing deck
-                                }
+                    <div className="flex shrink-0 items-center justify-end gap-2 md:order-3 md:flex-1">
+                        <button
+                            type="button"
+                            className="
+                                inline-flex items-center gap-2
+                                rounded-md bg-[var(--theme-accent)] px-3 py-2 text-sm text-white
+                                transition-colors hover:opacity-95
+                            "
+                            onClick={() => router.push(`/sets`)}
+                        >
+                            <Plus className="h-4 w-4" />
+                            <span>Add</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                open("EDIT_DECK", {
+                                    deck,
+                                    onSuccess: async () => {
+                                        try {
+                                            const response = await fetch(`/api/decks/${deckId}`);
+                                            if (response.ok) {
+                                                const data = await response.json();
+                                                if (data.deck) {
+                                                    setDeck(data.deck);
+                                                    setDeckCards(data.deck.deckCards || []);
+                                                }
+                                            }
+                                        } catch (err) {}
+                                    },
+                                })
                             }
-                        })}
-                        className="
-              inline-flex items-center gap-2
-              px-3 py-2 rounded-md text-sm
-              bg-[var(--theme-accent)]
-              text-white
-              hover:opacity-95
-              transition-colors
-            "
-                    >
-                        Edit Deck
-                    </button>
+                            className="
+                                inline-flex items-center gap-2
+                                rounded-md bg-[var(--theme-accent)] px-3 py-2 text-sm text-white
+                                transition-colors hover:opacity-95
+                            "
+                        >
+                            Edit
+                        </button>
+                    </div>
                 </div>
+            </div>
             </section>
 
             {/* Commander Section - Only show for Commander format decks */}
