@@ -592,13 +592,16 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
             role="dialog"
             aria-label="Open Binder"
         >
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/60" onMouseDown={onClose} />
+            <button
+                type="button"
+                className="absolute inset-0 z-0 cursor-default border-0 bg-black/60 p-0"
+                onClick={onClose}
+                aria-label="Close dialog"
+            />
 
-            {/* Modal Shell */}
             <div
                 className="
-          relative w-[min(1400px,98vw)] max-h-[95vh]
+          relative z-10 w-[min(1400px,98vw)] max-h-[95vh]
           overflow-hidden
           rounded-2xl
           border border-[var(--theme-border)]

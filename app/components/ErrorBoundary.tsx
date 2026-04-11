@@ -2,6 +2,7 @@
 
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { logger } from "@/app/lib/logger";
+import { Button } from "@/app/components/Button";
 
 type Props = {
     children: ReactNode;
@@ -69,20 +70,18 @@ function DefaultErrorFallback({ error, onRetry }: { error: Error; onRetry: () =>
                 </pre>
             )}
             <div className="flex flex-wrap gap-3 justify-center">
-                <button
-                    type="button"
-                    onClick={onRetry}
-                    className="px-4 py-2 rounded-md text-sm font-medium border border-[var(--theme-border)] bg-[var(--theme-accent)] text-white hover:opacity-90 transition-opacity"
-                >
+                <Button type="button" variant="primary" size="sm" onClick={onRetry}>
                     Try again
-                </button>
-                <button
+                </Button>
+                <Button
                     type="button"
+                    variant="secondary"
+                    size="sm"
                     onClick={() => window.history.back()}
-                    className="px-4 py-2 rounded-md text-sm font-medium border border-[var(--theme-border)] bg-[var(--theme-sidebar)] hover:opacity-90 transition-opacity"
+                    className="bg-[var(--theme-sidebar)]"
                 >
                     Go back
-                </button>
+                </Button>
             </div>
         </div>
     );

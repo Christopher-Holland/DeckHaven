@@ -14,7 +14,7 @@ import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@stackframe/stack";
 import Image from "next/image";
-import Link from "next/link";
+import { Button } from "./components/Button";
 
 function HomeContent() {
     const user = useUser();
@@ -68,39 +68,23 @@ function HomeContent() {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                    <Link
+                    <Button
                         href="/auth/signin"
-                        className="
-              rounded-lg
-              border border-[var(--theme-border)]
-              bg-[var(--theme-sidebar)]
-              text-[var(--theme-fg)]
-              px-6 py-3
-              text-sm font-semibold
-              hover:bg-[var(--theme-accent)] hover:text-white
-              transition-all duration-200
-              shadow-sm
-            "
+                        variant="secondary"
+                        size="md"
+                        className="shadow-sm hover:bg-[var(--theme-accent)] hover:text-white"
                     >
                         Log In
-                    </Link>
+                    </Button>
 
-                    <Link
+                    <Button
                         href="/auth/signup"
-                        className="
-              rounded-lg
-              border border-[var(--theme-border)]
-              bg-[var(--theme-accent)]
-              text-white
-              px-6 py-3
-              text-sm font-semibold
-              hover:bg-[var(--theme-accent-hover)]
-              transition-all duration-200
-              shadow-sm
-            "
+                        variant="primary"
+                        size="md"
+                        className="shadow-sm hover:bg-[var(--theme-accent-hover)] hover:opacity-100"
                     >
                         Create Account
-                    </Link>
+                    </Button>
                 </div>
 
                 {/* Divider */}

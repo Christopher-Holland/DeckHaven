@@ -18,6 +18,7 @@
 "use client";
 
 import { MinusIcon, PlusIcon } from "lucide-react";
+import { Button } from "@/app/components/Button";
 
 type AddToCollectionControlProps = {
     /** Current quantity of cards owned */
@@ -49,24 +50,16 @@ export default function AddToCollectionControl({
             onMouseDown={(e) => e.stopPropagation()}
         >
             {quantity <= 0 ? (
-                // Show "Add to collection" button when quantity is 0
-                <button
+                <Button
                     type="button"
+                    variant="secondary"
+                    size="sm"
+                    fullWidth
                     onClick={() => onChange(1)}
-                    className="
-            w-full
-            text-sm font-medium
-            px-3 py-1.5
-            rounded-md
-            border border-[var(--theme-border)]
-            bg-black/5 dark:bg-white/5
-            hover:bg-black/10 dark:hover:bg-white/10
-            transition-colors
-            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
-          "
+                    className="bg-black/5 dark:bg-white/5"
                 >
                     Add to collection
-                </button>
+                </Button>
             ) : (
                 // Show increment/decrement controls when quantity > 0
                 <div
@@ -79,43 +72,33 @@ export default function AddToCollectionControl({
           "
                     aria-label="Adjust quantity"
                 >
-                    <button
+                    <Button
                         type="button"
+                        variant="secondary"
+                        size="icon"
                         onClick={() => canDecrease && onChange(quantity - 1)}
                         disabled={!canDecrease}
-                        className="
-              p-1 rounded
-              border border-[var(--theme-border)]
-              hover:bg-black/10 dark:hover:bg-white/10
-              disabled:opacity-40 disabled:cursor-not-allowed
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-              dark:focus:ring-[#82664e]
-            "
                         aria-label="Decrease quantity"
+                        className="h-8 w-8 min-h-0 border-[var(--theme-border)] bg-[var(--theme-card)] p-1"
                     >
-                        <MinusIcon className="w-4 h-4" />
-                    </button>
+                        <MinusIcon className="h-4 w-4" />
+                    </Button>
 
                     <span className="min-w-[1.5rem] text-center text-sm font-semibold">
                         {quantity}
                     </span>
 
-                    <button
+                    <Button
                         type="button"
+                        variant="secondary"
+                        size="icon"
                         onClick={() => canIncrease && onChange(quantity + 1)}
                         disabled={!canIncrease}
-                        className="
-              p-1 rounded
-              border border-[var(--theme-border)]
-              hover:bg-black/10 dark:hover:bg-white/10
-              disabled:opacity-40 disabled:cursor-not-allowed
-              focus:outline-none focus:ring-2 focus:ring-[#42c99c]
-              dark:focus:ring-[#82664e]
-            "
                         aria-label="Increase quantity"
+                        className="h-8 w-8 min-h-0 border-[var(--theme-border)] bg-[var(--theme-card)] p-1"
                     >
-                        <PlusIcon className="w-4 h-4" />
-                    </button>
+                        <PlusIcon className="h-4 w-4" />
+                    </Button>
                 </div>
             )}
         </div>

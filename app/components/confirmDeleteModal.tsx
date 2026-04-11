@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { X, Trash2 } from "lucide-react";
+import { Button } from "@/app/components/Button";
 import { useFocusTrap } from "@/app/lib/useFocusTrap";
 import { useRestoreFocus } from "@/app/lib/useRestoreFocus";
 import { useInitialFocus } from "@/app/lib/useInitialFocus";
@@ -85,21 +86,16 @@ export default function ConfirmDeleteModal({
                         <h3 id="confirm-delete-title" className="text-lg font-semibold">{title}</h3>
                     </div>
 
-                    <button
+                    <Button
                         type="button"
+                        variant="secondary"
+                        size="icon"
                         onClick={onCancel}
-                        className="
-              p-2 rounded-md
-              bg-[var(--theme-sidebar)]
-              hover:opacity-90
-              border border-[var(--theme-border)]
-              transition-colors
-              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
-            "
                         aria-label="Close"
+                        className="border-[var(--theme-border)] bg-[var(--theme-sidebar)]"
                     >
-                        <X className="w-4 h-4" aria-hidden />
-                    </button>
+                        <X className="h-4 w-4" aria-hidden />
+                    </Button>
                 </div>
 
                 {/* Body */}
@@ -109,41 +105,27 @@ export default function ConfirmDeleteModal({
 
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-2 p-4 border-t border-[var(--theme-border)]">
-                    <button
+                    <Button
                         ref={cancelButtonRef}
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={onCancel}
                         disabled={loading}
-                        className="
-              px-4 py-2 rounded-md text-sm
-              bg-[var(--theme-sidebar)]
-              hover:opacity-90
-              border border-[var(--theme-border)]
-              transition-colors
-              disabled:opacity-50 disabled:cursor-not-allowed
-              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
-            "
+                        className="border-[var(--theme-border)] bg-[var(--theme-sidebar)]"
                     >
                         {cancelLabel}
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                         type="button"
+                        variant={destructive ? "danger" : "primary"}
+                        size="sm"
                         onClick={onConfirm}
                         disabled={loading}
-                        className={`
-              focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
-              px-4 py-2 rounded-md text-sm font-medium
-              transition-colors
-              disabled:opacity-50 disabled:cursor-not-allowed
-              ${destructive
-                                ? "bg-red-600 hover:bg-red-700 text-white"
-                                : "bg-[var(--theme-accent)] hover:bg-[var(--theme-accent-hover)] text-white"
-                            }
-            `}
                     >
                         {loading ? "Deleting..." : confirmLabel}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

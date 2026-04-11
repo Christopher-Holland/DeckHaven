@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { useDrawer } from "./drawerProvider";
+import { Button } from "@/app/components/Button";
 import { useFocusTrap } from "@/app/lib/useFocusTrap";
 import { useRestoreFocus } from "@/app/lib/useRestoreFocus";
 import { useInitialFocus } from "@/app/lib/useInitialFocus";
@@ -73,15 +74,17 @@ export function Drawer({
                         )}
                     </div>
 
-                    <button
+                    <Button
                         ref={closeButtonRef}
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={close}
-                        className="rounded-md p-2 hover:bg-black/10 dark:hover:bg-white/10 transition focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                         aria-label="Close drawer"
+                        className="h-9 w-9 min-h-0"
                     >
-                        <X className="w-5 h-5" />
-                    </button>
+                        <X className="h-5 w-5" />
+                    </Button>
                 </div>
 
                 {/* Content */}

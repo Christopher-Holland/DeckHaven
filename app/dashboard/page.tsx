@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import Loading from "../components/Loading";
+import { Button } from "../components/Button";
 import { tcgNews } from "../data/tcgNews";
 type Deck = {
     id: string;
@@ -118,22 +119,16 @@ export default function Dashboard() {
                     </p>
                 </div>
 
-                <button
+                <Button
                     type="button"
+                    variant="secondary"
+                    size="sm"
                     onClick={fetchDashboardData}
-                    className="
-            inline-flex items-center gap-2
-            px-3 py-2 rounded-md text-sm
-            bg-[var(--theme-sidebar)]
-            border border-[var(--theme-border)]
-            hover:bg-black/10 dark:hover:bg-white/10
-            transition-colors
-            flex-shrink-0
-          "
+                    className="inline-flex shrink-0 gap-2"
                 >
                     <RefreshCcw className="w-4 h-4" />
                     Refresh
-                </button>
+                </Button>
             </section>
 
             {/* Quick Actions */}
@@ -372,27 +367,15 @@ function ActionCard({
     onClick: () => void;
 }) {
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="
-        text-left
-        rounded-lg
-        border border-[var(--theme-border)]
-        bg-[var(--theme-sidebar)]
-        p-4
-        hover:bg-black/10 dark:hover:bg-white/10
-        transition-colors
-      "
-        >
-            <div className="flex items-start justify-between gap-3">
+        <Button type="button" variant="tile" size="md" onClick={onClick}>
+            <div className="flex w-full items-start justify-between gap-3">
                 <div className="min-w-0">
                     <p className="font-semibold">{title}</p>
-                    <p className="text-sm opacity-70 mt-1">{subtitle}</p>
+                    <p className="mt-1 text-sm opacity-70">{subtitle}</p>
                 </div>
                 <div className="opacity-90">{icon}</div>
             </div>
-        </button>
+        </Button>
     );
 }
 

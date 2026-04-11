@@ -187,12 +187,22 @@ export default function AddToBinderModal({
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center" role="dialog" aria-modal="true">
-            <div className="absolute inset-0 bg-black/60" onMouseDown={onClose} />
+        <div
+            className="fixed inset-0 z-[1000] flex items-center justify-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-to-binder-modal-title"
+        >
+            <button
+                type="button"
+                className="absolute inset-0 z-0 cursor-default border-0 bg-black/60 p-0"
+                onClick={onClose}
+                aria-label="Close dialog"
+            />
 
             <div
                 className="
-          relative w-[min(900px,96vw)] max-h-[85vh] overflow-hidden
+          relative z-10 w-[min(900px,96vw)] max-h-[85vh] overflow-hidden
           rounded-2xl
           border border-[var(--theme-border)]
           bg-[var(--theme-bg)]
@@ -204,7 +214,9 @@ export default function AddToBinderModal({
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3 p-4 border-b border-[var(--theme-border)]">
                     <div className="min-w-0">
-                        <h3 className="text-lg font-semibold truncate">Add a card to binder</h3>
+                        <h3 id="add-to-binder-modal-title" className="text-lg font-semibold truncate">
+                            Add a card to binder
+                        </h3>
                         {pendingSlotNumber !== null && (
                             <p className="text-sm opacity-70 truncate">
                                 Adding to slot {pendingSlotNumber + 1}

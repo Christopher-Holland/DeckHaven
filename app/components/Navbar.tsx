@@ -12,11 +12,11 @@
 
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { FormEvent } from "react";
-import { useSidebar } from "./SidebarContext";
 import { useUser } from "@stackframe/stack";
 import { useRouter } from "next/navigation";
 import { Search, Layout, BookOpen, Folder, Layers } from "lucide-react";
 import type { ScryfallCard } from "@/app/lib/scryfall";
+import { Button } from "@/app/components/Button";
 
 type SearchResultSet = {
     id: string;
@@ -202,20 +202,24 @@ function NavbarContent() {
 
                     {/* Search Results Dropdown */}
                     {isOpen && (
-                        <div
-                            className="absolute top-full left-0 right-0 mt-1 max-h-[min(70vh,400px)] overflow-y-auto rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-lg z-50"
-                            role="listbox"
-                        >
+                        <div className="absolute top-full left-0 right-0 mt-1 max-h-[min(70vh,400px)] overflow-y-auto rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-lg z-50">
                             {loading ? (
-                                <div className="px-4 py-6 text-center text-sm opacity-70">
+                                <div
+                                    className="px-4 py-6 text-center text-sm opacity-70"
+                                    role="status"
+                                    aria-live="polite"
+                                >
                                     Searching...
                                 </div>
                             ) : !hasResults ? (
-                                <div className="px-4 py-6 text-center text-sm opacity-70">
+                                <div
+                                    className="px-4 py-6 text-center text-sm opacity-70"
+                                    role="status"
+                                >
                                     No results. Try a different search or press Enter for full search.
                                 </div>
                             ) : (
-                                <div className="py-2">
+                                <div className="py-2" role="listbox">
                                     {results.cards.length > 0 && (
                                         <div className="px-2 pb-1">
                                             <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wider opacity-60">
@@ -428,39 +432,29 @@ function NavbarContent() {
                                 {user.displayName || user.primaryEmail?.split("@")[0] || "User"}
                             </span>
                         </div>
-                        <button
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
                             onClick={async () => {
                                 await user.signOut();
                                 router.push("/");
                             }}
-                            className="
-                                px-3 py-1.5 rounded-md text-sm font-medium
-                                bg-[var(--theme-card)]
-                                text-[var(--theme-fg)]
-                                border border-[var(--theme-border)]
-                                hover:bg-[var(--theme-accent)] hover:text-white
-                                transition-colors
-                                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
-                            "
+                            className="hover:bg-[var(--theme-accent)] hover:text-white"
                         >
                             Sign Out
-                        </button>
+                        </Button>
                     </div>
                 ) : (
-                    <button
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => router.push("/auth/signin")}
-                        className="
-                            px-3 py-1.5 rounded-md text-sm font-medium
-                            bg-[var(--theme-card)]
-                            text-[var(--theme-fg)]
-                            border border-[var(--theme-border)]
-                            hover:bg-[var(--theme-accent)] hover:text-white
-                            transition-colors
-                            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
-                        "
+                        className="hover:bg-[var(--theme-accent)] hover:text-white"
                     >
                         Sign In
-                    </button>
+                    </Button>
                 )}
             </div>
         </header>

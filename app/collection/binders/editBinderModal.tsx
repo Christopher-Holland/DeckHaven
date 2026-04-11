@@ -119,16 +119,16 @@ export default function EditBinderModal({ open, binder, onClose, onSuccess }: Pr
             role="dialog"
             aria-label="Edit Binder"
         >
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/50"
-                onMouseDown={onClose}
+            <button
+                type="button"
+                className="absolute inset-0 z-0 cursor-default border-0 bg-black/50 p-0"
+                onClick={onClose}
+                aria-label="Close dialog"
             />
 
-            {/* Modal */}
             <div
                 className="
-          relative w-[min(560px,92vw)]
+          relative z-10 w-[min(560px,92vw)]
           rounded-xl
           border border-[var(--theme-border)]
           bg-[var(--theme-bg)]

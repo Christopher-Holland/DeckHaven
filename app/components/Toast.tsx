@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useToast } from "./ToastContext";
+import { Button } from "@/app/components/Button";
 
 export default function ToastContainer() {
     const { toasts, removeToast } = useToast();
@@ -27,18 +28,16 @@ export default function ToastContainer() {
                     `}
                 >
                     <p className="flex-1 text-sm font-medium">{toast.message}</p>
-                    <button
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => removeToast(toast.id)}
-                        className="
-                            flex-shrink-0
-                            rounded-md p-1
-                            hover:bg-black dark:hover:bg-white
-                            transition-colors
-                        "
                         aria-label="Close"
+                        className="h-8 w-8 min-h-0 shrink-0 hover:bg-black/15 dark:hover:bg-white/20"
                     >
-                        <X className="w-4 h-4" />
-                    </button>
+                        <X className="h-4 w-4" />
+                    </Button>
                 </div>
             ))}
         </div>

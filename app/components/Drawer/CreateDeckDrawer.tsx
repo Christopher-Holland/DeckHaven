@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FORMAT_RULES, type FormatKey, type FormatRules } from "@/app/lib/mtgFormatRules";
 import { useDrawer } from "./drawerProvider";
 import { useToast } from "@/app/components/ToastContext";
+import { Button } from "@/app/components/Button";
 
 type DeckData = {
     name: string;
@@ -231,14 +232,16 @@ export function CreateDeckDrawer() {
                         { label: "Blood Oath", box: "#7a1f2b", trim: "#c9a24d" },
                         { label: "Arcane Steel", box: "#2b3440", trim: "#3b82f6" },
                     ].map((p) => (
-                        <button
+                        <Button
                             key={p.label}
                             type="button"
+                            variant="secondary"
+                            size="sm"
                             onClick={() => {
                                 setDeckBoxColor(p.box);
                                 setTrimColor(p.trim);
                             }}
-                            className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium border border-[var(--theme-border)] bg-[var(--theme-sidebar)] hover:bg-[var(--theme-accent)]/20 transition-colors"
+                            className="inline-flex items-center bg-[var(--theme-sidebar)] text-xs hover:bg-[var(--theme-accent)]/20"
                         >
                             <span className="flex items-center gap-1.5">
                                 <span
@@ -253,7 +256,7 @@ export function CreateDeckDrawer() {
                                 />
                             </span>
                             {p.label}
-                        </button>
+                        </Button>
                     ))}
                 </div>
 
@@ -266,19 +269,24 @@ export function CreateDeckDrawer() {
 
             {/* Footer */}
             <div className="flex items-center justify-end gap-2 border-t border-[var(--theme-border)] pt-4 mt-4">
-                <button
+                <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
                     onClick={close}
-                    className="rounded-md px-4 py-2 text-sm font-medium bg-[var(--theme-sidebar)] hover:opacity-90 border border-[var(--theme-border)] transition-colors"
+                    className="bg-[var(--theme-sidebar)]"
                 >
                     Cancel
-                </button>
-                <button
+                </Button>
+                <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
                     onClick={handleCreate}
                     disabled={!deckName.trim()}
-                    className="rounded-md px-4 py-2 text-sm font-medium text-white bg-[var(--theme-accent)] hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Create Deck
-                </button>
+                </Button>
             </div>
         </div>
     );
