@@ -210,7 +210,7 @@ function WishlistContent() {
                     </div>
                 </section>
             ) : (
-                <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <section className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {Array.from(filteredCards.entries()).map(([cardId, card]) => {
                         const cardImage = card.image_uris?.normal ||
                             card.image_uris?.large ||
