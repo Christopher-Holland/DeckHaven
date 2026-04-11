@@ -336,7 +336,7 @@ export default function BrowseSets() {
             cursor-pointer
           "
                 >
-                    Back to Sets
+                    Back
                     <ArrowRightIcon
                         className="
               w-4 h-4
@@ -523,7 +523,7 @@ export default function BrowseSets() {
 
             {/* Content Grid - Only show for supported games */}
             {selectedGame === "mtg" && (
-                <section className="grid grid-cols-1 md:grid-cols-5 gap-6 items-stretch">
+                <section className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-6 lg:gap-6 items-stretch">
                     {paginatedSets.map((group) => (
                     <SetCard
                         key={group.parentSet.id}

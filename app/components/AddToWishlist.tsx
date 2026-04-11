@@ -41,10 +41,11 @@ export default function AddToWishlist({
             className="w-full bg-black/5 dark:bg-white/5 sm:w-auto"
         >
             <HeartIcon
-                className={`h-4 w-4 shrink-0 ${isWishlisted
+                className={`h-4 w-4 shrink-0 transition-colors ${
+                    isWishlisted
                         ? "fill-[var(--theme-accent)] text-[var(--theme-accent)]"
-                        : "fill-none"
-                    }`}
+                        : "fill-transparent text-[var(--theme-fg)]"
+                }`}
                 aria-hidden
             />
             {isWishlisted ? "Wishlisted" : "Add to Wishlist"}

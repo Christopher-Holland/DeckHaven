@@ -122,7 +122,7 @@ export default function Sets() {
             </section>
 
             {/* Game Selection Grid */}
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <section className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-6">
                 {games.map((game) => (
                     <div
                         key={game.id}

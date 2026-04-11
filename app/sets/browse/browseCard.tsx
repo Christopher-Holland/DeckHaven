@@ -89,13 +89,12 @@ export default function SetCard({
             role={href ? "button" : undefined}
             tabIndex={href ? 0 : undefined}
             className="
-        relative rounded-lg
+        relative min-w-0 rounded-lg
         border border-[var(--theme-border)]
         bg-[var(--theme-sidebar)]
-        p-4
-        min-h-[300px]
-        flex flex-col
-        cursor-pointer
+        p-3 sm:p-4
+        min-h-[240px] sm:min-h-[280px] lg:min-h-[300px]
+        flex flex-col cursor-pointer
         transition-all duration-200 ease-out
         hover:-translate-y-0.5
         hover:border-[var(--theme-accent-hover)]

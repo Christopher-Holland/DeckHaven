@@ -16,10 +16,10 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { ArrowLeftIcon, Filter, FilterIcon } from "lucide-react";
+import { ArrowLeft, FilterIcon } from "lucide-react";
 import SetCards, { SET_CARD_HEIGHT } from "./SetCards";
 import type { ScryfallCard } from "@/app/lib/scryfall";
 import Loading from "@/app/components/Loading";
@@ -34,6 +34,30 @@ import { useToast } from "@/app/components/ToastContext";
 type PageProps = {
     params: Promise<{ setId: string }>;
 };
+
+/** Match browse sets grid: 2 cols mobile, 4 md, 6 lg (tailwind breakpoints). */
+function getGridColumnCount(width: number): number {
+    if (width >= 1024) return 6;
+    if (width >= 768) return 4;
+    return 2;
+}
+
+function getGridGapPx(width: number): number {
+    if (width >= 1024) return 24;
+    if (width >= 640) return 16;
+    return 12;
+}
+
+function subscribeViewportWidth(callback: () => void) {
+    if (typeof window === "undefined") return () => {};
+    window.addEventListener("resize", callback);
+    return () => window.removeEventListener("resize", callback);
+}
+
+function getViewportWidthSnapshot(): number {
+    if (typeof window === "undefined") return 400;
+    return window.innerWidth;
+}
 
 export default function SetDetailPage({ params }: PageProps) {
     const router = useRouter();
@@ -60,16 +84,22 @@ export default function SetDetailPage({ params }: PageProps) {
     const [allCards, setAllCards] = useState<ScryfallCard[]>([]);
     const [filteredCards, setFilteredCards] = useState<ScryfallCard[]>([]);
 
-    const GRID_COLUMNS = 5;
-    const GRID_GAP = 24;
-    const ROW_HEIGHT = SET_CARD_HEIGHT + GRID_GAP;
+    const viewportWidth = useSyncExternalStore(
+        subscribeViewportWidth,
+        getViewportWidthSnapshot,
+        () => 400
+    );
+    const gridColumns = getGridColumnCount(viewportWidth);
+    const gridGap = getGridGapPx(viewportWidth);
+    const rowHeight = SET_CARD_HEIGHT + gridGap;
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const wishlistToggleRef = useRef<{ cardId: string; intended: boolean } | null>(null);
 
-    const rowCount = Math.ceil(filteredCards.length / GRID_COLUMNS);
+    const rowCount = Math.ceil(filteredCards.length / gridColumns) || 0;
     const rowVirtualizer = useVirtualizer({
         count: rowCount,
         getScrollElement: () => scrollContainerRef.current,
-        estimateSize: () => ROW_HEIGHT,
+        estimateSize: () => rowHeight,
         overscan: 2,
     });
     // Resolve dynamic route param
@@ -96,7 +126,10 @@ export default function SetDetailPage({ params }: PageProps) {
                 const wishlistResponse = await fetch("/api/wishlist");
                 if (wishlistResponse.ok) {
                     const data = await wishlistResponse.json();
-                    setWishlistedCards(new Set(data.wishlist || []));
+                    const ids = Array.isArray(data.wishlist)
+                        ? data.wishlist.filter((id: unknown): id is string => typeof id === "string")
+                        : [];
+                    setWishlistedCards(new Set(ids));
                 }
             } catch (err) {
                 // Error fetching user data
@@ -279,37 +312,34 @@ export default function SetDetailPage({ params }: PageProps) {
     };
 
     const toggleWishlist = async (cardId: string) => {
-        const isWishlisted = wishlistedCards.has(cardId);
-        const newWishlisted = !isWishlisted;
-
-        // Optimistically update UI
         setWishlistedCards((prev) => {
+            const wasWishlisted = prev.has(cardId);
+            const intended = !wasWishlisted;
+            wishlistToggleRef.current = { cardId, intended };
             const next = new Set(prev);
-            if (newWishlisted) {
-                next.add(cardId);
-            } else {
-                next.delete(cardId);
-            }
+            if (intended) next.add(cardId);
+            else next.delete(cardId);
             return next;
         });
 
-        // Save to database
+        const op = wishlistToggleRef.current;
+        if (!op || op.cardId !== cardId) return;
+        const { intended } = op;
+
         try {
-            await fetch("/api/wishlist", {
+            const res = await fetch("/api/wishlist", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cardId, isWishlisted: newWishlisted }),
+                body: JSON.stringify({ cardId, isWishlisted: intended }),
             });
-        } catch (err) {
-            // Error updating wishlist
-            // Revert on error
+            if (!res.ok) {
+                throw new Error(`Wishlist update failed: ${res.status}`);
+            }
+        } catch {
             setWishlistedCards((prev) => {
                 const next = new Set(prev);
-                if (isWishlisted) {
-                    next.add(cardId);
-                } else {
-                    next.delete(cardId);
-                }
+                if (intended) next.delete(cardId);
+                else next.add(cardId);
                 return next;
             });
         }
@@ -437,183 +467,150 @@ export default function SetDetailPage({ params }: PageProps) {
         transition-all duration-300
       "
         >
-            {/* Header */}
-            <section className="flex items-center sticky top-0 border-b border-[var(--theme-border)] bg-[var(--theme-bg)] z-10 pb-4">
-                {/* Left: Back Button */}
-                <div className="flex-1 flex justify-start">
-                    <button
-                        type="button"
-                        onClick={() => router.push("/sets/browse")}
-                        className="
-        flex items-center gap-2
-        text-sm opacity-80
-        border border-[var(--theme-border)]
-        bg-[var(--theme-sidebar)]
-        rounded-md p-2
-        hover:bg-black/10 dark:hover:bg-white/10
-        hover:opacity-100
-        transition-opacity
-      "
-                    >
-                        <ArrowLeftIcon className="w-4 h-4" />
-                        Back to Sets
-                    </button>
-                </div>
+            {/* Header — same layout pattern as decks/[deckId]/page */}
+            <section className="sticky top-0 z-10 border-b border-black/10 bg-[var(--theme-bg)] px-4 py-3 dark:border-white/10">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
+                    <div className="order-1 min-w-0 text-center md:order-2 md:flex-none md:px-4">
+                        <h2 className="truncate text-2xl font-semibold md:text-3xl">
+                            {setName || "Unknown Set"}
+                        </h2>
+                        <p className="mt-1 text-sm opacity-70">
+                            {filteredCards.length} card{filteredCards.length !== 1 ? "s" : ""}{" "}
+                            {filteredCards.length !== allCards.length ? "filtered" : "in this set"}
+                        </p>
+                    </div>
 
-                {/* Center: Set Name + Count */}
-                <div className="flex flex-col items-center text-center min-w-0 mt-2">
-                    <h2 className="text-2xl font-semibold truncate">
-                        {setName || "Unknown Set"}
-                    </h2>
-                    <p className="text-sm opacity-70 mt-1">
-                        {filteredCards.length} card{filteredCards.length !== 1 ? "s" : ""} {filteredCards.length !== allCards.length ? "filtered" : "in this set"}
-                    </p>
-                </div>
-
-                {/* Right: Controls */}
-                <div className="flex-1 flex justify-end">
-                    <div className="flex flex-col items-end gap-2">
-                        {/* Row A: Always-visible utilities */}
-                        <div className="flex items-center gap-2 flex-wrap justify-end">
-                            {/* Filters Button */}
+                    <div className="order-2 flex w-full items-center justify-between gap-2 md:contents">
+                        <div className="flex min-w-0 items-center md:order-1 md:flex-1 md:justify-start">
                             <button
                                 type="button"
-                                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                                onClick={() => router.push("/sets/browse")}
                                 className="
-          flex items-center gap-2
-          text-sm opacity-80
-        border border-[var(--theme-border)]
-        bg-[var(--theme-sidebar)]
-        rounded-md p-2
-        hover:bg-black/10 dark:hover:bg-white/10
-          hover:opacity-100
-          transition-opacity
-        "
+                                    inline-flex items-center gap-2
+                                    rounded-md border border-black/10 px-3 py-2 text-sm opacity-70
+                                    transition-colors
+                                    hover:bg-black/10
+                                    dark:border-[var(--theme-border)]/50
+                                    dark:hover:bg-[var(--theme-accent)]/10
+                                "
                             >
-                                <FilterIcon className="w-4 h-4" />
-                                Filters
+                                <ArrowLeft className="h-4 w-4" />
+                                <span>Back</span>
                             </button>
-
-                            {/* If NOT in selection mode, show Select Cards here too */}
-                            {!isSelectionMode && (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsSelectionMode(true)}
-                                    className="
-            flex items-center gap-2
-            text-sm opacity-80
-            border border-[var(--theme-border)]
-            bg-[var(--theme-sidebar)]
-            rounded-md p-2
-            hover:bg-black/10 dark:hover:bg-white/10
-            hover:opacity-100
-            transition-opacity
-          "
-                                >
-                                    Select Cards
-                                </button>
-                            )}
                         </div>
 
-                        {/* Row B: Selection-mode actions */}
-                        {isSelectionMode && (
-                            <div className="flex items-center gap-2 flex-wrap justify-end">
+                        <div className="flex max-w-[min(100%,28rem)] flex-col items-end gap-2 md:order-3 md:max-w-none md:flex-1 md:items-end">
+                            <div className="flex flex-wrap items-center justify-end gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        const displayedCardIds = new Set(filteredCards.map(c => c.id));
-                                        setSelectedCardIds(displayedCardIds);
-                                    }}
+                                    onClick={() => setIsFiltersOpen(!isFiltersOpen)}
                                     className="
-            flex items-center gap-2
-            text-sm opacity-80
-            border border-[var(--theme-border)]
-            bg-[var(--theme-sidebar)]
-            rounded-md p-2
-            hover:bg-black/10 dark:hover:bg-white/10
-            hover:opacity-100
-            transition-opacity
-          "
+                                        inline-flex items-center gap-2
+                                        rounded-md border border-black/10 px-3 py-2 text-sm opacity-70
+                                        transition-colors
+                                        hover:bg-black/10
+                                        dark:border-[var(--theme-border)]/50
+                                        dark:hover:bg-[var(--theme-accent)]/10
+                                    "
                                 >
-                                    Select All
+                                    <FilterIcon className="h-4 w-4" />
+                                    <span>Filters</span>
                                 </button>
 
-                                {selectedCardIds.size > 0 && (
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={addSelectedToCollection}
-                                            className="
-                flex items-center gap-2
-                text-sm opacity-80
-                border border-[var(--theme-border)]
-                bg-[var(--theme-sidebar)]
-                rounded-md p-2
-                hover:bg-black/10 dark:hover:bg-white/10
-                hover:opacity-100
-                transition-opacity
-              "
-                                        >
-                                            Add to Collection ({selectedCardIds.size})
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsSelectBinderModalOpen(true)}
-                                            className="
-                flex items-center gap-2
-                text-sm opacity-80
-                border border-[var(--theme-border)]
-                bg-[var(--theme-sidebar)]
-                rounded-md p-2
-                hover:bg-black/10 dark:hover:bg-white/10
-                hover:opacity-100
-                transition-opacity
-              "
-                                        >
-                                            Add to Binder ({selectedCardIds.size})
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsSelectDeckModalOpen(true)}
-                                            className="
-                flex items-center gap-2
-                text-sm opacity-80
-                border border-[var(--theme-border)]
-                bg-[var(--theme-sidebar)]
-                rounded-md p-2
-                hover:bg-black/10 dark:hover:bg-white/10
-                hover:opacity-100
-                transition-opacity
-              "
-                                        >
-                                            Add to Deck ({selectedCardIds.size})
-                                        </button>
-                                    </>
+                                {!isSelectionMode && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsSelectionMode(true)}
+                                        className="
+                                            inline-flex items-center gap-2
+                                            rounded-md bg-[var(--theme-accent)] px-3 py-2 text-sm text-white
+                                            transition-colors hover:opacity-95
+                                        "
+                                    >
+                                        <span>Select Cards</span>
+                                    </button>
                                 )}
-
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsSelectionMode(false);
-                                        setSelectedCardIds(new Set());
-                                    }}
-                                    className="
-            flex items-center gap-2
-            text-sm opacity-80
-            border border-red-400 dark:border-red-600
-            bg-[var(--theme-sidebar)]
-            rounded-md p-2
-            hover:bg-black/10 dark:hover:bg-white/10
-            hover:opacity-100
-            transition-opacity
-          "
-                                >
-                                    Cancel
-                                </button>
                             </div>
-                        )}
+
+                            {isSelectionMode && (
+                                <div className="flex flex-wrap items-center justify-end gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const displayedCardIds = new Set(filteredCards.map((c) => c.id));
+                                            setSelectedCardIds(displayedCardIds);
+                                        }}
+                                        className="
+                                            inline-flex items-center gap-2
+                                            rounded-md border border-black/10 px-3 py-2 text-sm opacity-70
+                                            transition-colors
+                                            hover:bg-black/10
+                                            dark:border-[var(--theme-border)]/50
+                                            dark:hover:bg-[var(--theme-accent)]/10
+                                        "
+                                    >
+                                        Select All
+                                    </button>
+
+                                    {selectedCardIds.size > 0 && (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={addSelectedToCollection}
+                                                className="
+                                                    inline-flex items-center gap-2
+                                                    rounded-md bg-[var(--theme-accent)] px-3 py-2 text-sm text-white
+                                                    transition-colors hover:opacity-95
+                                                "
+                                            >
+                                                Add to Collection ({selectedCardIds.size})
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsSelectBinderModalOpen(true)}
+                                                className="
+                                                    inline-flex items-center gap-2
+                                                    rounded-md bg-[var(--theme-accent)] px-3 py-2 text-sm text-white
+                                                    transition-colors hover:opacity-95
+                                                "
+                                            >
+                                                Add to Binder ({selectedCardIds.size})
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsSelectDeckModalOpen(true)}
+                                                className="
+                                                    inline-flex items-center gap-2
+                                                    rounded-md bg-[var(--theme-accent)] px-3 py-2 text-sm text-white
+                                                    transition-colors hover:opacity-95
+                                                "
+                                            >
+                                                Add to Deck ({selectedCardIds.size})
+                                            </button>
+                                        </>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSelectionMode(false);
+                                            setSelectedCardIds(new Set());
+                                        }}
+                                        className="
+                                            inline-flex items-center gap-2
+                                            rounded-md border border-red-400 px-3 py-2 text-sm opacity-90
+                                            transition-colors
+                                            hover:bg-red-500/10
+                                            dark:border-red-600
+                                        "
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </section>
@@ -631,14 +628,14 @@ export default function SetDetailPage({ params }: PageProps) {
                     }}
                 >
                     {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                        const startIndex = virtualRow.index * GRID_COLUMNS;
-                        const rowCards = filteredCards.slice(startIndex, startIndex + GRID_COLUMNS);
+                        const startIndex = virtualRow.index * gridColumns;
+                        const rowCards = filteredCards.slice(startIndex, startIndex + gridColumns);
                         return (
                             <div
                                 key={virtualRow.key}
-                                className="absolute left-0 w-full px-6 grid grid-cols-1 md:grid-cols-5 gap-6"
+                                className="absolute left-0 w-full px-6 grid grid-cols-2 sm:gap-4 md:grid-cols-4 lg:grid-cols-6 gap-3 lg:gap-6"
                                 style={{
-                                    height: ROW_HEIGHT,
+                                    height: rowHeight,
                                     top: 0,
                                     transform: `translateY(${virtualRow.start}px)`,
                                 }}

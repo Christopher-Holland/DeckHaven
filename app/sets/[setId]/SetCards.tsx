@@ -53,7 +53,8 @@ export default function SetCards({
     const [qty, setQty] = useState(initialOwnedCount ?? 0);
     const [internalWishlisted, setInternalWishlisted] = useState(false);
 
-    const wishlisted = onWishlistToggle ? externalWishlisted : internalWishlisted;
+    const isWishlistControlled = onWishlistToggle != null;
+    const wishlisted = isWishlistControlled ? Boolean(externalWishlisted) : internalWishlisted;
 
     useEffect(() => {
         setQty(initialOwnedCount ?? 0);
@@ -69,7 +70,7 @@ export default function SetCards({
 
     return (
         <div
-            className="flex flex-col gap-2 h-full min-h-0 overflow-visible"
+            className="flex min-h-0 w-full min-w-0 flex-col gap-2 overflow-visible"
             style={{ height: SET_CARD_HEIGHT }}
         >
             {/* Card area: flex-1 with overflow-hidden so content stays inside */}
@@ -150,8 +151,8 @@ export default function SetCards({
                     <AddToWishlist
                         isWishlisted={wishlisted}
                         onToggle={() => {
-                            if (onWishlistToggle) {
-                                onWishlistToggle();
+                            if (isWishlistControlled) {
+                                onWishlistToggle?.();
                             } else {
                                 setInternalWishlisted((v) => !v);
                             }

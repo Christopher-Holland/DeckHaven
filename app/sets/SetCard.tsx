@@ -20,130 +20,113 @@
 
 "use client";
 
-import { StarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export type SetCardProps = {
-    /** Unique identifier for the set */
-    id?: string;
-    /** URL to navigate to when card is clicked */
-    href?: string;
-    /** Set name */
-    name: string;
-    /** Game name (e.g., "Magic the Gathering") */
-    game?: string;
-    /** URL to set icon image */
-    imageSrc?: string;
-    /** Set description or type */
-    description?: string;
-    /** Number of cards owned from this set */
-    ownedCount?: number;
-    /** Total number of cards in the set */
-    totalCount?: number;
-    /** Formatted release date string */
-    releaseDate?: string;
-    /** Whether the set is favorited */
-    isFavorited?: boolean;
-    /** Callback when favorite status is toggled */
-    onToggleFavorite?: () => void;
+  id?: string;
+  href?: string;
+  name: string;
+  game?: string;
+  imageSrc?: string;
+  description?: string;
+  ownedCount?: number;
+  totalCount?: number;
+  releaseDate?: string;
+  isFavorited?: boolean;
+  onToggleFavorite?: () => void;
 };
 
 export default function SetCard({
-    id,
-    href,
-    name,
-    game,
-    imageSrc,
-    description,
-    ownedCount,
-    totalCount,
-    releaseDate,
-    isFavorited = false,
-    onToggleFavorite,
+  href,
+  name,
+  game,
+  imageSrc,
+  description,
+  ownedCount,
+  totalCount,
+  releaseDate,
 }: SetCardProps) {
-    const router = useRouter();
+  const router = useRouter();
 
-    const handleNavigate = () => {
-        if (href) router.push(href);
-    };
+  const handleNavigate = () => {
+    if (href) router.push(href);
+  };
 
-    return (
-        <div
-            onClick={handleNavigate}
-            onKeyDown={(e) => {
-                if (!href) return;
-                if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleNavigate();
-                }
-            }}
-            role={href ? "button" : undefined}
-            tabIndex={href ? 0 : undefined}
-            className="
-        relative rounded-lg
+  return (
+    <div
+      onClick={handleNavigate}
+      onKeyDown={(e) => {
+        if (!href) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleNavigate();
+        }
+      }}
+      role={href ? "button" : undefined}
+      tabIndex={href ? 0 : undefined}
+      className="
+        relative min-w-0 cursor-pointer rounded-lg
         border border-[var(--theme-border)]
         bg-[var(--theme-sidebar)]
-        p-4
-        cursor-pointer
+        p-3 md:p-4
         transition-all duration-200 ease-out
         hover:-translate-y-0.5
         hover:border-[var(--theme-accent-hover)]
         hover:shadow-[0_0_20px_var(--theme-accent)]/20
       "
-        >
+    >
+      {/* Set Name */}
+      <div className="w-full border-b border-[var(--theme-border)] pb-2">
+        <h3 className="truncate text-center text-sm font-semibold md:text-lg">
+          {name}
+        </h3>
+      </div>
 
-            {/* Set Name */}
-            <div className="w-full mb-2 border-b border-[var(--theme-border)] pb-2">
-                <h3 className="text-lg font-semibold text-center px-12 truncate">
-                    {name}
-                </h3>
-            </div>
-
-            {/* Game Badge */}
-            {game && (
-                <div className="flex justify-center mt-1">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-black/10 dark:bg-white/10">
-                        {game}
-                    </span>
-                </div>
-            )}
-
-            {/* Set Icon with CSS filters for colorization */}
-            {imageSrc && (
-                <div className="flex justify-center mt-3">
-                    <img
-                        src={imageSrc}
-                        alt={name}
-                        className="w-10 h-10
-                            [filter:brightness(0)_saturate(100%)_invert(58%)_sepia(89%)_saturate(1000%)_hue-rotate(130deg)_brightness(0.9)]
-                            dark:[filter:brightness(0)_saturate(100%)_invert(50%)_sepia(20%)_saturate(500%)_hue-rotate(10deg)_brightness(1.1)]
-                        "
-                    />
-                </div>
-            )}
-
-            {/* Set Description */}
-            {description && (
-                <p className="text-sm opacity-80 text-center mt-3">
-                    {description}
-                </p>
-            )}
-
-            {/* Owned Card Count */}
-            {typeof ownedCount === "number" && (
-                <p className="text-sm opacity-80 text-center mt-2">
-                    {typeof totalCount === "number"
-                        ? `${ownedCount} out of ${totalCount} cards`
-                        : `${ownedCount} cards`}
-                </p>
-            )}
-
-            {/* Release Date */}
-            {releaseDate && (
-                <p className="text-xs opacity-60 text-center mt-1">
-                    Released: {releaseDate}
-                </p>
-            )}
+      {/* Game Badge - desktop only */}
+      {game && (
+        <div className="mt-1 hidden justify-center md:flex">
+          <span className="rounded-full bg-black/10 px-2 py-0.5 text-xs dark:bg-white/10">
+            {game}
+          </span>
         </div>
-    );
+      )}
+
+      {/* Set Icon */}
+      {imageSrc && (
+        <div className="mt-2 flex justify-center md:mt-3">
+          <img
+            src={imageSrc}
+            alt={name}
+            className="h-8 w-8 md:h-10 md:w-10
+              [filter:brightness(0)_saturate(100%)_invert(58%)_sepia(89%)_saturate(1000%)_hue-rotate(130deg)_brightness(0.9)]
+              dark:[filter:brightness(0)_saturate(100%)_invert(50%)_sepia(20%)_saturate(500%)_hue-rotate(10deg)_brightness(1.1)]
+            "
+          />
+        </div>
+      )}
+
+      {/* Description - desktop only */}
+      {description && (
+        <p className="mt-3 hidden text-center text-sm opacity-80 md:block">
+          {description}
+        </p>
+      )}
+
+      {/* Owned Count */}
+      {typeof ownedCount === "number" && (
+        <p className="mt-2 text-center text-xs opacity-80 md:text-sm">
+          {typeof totalCount === "number"
+            ? `${ownedCount} / ${totalCount}`
+            : `${ownedCount} cards`}
+        </p>
+      )}
+
+      {/* Release Date - desktop only */}
+      {releaseDate && (
+        <p className="mt-1 hidden text-center text-xs opacity-60 md:block">
+          Released: {releaseDate}
+        </p>
+      )}
+    </div>
+  );
 }
