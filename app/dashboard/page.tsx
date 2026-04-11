@@ -132,7 +132,7 @@ export default function Dashboard() {
             </section>
 
             {/* Quick Actions */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <section className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <ActionCard
                     title="Browse Sets"
                     subtitle="Find sets and start tracking."
@@ -161,7 +161,7 @@ export default function Dashboard() {
 
             {/* Snapshot */}
             <section className="mb-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StatCard label="Total Cards" value={collectionCount.toLocaleString()} />
                     <StatCard label="Decks" value={`${decksCount}`} />
                     <StatCard label="Binders" value={`${bindersCount}`} />
