@@ -90,7 +90,7 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
 
     return (
         <div
-            className="fixed inset-0 z-[999] flex items-center justify-center"
+            className="fixed inset-0 z-[999] flex items-end justify-center sm:items-center"
             aria-modal="true"
             role="dialog"
             aria-label="New Binder"
@@ -104,12 +104,9 @@ export default function NewBinderModal({ open, onClose, onSuccess }: Props) {
 
             <div
                 className="
-          relative z-10 w-[min(560px,92vw)]
-          rounded-xl
-          border border-[var(--theme-border)]
-          bg-[var(--theme-bg)]
-          text-[var(--theme-fg)]
-          shadow-xl
+          relative z-10 max-h-[min(90dvh,100svh)] w-full overflow-y-auto overscroll-contain
+          rounded-t-2xl border border-[var(--theme-border)] border-b-0 bg-[var(--theme-bg)] text-[var(--theme-fg)]
+          shadow-xl sm:w-[min(560px,92vw)] sm:rounded-xl sm:border-b sm:max-h-[85vh]
         "
                 onMouseDown={(e) => e.stopPropagation()}
             >

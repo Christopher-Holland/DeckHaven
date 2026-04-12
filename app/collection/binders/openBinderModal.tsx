@@ -587,7 +587,7 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
     return (
         <div
-            className="fixed inset-0 z-[999] flex items-center justify-center"
+            className="fixed inset-0 z-[999] flex items-end justify-center sm:items-center"
             aria-modal="true"
             role="dialog"
             aria-label="Open Binder"
@@ -601,18 +601,14 @@ export default function OpenBinderModal({ open, binder, cards = [], onClose, onS
 
             <div
                 className="
-          relative z-10 w-[min(1400px,98vw)] max-h-[95vh]
-          overflow-hidden
-          rounded-2xl
-          border border-[var(--theme-border)]
-          bg-[var(--theme-bg)]
-          text-[var(--theme-fg)]
-          shadow-2xl
+          relative z-10 flex w-full max-h-[min(96dvh,100svh)] flex-col overflow-hidden
+          rounded-t-2xl border border-[var(--theme-border)] border-b-0 bg-[var(--theme-bg)] text-[var(--theme-fg)]
+          shadow-2xl sm:w-[min(1400px,98vw)] sm:max-h-[95vh] sm:rounded-2xl sm:border-b
         "
                 onMouseDown={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-start justify-between gap-3 p-4 border-b border-[var(--theme-border)]">
+                <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[var(--theme-border)] p-3 sm:gap-3 sm:p-4">
                     <div className="min-w-0">
                         <h3 className="text-lg font-semibold truncate">{binder.name}</h3>
                         <p className="text-sm opacity-70 truncate">

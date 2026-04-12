@@ -51,7 +51,7 @@ export default function ConfirmDeleteModal({
     return (
         <div
             ref={containerRef}
-            className="fixed inset-0 z-[1000] flex items-center justify-center"
+            className="fixed inset-0 z-[1000] flex items-end justify-center sm:items-center"
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="confirm-delete-title"
@@ -68,12 +68,10 @@ export default function ConfirmDeleteModal({
             {/* Modal */}
             <div
                 className="
-          relative w-[min(420px,92vw)]
-          rounded-xl
-          border border-[var(--theme-border)]
-          bg-[var(--theme-bg)]
-          text-[var(--theme-fg)]
-          shadow-2xl
+          relative z-10 w-full max-h-[min(88dvh,100svh)] overflow-y-auto overscroll-contain
+          rounded-t-2xl border border-[var(--theme-border)] border-b-0 sm:rounded-xl sm:border-b
+          bg-[var(--theme-bg)] text-[var(--theme-fg)] shadow-2xl
+          sm:w-[min(420px,92vw)] sm:max-h-none
         "
                 onMouseDown={(e) => e.stopPropagation()}
             >
@@ -104,7 +102,7 @@ export default function ConfirmDeleteModal({
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-end gap-2 p-4 border-t border-[var(--theme-border)]">
+                <div className="flex flex-col-reverse gap-2 border-t border-[var(--theme-border)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-end">
                     <Button
                         ref={cancelButtonRef}
                         type="button"
@@ -112,7 +110,7 @@ export default function ConfirmDeleteModal({
                         size="sm"
                         onClick={onCancel}
                         disabled={loading}
-                        className="border-[var(--theme-border)] bg-[var(--theme-sidebar)]"
+                        className="w-full border-[var(--theme-border)] bg-[var(--theme-sidebar)] sm:w-auto min-h-[44px]"
                     >
                         {cancelLabel}
                     </Button>
@@ -123,6 +121,7 @@ export default function ConfirmDeleteModal({
                         size="sm"
                         onClick={onConfirm}
                         disabled={loading}
+                        className="w-full sm:w-auto min-h-[44px]"
                     >
                         {loading ? "Deleting..." : confirmLabel}
                     </Button>

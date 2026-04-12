@@ -188,7 +188,7 @@ export default function AddToBinderModal({
 
     return (
         <div
-            className="fixed inset-0 z-[1000] flex items-center justify-center"
+            className="fixed inset-0 z-[1000] flex items-end justify-center sm:items-center"
             role="dialog"
             aria-modal="true"
             aria-labelledby="add-to-binder-modal-title"
@@ -202,12 +202,9 @@ export default function AddToBinderModal({
 
             <div
                 className="
-          relative z-10 w-[min(900px,96vw)] max-h-[85vh] overflow-hidden
-          rounded-2xl
-          border border-[var(--theme-border)]
-          bg-[var(--theme-bg)]
-          text-[var(--theme-fg)]
-          shadow-2xl
+          relative z-10 flex w-full max-h-[min(92dvh,100svh)] flex-col overflow-hidden
+          rounded-t-2xl border border-[var(--theme-border)] border-b-0 bg-[var(--theme-bg)] text-[var(--theme-fg)]
+          shadow-2xl sm:w-[min(900px,96vw)] sm:max-h-[85vh] sm:rounded-2xl sm:border-b
         "
                 onMouseDown={(e) => e.stopPropagation()}
             >
@@ -261,7 +258,7 @@ export default function AddToBinderModal({
                 </div>
 
                 {/* Results */}
-                <div className="px-4 pb-4 overflow-y-auto max-h-[60vh]">
+                <div className="max-h-[min(50dvh,55svh)] overflow-y-auto overscroll-contain px-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-h-[60vh]">
                     {loading && (
                         <div className="py-10 text-center text-sm opacity-70">Searching cards…</div>
                     )}

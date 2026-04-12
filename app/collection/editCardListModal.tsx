@@ -204,12 +204,10 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                 aria-modal="true"
                 aria-label="Edit collection item"
                 className="
-          absolute right-0 top-0 h-full w-full max-w-md
-          bg-[var(--theme-bg)]
-          text-[var(--theme-fg)]
-          border-l border-[var(--theme-border)]
+          absolute right-0 top-0 flex h-[100dvh] max-h-[100dvh] w-full max-w-md flex-col
+          border-l border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-fg)]
           shadow-[-20px_0_60px_-25px_rgba(0,0,0,0.55)]
-          flex flex-col
+          min-h-0 pt-[env(safe-area-inset-top)]
         "
             >
                 {/* Header */}
@@ -256,7 +254,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                 )}
 
                 {/* Body */}
-                <div className="p-4 overflow-y-auto space-y-4">
+                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))] touch-pan-y">
                     {/* Quantity */}
                     <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-4">
                         <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Quantity</div>

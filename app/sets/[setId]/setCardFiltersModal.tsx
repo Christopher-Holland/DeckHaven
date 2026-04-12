@@ -64,7 +64,7 @@ export default function SetCardFiltersModal({
     };
 
     return (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-[100]">
             {/* Backdrop */}
             <button
                 aria-label="Close modal"
@@ -73,21 +73,16 @@ export default function SetCardFiltersModal({
             />
 
             {/* Modal */}
-            <div className="absolute inset-0 flex items-center justify-center p-4">
+            <div className="absolute inset-0 flex items-end justify-center p-0 sm:items-center sm:p-4">
                 <div
                     role="dialog"
                     aria-modal="true"
                     aria-label="Card Filters"
                     className="
-                        w-full max-w-2xl
-                        max-h-[90vh]
-                        overflow-hidden
-                        rounded-2xl border
-                        bg-[var(--theme-bg)]
-                        border-[var(--theme-border)]
-                        text-[var(--theme-fg)]
-                        shadow-[0_30px_80px_-35px_rgba(0,0,0,0.60)]
-                        flex flex-col
+                        flex min-h-0 max-h-[min(92dvh,100svh)] w-full max-w-2xl flex-col overflow-hidden
+                        rounded-t-2xl border border-b-0 bg-[var(--theme-bg)] border-[var(--theme-border)]
+                        text-[var(--theme-fg)] shadow-[0_30px_80px_-35px_rgba(0,0,0,0.60)]
+                        sm:rounded-2xl sm:border-b sm:max-h-[90vh]
                     "
                 >
                     {/* Header */}
@@ -115,7 +110,7 @@ export default function SetCardFiltersModal({
                     </div>
 
                     {/* Body */}
-                    <div className="p-4 overflow-y-auto">
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 touch-pan-y">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Card Type */}
                             <div>
@@ -212,7 +207,7 @@ export default function SetCardFiltersModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-end gap-2 border-t border-[var(--theme-border)] p-4">
+                    <div className="flex flex-col-reverse gap-2 border-t border-[var(--theme-border)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-end">
                         <button
                             onClick={handleClear}
                             className="

@@ -66,8 +66,11 @@ export default function CardModal({
         <div
             ref={containerRef}
             className="
-        fixed inset-0 z-50
-        flex items-center justify-center
+        fixed inset-0 z-[100]
+        flex items-end justify-center px-3
+        pt-4
+        pb-[max(0.75rem,calc(env(safe-area-inset-bottom)+3.5rem))]
+        sm:items-center sm:px-4 sm:pb-4 sm:pt-4
       "
             role="dialog"
             aria-modal="true"
@@ -86,13 +89,10 @@ export default function CardModal({
                 className="
           relative z-10
           w-full max-w-4xl
-          max-h-[90vh]
-          overflow-y-auto
-          rounded-lg
-          bg-[var(--theme-bg)]
-          border border-[var(--theme-border)]
-          p-6
-          shadow-lg
+          max-h-[min(92dvh,100svh)] overflow-y-auto overscroll-contain
+          rounded-t-2xl border border-[var(--theme-border)] border-b-0 bg-[var(--theme-bg)]
+          p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-lg
+          sm:rounded-lg sm:border-b sm:p-6 sm:max-h-[90vh]
         "
             >
                 {/* Header */}
