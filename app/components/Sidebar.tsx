@@ -17,13 +17,9 @@ import {
     ChevronRight,
     LayoutDashboard,
     Layers,
-    FolderOpen,
     BookOpen,
-    Library,
     Swords,
     Heart,
-    Settings,
-    HelpCircle
 } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 import type { LucideIcon } from "lucide-react";
@@ -40,8 +36,7 @@ const navItems: NavItem[] = [
     { name: "Collection", href: "/collection", icon: Layers },
     { name: "Decks", href: "/decks", icon: Swords },
     { name: "Wishlist", href: "/wishlist", icon: Heart },
-    { name: "Settings", href: "/settings", icon: Settings },
-    { name: "FAQ", href: "/faq", icon: HelpCircle },
+    
 ];
 
 export default function Sidebar() {

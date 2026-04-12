@@ -8,8 +8,6 @@ import {
     BookOpen,
     Swords,
     Heart,
-    Settings,
-    HelpCircle,
     type LucideIcon,
 } from "lucide-react";
 
@@ -25,8 +23,7 @@ const navItems: NavItem[] = [
     { name: "Collection", href: "/collection", icon: Layers },
     { name: "Decks", href: "/decks", icon: Swords },
     { name: "Wishlist", href: "/wishlist", icon: Heart },
-    { name: "Settings", href: "/settings", icon: Settings },
-    { name: "FAQ", href: "/faq", icon: HelpCircle },
+    
 ];
 
 function cx(...classes: Array<string | false | null | undefined>) {

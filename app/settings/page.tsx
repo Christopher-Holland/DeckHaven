@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { User, Palette, Shield, Bell, Info, Edit2, X, Check } from "lucide-react";
+import { useState, useEffect, type JSX } from "react";
+import { User, Palette, Shield, Bell, Info, Edit2, X, Check, HelpCircle, ChevronDown } from "lucide-react";
 import { useUser } from "@stackframe/stack";
 import { useToast } from "@/app/components/ToastContext";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,7 +9,137 @@ import { useDeckHavenTheme } from "@/app/components/ThemeContext";
 import { baseThemes, accentColors, type BaseThemeId, type AccentColorId } from "@/app/lib/themes";
 import { logger } from "@/app/lib/logger";
 
-type Tab = "account" | "appearance" | "security" | "notifications" | "about";
+type Tab = "account" | "appearance" | "security" | "notifications" | "faq" | "about";
+
+type FAQItem = {
+    q: string;
+    a: string | JSX.Element;
+};
+
+const faqs: FAQItem[] = [
+    {
+        q: "What is DeckHaven?",
+        a: (
+            <>
+                DeckHaven is a digital companion for tabletop card games. It helps you organize your collection,
+                manage binders, build decks, and keep everything in one place—like laying your cards out on a
+                table, but smarter.
+            </>
+        ),
+    },
+    {
+        q: "Where should I start?",
+        a: (
+            <>
+                Start with your <strong>collection</strong>. Add cards at your own pace—there’s no need to enter
+                everything at once. Once you have cards in your collection, you can organize them into binders
+                or build decks from what you own.
+            </>
+        ),
+    },
+    {
+        q: "What’s the difference between a binder and a deck?",
+        a: (
+            <ul className="list-disc space-y-2 pl-5">
+                <li>
+                    <strong>Binders</strong> represent how you store cards physically (boxes, binders, folders).
+                </li>
+                <li>
+                    <strong>Decks</strong> represent playable card lists built from your collection.
+                </li>
+                <li>A card can exist in your collection and appear in multiple decks without being duplicated.</li>
+            </ul>
+        ),
+    },
+    {
+        q: "Do I need to enter my entire collection right away?",
+        a: (
+            <>
+                No. DeckHaven is designed to grow with you. Add a few cards, a single binder, or one deck—whatever
+                feels comfortable. You can always expand later.
+            </>
+        ),
+    },
+    {
+        q: "Can I use DeckHaven for multiple games?",
+        a: (
+            <>
+                Yes. DeckHaven supports organizing cards from different games (such as Magic, Pokémon, and
+                others) so you can keep everything together without mixing things up. Please note that some games
+                shown in the app are not yet supported.
+            </>
+        ),
+    },
+    {
+        q: "Is my data private?",
+        a: (
+            <>
+                Yes. Your collection, decks, and settings are tied to your account and are not shared publicly.
+                DeckHaven does not sell or expose your data.
+            </>
+        ),
+    },
+    {
+        q: "What are themes and accent colors?",
+        a: (
+            <>
+                Themes control the overall look of DeckHaven, while accent colors highlight buttons, selections,
+                and interactive elements. You can mix and match them to suit your style—nothing here affects your
+                data.
+            </>
+        ),
+    },
+    {
+        q: "Why are some settings marked “Coming Soon”?",
+        a: (
+            <>
+                DeckHaven is actively evolving. Some features are planned but not yet available. These are shown so
+                you know what’s coming, not because anything is broken.
+            </>
+        ),
+    },
+    {
+        q: "Is DeckHaven finished?",
+        a: (
+            <>
+                DeckHaven is considered a <strong>1.0 release</strong>, meaning it’s stable and usable, but more
+                features and refinements are planned over time. Your setup today will carry forward as the app
+                grows.
+            </>
+        ),
+    },
+];
+
+function FAQPanel() {
+    return (
+        <Panel
+            title="FAQ"
+            description="Quick answers to help you get comfortable with DeckHaven."
+        >
+            <section className="space-y-3">
+                {faqs.map((item, idx) => (
+                    <details
+                        key={idx}
+                        className="group rounded-xl border border-[var(--theme-border)]/35 bg-[var(--theme-sidebar)]/50 px-4 py-3"
+                    >
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 select-none">
+                            <span className="text-base font-semibold">{item.q}</span>
+                            <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform group-open:rotate-180" aria-hidden />
+                        </summary>
+                        <div className="mt-3 text-sm leading-relaxed opacity-90">
+                            {typeof item.a === "string" ? <p>{item.a}</p> : item.a}
+                        </div>
+                    </details>
+                ))}
+            </section>
+            <div className="mt-8 rounded-xl border border-[var(--theme-border)]/30 bg-[var(--theme-sidebar)]/40 px-4 py-3">
+                <p className="text-sm opacity-80">
+                    DeckHaven is built to feel familiar, not overwhelming. Take it one step at a time.
+                </p>
+            </div>
+        </Panel>
+    );
+}
 
 function AppearancePanel() {
     const { baseTheme, accentColor, setBaseTheme, setAccentColor } = useDeckHavenTheme();
@@ -735,12 +865,16 @@ export default function SettingsPage() {
     const { showToast } = useToast();
     const router = useRouter();
 
-    // Auto-switch to security tab if reset parameter is present
+    // Auto-switch tab from URL (security reset, FAQ deep link)
     useEffect(() => {
         const resetParam = searchParams.get("reset");
         const codeParam = searchParams.get("code");
         if (resetParam === "true" || codeParam) {
             setTab("security");
+            return;
+        }
+        if (searchParams.get("tab") === "faq") {
+            setTab("faq");
         }
     }, [searchParams]);
 
@@ -779,6 +913,7 @@ export default function SettingsPage() {
                     <NavItem icon={<Palette className="w-4 h-4" />} label="Appearance" active={tab === "appearance"} onClick={() => setTab("appearance")} />
                     <NavItem icon={<Shield className="w-4 h-4" />} label="Security" active={tab === "security"} onClick={() => setTab("security")} />
                     <NavItem icon={<Bell className="w-4 h-4" />} label="Notifications" active={tab === "notifications"} onClick={() => setTab("notifications")} />
+                    <NavItem icon={<HelpCircle className="w-4 h-4" />} label="FAQ" active={tab === "faq"} onClick={() => setTab("faq")} />
                     <NavItem icon={<Info className="w-4 h-4" />} label="About" active={tab === "about"} onClick={() => setTab("about")} />
                 </aside>
 
@@ -813,6 +948,8 @@ export default function SettingsPage() {
                             ]}
                         />
                     )}
+
+                    {tab === "faq" && <FAQPanel />}
 
                     {tab === "about" && (
                         <Panel

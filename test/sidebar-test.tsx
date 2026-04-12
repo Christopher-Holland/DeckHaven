@@ -24,8 +24,6 @@ describe("Sidebar", () => {
         expect(screen.getByRole("link", { name: /collection/i })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /decks/i })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /wishlist/i })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: /settings/i })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: /faq/i })).toBeInTheDocument();
     });
 
     it("collapses when the toggle is clicked", async () => {
