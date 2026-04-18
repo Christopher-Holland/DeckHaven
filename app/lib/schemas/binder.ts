@@ -58,10 +58,11 @@ export type UpdateBinderInput = z.infer<typeof updateBinderSchema>;
 export const addCardToBinderSchema = z
     .object({
         cardId: z.string().min(1, "cardId is required and must be a non-empty string"),
+        // Put z.null() before coerce: otherwise null becomes 0 and collides with occupied slot 0.
         slotNumber: z
             .union([
-                z.coerce.number().int("slotNumber must be an integer").min(0, "slotNumber must be non-negative"),
                 z.null(),
+                z.coerce.number().int("slotNumber must be an integer").min(0, "slotNumber must be non-negative"),
             ])
             .optional(),
     })

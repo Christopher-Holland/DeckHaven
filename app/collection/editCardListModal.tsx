@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ScryfallCard } from "@/app/lib/scryfall";
+import SelectDeckModal from "@/app/sets/[setId]/selectDeckModal";
+import SelectBinderModal from "@/app/sets/[setId]/selectBinderModal";
+import { useToast } from "@/app/components/ToastContext";
 
 export type EditableCard = {
     id: string;        // collection item id
@@ -42,6 +45,7 @@ type BinderInfo = {
 
 export default function EditCardListModal({ open, card, onClose, onSave }: Props) {
     const router = useRouter();
+    const { showToast } = useToast();
     const [quantity, setQuantity] = useState(0);
     const [isFoil, setIsFoil] = useState(false);
     const [condition, setCondition] = useState("");
@@ -54,9 +58,64 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
     const [bindersWithCard, setBindersWithCard] = useState<BinderInfo[]>([]);
     const [loadingDecks, setLoadingDecks] = useState(false);
     const [loadingBinders, setLoadingBinders] = useState(false);
+    const [selectDeckOpen, setSelectDeckOpen] = useState(false);
+    const [selectBinderOpen, setSelectBinderOpen] = useState(false);
 
     // local "saving" UI state (optional, but nice)
     const [saving, setSaving] = useState(false);
+
+    const loadContainingDecksAndBinders = useCallback(async (cardId: string) => {
+        try {
+            setLoadingDecks(true);
+            const decksResponse = await fetch("/api/decks");
+            if (decksResponse.ok) {
+                const decksData = await decksResponse.json();
+                const decksContainingCard: DeckInfo[] = [];
+                for (const deck of decksData.decks || []) {
+                    try {
+                        const deckDetailResponse = await fetch(`/api/decks/${deck.id}`);
+                        if (deckDetailResponse.ok) {
+                            const deckDetail = await deckDetailResponse.json();
+                            const hasCard = (deckDetail.deck?.deckCards || []).some(
+                                (dc: { cardId: string }) => dc.cardId === cardId
+                            );
+                            if (hasCard) {
+                                decksContainingCard.push({ id: deck.id, name: deck.name });
+                            }
+                        }
+                    } catch {
+                        // Failed to fetch deck
+                    }
+                }
+                setDecksWithCard(decksContainingCard);
+            }
+        } catch {
+            // Failed to fetch decks
+        } finally {
+            setLoadingDecks(false);
+        }
+
+        try {
+            setLoadingBinders(true);
+            const bindersResponse = await fetch("/api/binders");
+            if (bindersResponse.ok) {
+                const bindersData = await bindersResponse.json();
+                const bindersContainingCard: BinderInfo[] = (bindersData.binders || [])
+                    .filter((binder: { binderCards: Array<{ cardId: string }> }) =>
+                        binder.binderCards?.some((bc: { cardId: string }) => bc.cardId === cardId)
+                    )
+                    .map((binder: { id: string; name: string }) => ({
+                        id: binder.id,
+                        name: binder.name,
+                    }));
+                setBindersWithCard(bindersContainingCard);
+            }
+        } catch {
+            // Failed to fetch binders
+        } finally {
+            setLoadingBinders(false);
+        }
+    }, []);
 
     // Fetch card image when card changes
     useEffect(() => {
@@ -98,68 +157,8 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
             return;
         }
 
-        const cardId = card.cardId; // Capture cardId to avoid null check issues
-
-        async function fetchDecksAndBinders() {
-
-            // Fetch decks
-            try {
-                setLoadingDecks(true);
-                const decksResponse = await fetch("/api/decks");
-                if (decksResponse.ok) {
-                    const decksData = await decksResponse.json();
-                    // For each deck, check if it contains this card
-                    const decksContainingCard: DeckInfo[] = [];
-                    for (const deck of decksData.decks || []) {
-                        try {
-                            const deckDetailResponse = await fetch(`/api/decks/${deck.id}`);
-                            if (deckDetailResponse.ok) {
-                                const deckDetail = await deckDetailResponse.json();
-                                const hasCard = (deckDetail.deck?.deckCards || []).some(
-                                    (dc: { cardId: string }) => dc.cardId === cardId
-                                );
-                                if (hasCard) {
-                                    decksContainingCard.push({ id: deck.id, name: deck.name });
-                                }
-                            }
-                        } catch (err) {
-                            // Failed to fetch deck
-                        }
-                    }
-                    setDecksWithCard(decksContainingCard);
-                }
-            } catch (err) {
-                // Failed to fetch decks
-            } finally {
-                setLoadingDecks(false);
-            }
-
-            // Fetch binders
-            try {
-                setLoadingBinders(true);
-                const bindersResponse = await fetch("/api/binders");
-                if (bindersResponse.ok) {
-                    const bindersData = await bindersResponse.json();
-                    // Filter binders that contain this card
-                    const bindersContainingCard: BinderInfo[] = (bindersData.binders || [])
-                        .filter((binder: { binderCards: Array<{ cardId: string }> }) =>
-                            binder.binderCards?.some((bc: { cardId: string }) => bc.cardId === cardId)
-                        )
-                        .map((binder: { id: string; name: string }) => ({
-                            id: binder.id,
-                            name: binder.name,
-                        }));
-                    setBindersWithCard(bindersContainingCard);
-                }
-            } catch (err) {
-                // Failed to fetch binders
-            } finally {
-                setLoadingBinders(false);
-            }
-        }
-
-        fetchDecksAndBinders();
-    }, [open, card]);
+        loadContainingDecksAndBinders(card.cardId);
+    }, [open, card, loadContainingDecksAndBinders]);
 
     // populate fields when opened / card changes
     useEffect(() => {
@@ -184,6 +183,14 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
     }, [open, onClose]);
+
+    // Avoid reopening deck/binder pickers when the drawer is opened again
+    useEffect(() => {
+        if (!open) {
+            setSelectDeckOpen(false);
+            setSelectBinderOpen(false);
+        }
+    }, [open]);
 
     if (!open) return null;
 
@@ -289,6 +296,44 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                                 +
                             </button>
                         </div>
+                    </div>
+
+                    {/* Add to deck / binder (same modals as set page) */}
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setSelectDeckOpen(true)}
+                            disabled={!card?.cardId}
+                            className="
+                                px-3 py-2 rounded-md text-sm font-medium
+                                border border-[var(--theme-border)]
+                                bg-[var(--theme-sidebar)]
+                                text-[var(--theme-fg)]
+                                hover:bg-[var(--theme-accent)] hover:text-white
+                                transition-all duration-200
+                                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                            "
+                        >
+                            Add to deck
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setSelectBinderOpen(true)}
+                            disabled={!card?.cardId}
+                            className="
+                                px-3 py-2 rounded-md text-sm font-medium
+                                border border-[var(--theme-border)]
+                                bg-[var(--theme-sidebar)]
+                                text-[var(--theme-fg)]
+                                hover:bg-[var(--theme-accent)] hover:text-white
+                                transition-all duration-200
+                                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                            "
+                        >
+                            Add to binder
+                        </button>
                     </div>
 
                     {/* Foil */}
@@ -489,6 +534,67 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                     </button>
                 </div>
             </aside>
+
+            <SelectDeckModal
+                open={selectDeckOpen}
+                cardId={card?.cardId || ""}
+                onClose={() => setSelectDeckOpen(false)}
+                onSelect={async (deckId: string, qty: number) => {
+                    if (!card?.cardId) return;
+
+                    const response = await fetch(`/api/decks/${deckId}/cards`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            cardId: card.cardId,
+                            quantity: qty,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: "Failed to add card to deck" }));
+                        throw new Error(errorData.error || "Failed to add card to deck");
+                    }
+
+                    showToast(
+                        `Added ${qty} card${qty === 1 ? "" : "s"} to deck.`,
+                        "success"
+                    );
+                    await loadContainingDecksAndBinders(card.cardId);
+                }}
+            />
+
+            <SelectBinderModal
+                open={selectBinderOpen}
+                cardId={card?.cardId || ""}
+                onClose={() => setSelectBinderOpen(false)}
+                onSelect={async (binderId: string, qty: number) => {
+                    if (!card?.cardId) return;
+
+                    for (let i = 0; i < qty; i++) {
+                        const response = await fetch(`/api/binders/${binderId}/cards`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                cardId: card.cardId,
+                                slotNumber: null,
+                            }),
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({ error: "Failed to add card to binder" }));
+                            throw new Error(errorData.error || "Failed to add card to binder");
+                        }
+                    }
+
+                    const total = qty;
+                    showToast(
+                        `Added ${total} card${total === 1 ? "" : "s"} to binder.`,
+                        "success"
+                    );
+                    await loadContainingDecksAndBinders(card.cardId);
+                }}
+            />
         </div>
     );
 }
