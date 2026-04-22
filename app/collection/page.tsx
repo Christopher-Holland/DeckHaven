@@ -174,7 +174,7 @@ export default function CollectionPage() {
     // Handle quantity update
     const handleQuantityUpdate = async (item: CollectionItem, newQuantity: number) => {
         if (newQuantity < 0) return; // Don't allow negative quantities
-        
+
         setUpdatingQuantities(prev => new Set(prev).add(item.id));
         try {
             const requestBody = {
@@ -303,7 +303,7 @@ export default function CollectionPage() {
     // Filter and sort items
     const filteredAndSortedItems = useMemo(() => {
         if (!collectionData) return [];
-        
+
         let items = [...collectionData.items];
 
         // Apply search filter
@@ -343,7 +343,7 @@ export default function CollectionPage() {
         items.sort((a, b) => {
             const cardA = cards.get(a.cardId);
             const cardB = cards.get(b.cardId);
-            
+
             switch (sortBy) {
                 case "name-asc":
                     const nameA = cardA?.name?.toLowerCase() || "";
@@ -458,7 +458,7 @@ export default function CollectionPage() {
                             : `Cards Owned (${game.toUpperCase()})`}
                     </p>
                     <p className="text-2xl font-semibold mt-1">{totalCards}</p>
-                    
+
                 </div>
 
                 {/* Action strip */}
@@ -546,8 +546,22 @@ export default function CollectionPage() {
             focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
           "
                 />
-
                 <div className="flex flex-wrap items-center gap-2 relative">
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            disabled
+                            title="Coming soon"
+                            className="
+                                w-full px-3 py-2 rounded-md text-sm font-medium
+                                bg-black/5 dark:bg-white/5
+                                border border-[var(--theme-border)]
+                                opacity-60 cursor-not-allowed
+                                "
+                        >
+                            Export Collection
+                        </button>
+                    </div>
                     <div className="relative">
                         <button
                             type="button"
@@ -564,11 +578,11 @@ export default function CollectionPage() {
                             Filters
                             <ChevronDown className={`w-4 h-4 transition-transform ${filterMenuOpen ? "rotate-180" : ""}`} />
                         </button>
-                        
+
                         {filterMenuOpen && (
                             <>
-                                <div 
-                                    className="fixed inset-0 z-10" 
+                                <div
+                                    className="fixed inset-0 z-10"
                                     onClick={() => setFilterMenuOpen(false)}
                                 />
                                 <div className="absolute right-0 mt-2 z-20 w-56 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-sidebar)] shadow-lg p-3 space-y-3">
@@ -725,7 +739,7 @@ export default function CollectionPage() {
                                 <div className="col-span-2 text-xs opacity-80">
                                     {tags.length > 0 ? tags.join(" • ") : "—"}
                                 </div>
-                                <div 
+                                <div
                                     className="col-span-2 flex justify-end items-center gap-2"
                                     onClick={(e) => e.stopPropagation()}
                                 >
@@ -829,8 +843,8 @@ export default function CollectionPage() {
                                             transition-colors
                                             focus:outline-none           focus:ring-2 focus:ring-[var(--theme-accent)]
                                             ${currentPage === page
-                                            ? "bg-[var(--theme-accent)] text-white font-semibold"
-                                            : "bg-[var(--theme-sidebar)] text-[var(--theme-fg)] border border-[var(--theme-border)] hover:bg-black/10 dark:hover:bg-white/10"
+                                                    ? "bg-[var(--theme-accent)] text-white font-semibold"
+                                                    : "bg-[var(--theme-sidebar)] text-[var(--theme-fg)] border border-[var(--theme-border)] hover:bg-black/10 dark:hover:bg-white/10"
                                                 }
                                         `}
                                         >

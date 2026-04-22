@@ -201,26 +201,26 @@ export default function BinderPage() {
 
         // Track instances within this page as we process in slot number order
         const instancesInPage = new Map<string, number>();
-        
+
         // First pass: process cards in slot number order to track instances correctly
         const cardInstanceMap = new Map<number, { card: typeof binderCards[0]; isInCollection: boolean }>();
         pageCards.forEach(card => {
             if (card.slotNumber === null || card.slotNumber === undefined) return;
-            
+
             const instancesBefore = instancesBeforePage.get(card.cardId) || 0;
             const instancesSoFarInPage = instancesInPage.get(card.cardId) || 0;
             const totalInstancesSeen = instancesBefore + instancesSoFarInPage;
-            
+
             // Get collection quantity for this card
             const collectionQuantity = collectionCardQuantities.get(card.cardId) || 0;
-            
+
             // Mark as in collection only if we haven't exceeded the collection quantity
             const isInCollection = totalInstancesSeen < collectionQuantity;
-            
+
             // Store the result
             const slotInPage = card.slotNumber % cardsPerPage;
             cardInstanceMap.set(slotInPage, { card, isInCollection });
-            
+
             // Increment the count for this card in this page
             instancesInPage.set(card.cardId, instancesSoFarInPage + 1);
         });
@@ -229,7 +229,7 @@ export default function BinderPage() {
         const slots = Array.from({ length: gridSize.total }, (_, i) => {
             const entry = cardInstanceMap.get(i);
             if (!entry) return null;
-            
+
             const { card, isInCollection } = entry;
             const cardDetail = cardDetails.get(card.cardId);
 
@@ -782,9 +782,9 @@ export default function BinderPage() {
                                     transition-colors
                                     border
                                     ${rearranging
-                                        ? "bg-[var(--theme-accent)]/20 border-[var(--theme-accent)] text-[var(--theme-fg)]"
-                                        : "bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-black/10 dark:border-white/10"
-                                    }
+                                    ? "bg-[var(--theme-accent)]/20 border-[var(--theme-accent)] text-[var(--theme-fg)]"
+                                    : "bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-black/10 dark:border-white/10"
+                                }
                                     `}
                             type="button"
                             onClick={() => setRearranging((prev) => !prev)}
@@ -817,6 +817,19 @@ export default function BinderPage() {
                         >
                             <Edit className="w-5 h-5" />
                             <span className="text-sm">Edit Binder</span>
+                        </button>
+                        <button
+                            type="button"
+                            disabled
+                            title="Coming soon"
+                            className="
+                                        w-full px-3 py-2 rounded-md text-sm font-medium
+                                        bg-black/5 dark:bg-white/5
+                                        border border-[var(--theme-border)]
+                                        opacity-60 cursor-not-allowed
+                                        "
+                        >
+                            Export Deck
                         </button>
                         <button
                             className="

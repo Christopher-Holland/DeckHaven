@@ -125,7 +125,7 @@ export default function DeckPage() {
                             }
                             continue;
                         }
-                        
+
                         const cardResponse = await fetch(`https://api.scryfall.com/cards/${actualCardId}`);
                         if (cardResponse.ok) {
                             const cardData = await cardResponse.json();
@@ -158,10 +158,10 @@ export default function DeckPage() {
 
     const targetCards = useMemo(() => {
         if (!deck?.format) return null;
-        
+
         const formatKey = deck.format as FormatKey;
         if (!FORMAT_RULES[formatKey]) return null;
-        
+
         const rules = FORMAT_RULES[formatKey] as FormatRules;
         return rules.exactCards ?? rules.minCards ?? null;
     }, [deck]);
@@ -171,7 +171,7 @@ export default function DeckPage() {
 
         deckCards.forEach((deckCard) => {
             if (deckCard.cardId.startsWith("c:")) return;
-            
+
             const scryfallCard = cardDetails.get(deckCard.cardId);
             if (!scryfallCard) return;
 
@@ -272,7 +272,7 @@ export default function DeckPage() {
                 });
 
                 const existingRegularCard = deckCards.find(
-                    (dc) => dc.cardId === actualCardId &&                     !dc.cardId.startsWith("c:")
+                    (dc) => dc.cardId === actualCardId && !dc.cardId.startsWith("c:")
                 );
 
                 if (!existingRegularCard) {
@@ -290,7 +290,7 @@ export default function DeckPage() {
             const existingNewCommanderCard = deckCards.find(
                 (dc) => dc.cardId === cardId && !dc.cardId.startsWith("c:")
             );
-            
+
             if (existingNewCommanderCard) {
                 await fetch(`/api/decks/${deckId}/cards/${existingNewCommanderCard.id}`, {
                     method: "DELETE",
@@ -328,11 +328,11 @@ export default function DeckPage() {
     const currentCommander = useMemo(() => {
         const commanderDeckCard = deckCards.find((dc) => dc.cardId.startsWith("c:"));
         if (!commanderDeckCard) return null;
-        
+
         // Extract actual card ID (remove "c:" prefix)
         const actualCardId = commanderDeckCard.cardId.replace(/^c:/, "");
         const scryfallCard = cardDetails.get(actualCardId);
-        
+
         return { deckCard: commanderDeckCard, scryfallCard, actualCardId };
     }, [deckCards, cardDetails]);
 
@@ -400,26 +400,26 @@ export default function DeckPage() {
         >
             {/* Header */}
             <section className="border-b border-black/10 px-4 py-3 dark:border-white/10">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
-                {/* Deck title: top on mobile, center column on desktop */}
-                <div className="order-1 min-w-0 text-center md:order-2 md:flex-none md:px-4">
-                    <h2 className="truncate text-2xl font-semibold md:text-3xl">
-                        {deck.name}
-                    </h2>
-                    <p className="mt-1 text-sm opacity-70">
-                        {deck.format || "Unknown Format"} •{" "}
-                        {targetCards !== null
-                            ? `${totalCards} out of ${targetCards} cards`
-                            : `${totalCards} card${totalCards !== 1 ? "s" : ""}`}
-                    </p>
-                </div>
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
+                    {/* Deck title: top on mobile, center column on desktop */}
+                    <div className="order-1 min-w-0 text-center md:order-2 md:flex-none md:px-4">
+                        <h2 className="truncate text-2xl font-semibold md:text-3xl">
+                            {deck.name}
+                        </h2>
+                        <p className="mt-1 text-sm opacity-70">
+                            {deck.format || "Unknown Format"} •{" "}
+                            {targetCards !== null
+                                ? `${totalCards} out of ${targetCards} cards`
+                                : `${totalCards} card${totalCards !== 1 ? "s" : ""}`}
+                        </p>
+                    </div>
 
-                {/* Mobile: Back + Add/Edit one row; desktop: md:contents → 3-column header */}
-                <div className="order-2 flex w-full items-center justify-between gap-2 md:contents">
-                    <div className="flex min-w-0 items-center md:order-1 md:flex-1 md:justify-start">
-                        <button
-                            type="button"
-                            className="
+                    {/* Mobile: Back + Add/Edit one row; desktop: md:contents → 3-column header */}
+                    <div className="order-2 flex w-full items-center justify-between gap-2 md:contents">
+                        <div className="flex min-w-0 items-center md:order-1 md:flex-1 md:justify-start">
+                            <button
+                                type="button"
+                                className="
                                 inline-flex items-center gap-2
                                 rounded-md border border-black/10 px-3 py-2 text-sm opacity-70
                                 transition-colors
@@ -427,57 +427,85 @@ export default function DeckPage() {
                                 dark:border-[var(--theme-border)]/50
                                 dark:hover:bg-[var(--theme-accent)]/10
                             "
-                            onClick={() => router.back()}
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                            <span>Back</span>
-                        </button>
-                    </div>
+                                onClick={() => router.back()}
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                                <span>Back</span>
+                            </button>
+                        </div>
 
-                    <div className="flex shrink-0 items-center justify-end gap-2 md:order-3 md:flex-1">
-                        <button
-                            type="button"
-                            className="
+                        <div className="flex shrink-0 items-center justify-end gap-2 md:order-3 md:flex-1">
+                            <button
+                                type="button"
+                                className="
                                 inline-flex items-center gap-2
                                 rounded-md bg-[var(--theme-accent)] px-3 py-2 text-sm text-white
                                 transition-colors hover:opacity-95
                             "
-                            onClick={() => router.push(`/sets`)}
-                        >
-                            <Plus className="h-4 w-4" />
-                            <span>Add</span>
-                        </button>
+                                onClick={() => router.push(`/sets`)}
+                            >
+                                <Plus className="h-4 w-4" />
+                                <span>Add</span>
+                            </button>
 
-                        <button
-                            type="button"
-                            onClick={() =>
-                                open("EDIT_DECK", {
-                                    deck,
-                                    onSuccess: async () => {
-                                        try {
-                                            const response = await fetch(`/api/decks/${deckId}`);
-                                            if (response.ok) {
-                                                const data = await response.json();
-                                                if (data.deck) {
-                                                    setDeck(data.deck);
-                                                    setDeckCards(data.deck.deckCards || []);
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    open("EDIT_DECK", {
+                                        deck,
+                                        onSuccess: async () => {
+                                            try {
+                                                const response = await fetch(`/api/decks/${deckId}`);
+                                                if (response.ok) {
+                                                    const data = await response.json();
+                                                    if (data.deck) {
+                                                        setDeck(data.deck);
+                                                        setDeckCards(data.deck.deckCards || []);
+                                                    }
                                                 }
-                                            }
-                                        } catch (err) {}
-                                    },
-                                })
-                            }
-                            className="
+                                            } catch (err) { }
+                                        },
+                                    })
+                                }
+                                className="
                                 inline-flex items-center gap-2
                                 rounded-md bg-[var(--theme-accent)] px-3 py-2 text-sm text-white
                                 transition-colors hover:opacity-95
                             "
-                        >
-                            Edit
-                        </button>
+                            >
+                                Edit
+                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    disabled
+                                    title="Coming soon"
+                                    className="
+                                        px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap
+                                        bg-black/5 dark:bg-white/5
+                                        border border-[var(--theme-border)]
+                                        opacity-60 cursor-not-allowed
+                                        "
+                                >
+                                    Import Deck
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled
+                                    title="Coming soon"
+                                    className="
+                                        px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap
+                                        bg-black/5 dark:bg-white/5
+                                        border border-[var(--theme-border)]
+                                        opacity-60 cursor-not-allowed
+    "
+                                >
+                                    Export Deck
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
             </section>
 
             {/* Commander Section - Only show for Commander format decks */}
