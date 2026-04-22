@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { FORMAT_RULES, type FormatKey, type FormatRules } from "@/app/lib/mtgFormatRules";
 import { useDrawer } from "./drawerProvider";
 
@@ -29,6 +30,7 @@ export function EditDeckDrawer() {
     const { state, close } = useDrawer();
     const deck = state.payload?.deck as Deck | null;
     const onSuccess = state.payload?.onSuccess as (() => Promise<void> | void) | undefined;
+    const onDeleted = state.payload?.onDeleted as (() => Promise<void> | void) | undefined;
 
     const [selectedFormat, setSelectedFormat] = useState<FormatKey>("Standard");
     const [deckBoxColor, setDeckBoxColor] = useState<string>("#ffffff");
@@ -36,7 +38,9 @@ export function EditDeckDrawer() {
     const [deckName, setDeckName] = useState<string>("");
     const [deckDescription, setDeckDescription] = useState<string>("");
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const busy = saving || deleting;
 
     // Reset form when deck changes
     useEffect(() => {
@@ -91,6 +95,37 @@ export function EditDeckDrawer() {
         }
     };
 
+    const handleDelete = async () => {
+        if (
+            !deck ||
+            !confirm(
+                `Delete "${deck.name}"? All cards in this deck will be removed. This cannot be undone.`
+            )
+        ) {
+            return;
+        }
+
+        setDeleting(true);
+        setError(null);
+
+        try {
+            const response = await fetch(`/api/decks/${deck.id}`, { method: "DELETE" });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to delete deck" }));
+                throw new Error(errorData.error || "Failed to delete deck");
+            }
+
+            if (onDeleted) {
+                await onDeleted();
+            }
+            close();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to delete deck");
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     if (!deck) return null;
 
     return (
@@ -111,7 +146,7 @@ export function EditDeckDrawer() {
                     value={deckName}
                     onChange={(e) => setDeckName(e.target.value)}
                     placeholder="Enter deck name..."
-                    disabled={saving}
+                    disabled={busy}
                     className="w-full rounded-md border px-3 py-2 text-sm bg-[var(--theme-sidebar)] border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50 disabled:cursor-not-allowed"
                 />
             </div>
@@ -126,7 +161,7 @@ export function EditDeckDrawer() {
                     onChange={(e) => setDeckDescription(e.target.value)}
                     placeholder="Enter deck description..."
                     rows={3}
-                    disabled={saving}
+                    disabled={busy}
                     className="w-full rounded-md border px-3 py-2 text-sm bg-[var(--theme-sidebar)] border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
             </div>
@@ -139,7 +174,7 @@ export function EditDeckDrawer() {
                 <select
                     value={selectedFormat}
                     onChange={(e) => setSelectedFormat(e.target.value as FormatKey)}
-                    disabled={saving}
+                    disabled={busy}
                     className="w-full rounded-md border px-3 py-2 text-sm bg-[var(--theme-sidebar)] border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {Object.keys(FORMAT_RULES).map((k) => (
@@ -212,7 +247,7 @@ export function EditDeckDrawer() {
                             type="color"
                             value={deckBoxColor}
                             onChange={(e) => setDeckBoxColor(e.target.value)}
-                            disabled={saving}
+                            disabled={busy}
                             className="h-7 w-7 rounded-md border border-[var(--theme-border)] overflow-hidden cursor-pointer bg-transparent p-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:none] [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-md"
                         />
                     </div>
@@ -228,7 +263,7 @@ export function EditDeckDrawer() {
                             type="color"
                             value={trimColor}
                             onChange={(e) => setTrimColor(e.target.value)}
-                            disabled={saving}
+                            disabled={busy}
                             className="h-7 w-7 rounded-md border border-[var(--theme-border)] overflow-hidden cursor-pointer bg-transparent p-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:none] [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-md"
                         />
                     </div>
@@ -251,7 +286,7 @@ export function EditDeckDrawer() {
                                 setDeckBoxColor(p.box);
                                 setTrimColor(p.trim);
                             }}
-                            disabled={saving}
+                            disabled={busy}
                             className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium border border-[var(--theme-border)] bg-[var(--theme-sidebar)] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <span className="flex items-center gap-1.5">
@@ -279,21 +314,44 @@ export function EditDeckDrawer() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end gap-2 border-t border-[var(--theme-border)] pt-4 mt-4">
+            <div className="flex flex-col gap-3 border-t border-[var(--theme-border)] pt-4 mt-4 sm:flex-row sm:items-center sm:justify-between">
                 <button
-                    onClick={close}
-                    disabled={saving}
-                    className="rounded-md px-4 py-2 text-sm font-medium bg-[var(--theme-sidebar)] border border-[var(--theme-border)] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={busy}
+                    className="
+                        inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium
+                        bg-red-500/10 dark:bg-red-500/20
+                        hover:bg-red-500/20 dark:hover:bg-red-500/30
+                        border border-red-500/30 dark:border-red-500/40
+                        text-red-600 dark:text-red-400
+                        transition-colors
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                        sm:min-h-0 sm:w-auto
+                    "
                 >
-                    Cancel
+                    <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+                    {deleting ? "Deleting..." : "Delete Deck"}
                 </button>
-                <button
-                    onClick={handleSubmit}
-                    disabled={!deckName.trim() || saving}
-                    className="rounded-md px-4 py-2 text-sm font-medium text-white bg-[var(--theme-accent)] hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {saving ? "Saving..." : "Save Changes"}
-                </button>
+
+                <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row sm:justify-end">
+                    <button
+                        type="button"
+                        onClick={close}
+                        disabled={busy}
+                        className="min-h-[44px] w-full rounded-md px-4 py-2 text-sm font-medium bg-[var(--theme-sidebar)] border border-[var(--theme-border)] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed sm:min-h-0 sm:w-auto"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={!deckName.trim() || busy}
+                        className="min-h-[44px] w-full rounded-md px-4 py-2 text-sm font-medium text-white bg-[var(--theme-accent)] hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed sm:min-h-0 sm:w-auto"
+                    >
+                        {saving ? "Saving..." : "Save Changes"}
+                    </button>
+                </div>
             </div>
         </div>
     );

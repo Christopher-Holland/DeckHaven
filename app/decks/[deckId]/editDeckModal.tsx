@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import { FORMAT_RULES, type FormatKey, type FormatRules } from "@/app/lib/mtgFormatRules";
 
 type Deck = {
@@ -19,6 +19,8 @@ type EditDeckModalProps = {
     deck: Deck | null;
     onClose: () => void;
     onSuccess?: () => Promise<void> | void;
+    /** Called after the deck is deleted successfully, before the modal closes (e.g. navigate away). */
+    onDeleted?: () => Promise<void> | void;
 };
 
 export default function EditDeckModal({
@@ -26,6 +28,7 @@ export default function EditDeckModal({
     deck,
     onClose,
     onSuccess,
+    onDeleted,
 }: EditDeckModalProps) {
     const [selectedFormat, setSelectedFormat] = useState<FormatKey>("Standard");
     const [deckBoxColor, setDeckBoxColor] = useState<string>("#ffffff");
@@ -33,7 +36,9 @@ export default function EditDeckModal({
     const [deckName, setDeckName] = useState<string>("");
     const [deckDescription, setDeckDescription] = useState<string>("");
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const busy = saving || deleting;
 
     // Reset form when modal opens/closes or deck changes
     useEffect(() => {
@@ -51,6 +56,7 @@ export default function EditDeckModal({
             setDeckBoxColor("#ffffff");
             setTrimColor("#1f2937");
             setError(null);
+            setDeleting(false);
         }
     }, [open, deck]);
 
@@ -59,12 +65,12 @@ export default function EditDeckModal({
         if (!open) return;
 
         const onKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && !saving) onClose();
+            if (e.key === "Escape" && !busy) onClose();
         };
 
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
-    }, [open, onClose, saving]);
+    }, [open, onClose, busy]);
 
     const rules = useMemo(() => FORMAT_RULES[selectedFormat] as FormatRules, [selectedFormat]);
 
@@ -109,13 +115,44 @@ export default function EditDeckModal({
         }
     };
 
+    const handleDelete = async () => {
+        if (
+            !deck ||
+            !confirm(
+                `Delete "${deck.name}"? All cards in this deck will be removed. This cannot be undone.`
+            )
+        ) {
+            return;
+        }
+
+        setDeleting(true);
+        setError(null);
+
+        try {
+            const response = await fetch(`/api/decks/${deck.id}`, { method: "DELETE" });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to delete deck" }));
+                throw new Error(errorData.error || "Failed to delete deck");
+            }
+
+            if (onDeleted) {
+                await onDeleted();
+            }
+            onClose();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to delete deck");
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-50">
             {/* Backdrop */}
             <button
                 aria-label="Close modal"
                 onClick={onClose}
-                disabled={saving}
+                disabled={busy}
                 className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
             />
 
@@ -141,7 +178,7 @@ export default function EditDeckModal({
 
                         <button
                             onClick={onClose}
-                            disabled={saving}
+                            disabled={busy}
                             className="
                                 rounded-md px-3 py-1.5 text-sm font-medium
                                 bg-[var(--theme-sidebar)]
@@ -179,7 +216,7 @@ export default function EditDeckModal({
                                         value={deckName}
                                         onChange={(e) => setDeckName(e.target.value)}
                                         placeholder="Enter deck name..."
-                                        disabled={saving}
+                                        disabled={busy}
                                         className="
                                             w-full rounded-md border px-3 py-2 text-sm
                                             bg-[var(--theme-sidebar)]
@@ -200,7 +237,7 @@ export default function EditDeckModal({
                                         onChange={(e) => setDeckDescription(e.target.value)}
                                         placeholder="Enter deck description..."
                                         rows={3}
-                                        disabled={saving}
+                                        disabled={busy}
                                         className="
                                             w-full rounded-md border px-3 py-2 text-sm
                                             bg-[var(--theme-sidebar)]
@@ -220,7 +257,7 @@ export default function EditDeckModal({
                                     <select
                                         value={selectedFormat}
                                         onChange={(e) => setSelectedFormat(e.target.value as FormatKey)}
-                                        disabled={saving}
+                                        disabled={busy}
                                         className="
                                             w-full rounded-md border px-3 py-2 text-sm
                                             bg-[var(--theme-sidebar)]
@@ -311,7 +348,7 @@ export default function EditDeckModal({
                                                 type="color"
                                                 value={deckBoxColor}
                                                 onChange={(e) => setDeckBoxColor(e.target.value)}
-                                                disabled={saving}
+                                                disabled={busy}
                                                 className="
                                                     h-7 w-7 rounded-md
                                                     border border-[var(--theme-border)]
@@ -343,7 +380,7 @@ export default function EditDeckModal({
                                                     type="color"
                                                     value={trimColor}
                                                     onChange={(e) => setTrimColor(e.target.value)}
-                                                    disabled={saving}
+                                                    disabled={busy}
                                                     className="
                                                     h-7 w-7 rounded-md
                                                     border border-[var(--theme-border)]
@@ -380,7 +417,7 @@ export default function EditDeckModal({
                                                     setDeckBoxColor(p.box);
                                                     setTrimColor(p.trim);
                                                 }}
-                                                disabled={saving}
+                                                disabled={busy}
                                                 className="
                                                     inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium
                                                     border border-[var(--theme-border)]
@@ -418,36 +455,59 @@ export default function EditDeckModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-[var(--theme-border)] px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-end">
+                    <div className="flex shrink-0 flex-col gap-3 border-t border-[var(--theme-border)] px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-between">
                         <button
-                            onClick={onClose}
-                            disabled={saving}
+                            type="button"
+                            onClick={handleDelete}
+                            disabled={busy}
                             className="
-                                min-h-[44px] w-full rounded-md px-4 py-2 text-sm font-medium
-                                bg-[var(--theme-sidebar)]
-                                hover:opacity-90
-                                border border-[var(--theme-border)]
+                                inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium
+                                bg-red-500/10 dark:bg-red-500/20
+                                hover:bg-red-500/20 dark:hover:bg-red-500/30
+                                border border-red-500/30 dark:border-red-500/40
+                                text-red-600 dark:text-red-400
                                 transition-colors
                                 disabled:opacity-50 disabled:cursor-not-allowed
                                 sm:min-h-0 sm:w-auto
                             "
                         >
-                            Cancel
+                            <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+                            {deleting ? "Deleting..." : "Delete Deck"}
                         </button>
 
-                        <button
-                            onClick={handleSubmit}
-                            disabled={!deckName.trim() || saving}
-                            className="
-                                min-h-[44px] w-full rounded-md px-4 py-2 text-sm font-medium text-white
-                                bg-[var(--theme-accent)]
-                                hover:opacity-95 transition-opacity
-                                disabled:opacity-50 disabled:cursor-not-allowed
-                                sm:min-h-0 sm:w-auto
-                            "
-                        >
-                            {saving ? "Saving..." : "Save Changes"}
-                        </button>
+                        <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                disabled={busy}
+                                className="
+                                    min-h-[44px] w-full rounded-md px-4 py-2 text-sm font-medium
+                                    bg-[var(--theme-sidebar)]
+                                    hover:opacity-90
+                                    border border-[var(--theme-border)]
+                                    transition-colors
+                                    disabled:opacity-50 disabled:cursor-not-allowed
+                                    sm:min-h-0 sm:w-auto
+                                "
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={!deckName.trim() || busy}
+                                className="
+                                    min-h-[44px] w-full rounded-md px-4 py-2 text-sm font-medium text-white
+                                    bg-[var(--theme-accent)]
+                                    hover:opacity-95 transition-opacity
+                                    disabled:opacity-50 disabled:cursor-not-allowed
+                                    sm:min-h-0 sm:w-auto
+                                "
+                            >
+                                {saving ? "Saving..." : "Save Changes"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

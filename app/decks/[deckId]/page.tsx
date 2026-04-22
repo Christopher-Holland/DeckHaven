@@ -465,6 +465,9 @@ export default function DeckPage() {
                                                 }
                                             } catch (err) { }
                                         },
+                                        onDeleted: () => {
+                                            router.push("/decks");
+                                        },
                                     })
                                 }
                                 className="

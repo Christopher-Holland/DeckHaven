@@ -165,3 +165,58 @@ export async function PATCH(
     }
 }
 
+export async function DELETE(
+    _request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const user = await stackServerApp.getUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
+        const { id: deckId } = await params;
+
+        const dbUser = await prisma.user.findUnique({
+            where: { stackUserId: user.id },
+        });
+
+        if (!dbUser) {
+            return NextResponse.json(
+                { error: "User not found. Please sync your account." },
+                { status: 404 }
+            );
+        }
+
+        const existingDeck = await prisma.deck.findFirst({
+            where: {
+                id: deckId,
+                userId: dbUser.id,
+            },
+        });
+
+        if (!existingDeck) {
+            return NextResponse.json(
+                { error: "Deck not found" },
+                { status: 404 }
+            );
+        }
+
+        await prisma.deck.delete({
+            where: { id: deckId },
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to delete deck";
+        return NextResponse.json(
+            { error: errorMessage },
+            { status: 500 }
+        );
+    }
+}
+
