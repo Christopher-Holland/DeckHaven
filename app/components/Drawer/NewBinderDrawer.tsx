@@ -8,24 +8,24 @@ export function NewBinderDrawer() {
     const onSuccess = state.payload?.onSuccess as (() => void) | undefined;
 
     const [selectedGame, setSelectedGame] = useState("all");
-    const [size, setSize] = useState("2x2");
+    const [size, setSize] = useState("3x3");
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [coverColor, setCoverColor] = useState("#ffffff");
-    const [spineColor, setSpineColor] = useState("#1f2937");
-    const [pageColor, setPageColor] = useState("#f6ead6");
+    const [coverColor, setCoverColor] = useState("#1a1a1a");
+    const [spineColor, setSpineColor] = useState("#111111");
+    const [pageColor, setPageColor] = useState("#0d0d0d");
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Reset form when drawer opens
     useEffect(() => {
         setSelectedGame("all");
-        setSize("2x2");
+        setSize("3x3");
         setName("");
         setDescription("");
-        setCoverColor("#ffffff");
-        setSpineColor("#1f2937");
-        setPageColor("#f6ead6");
+        setCoverColor("#1a1a1a");
+        setSpineColor("#111111");
+        setPageColor("#0d0d0d");
         setError(null);
     }, [state.type]);
 

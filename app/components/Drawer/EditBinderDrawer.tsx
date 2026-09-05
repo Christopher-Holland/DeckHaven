@@ -21,11 +21,11 @@ export function EditBinderDrawer() {
 
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [coverColor, setCoverColor] = useState("#ffffff");
-    const [spineColor, setSpineColor] = useState("#1f2937");
-    const [pageColor, setPageColor] = useState("#f6ead6");
+    const [coverColor, setCoverColor] = useState("#1a1a1a");
+    const [spineColor, setSpineColor] = useState("#111111");
+    const [pageColor, setPageColor] = useState("#0d0d0d");
     const [selectedGame, setSelectedGame] = useState("all");
-    const [size, setSize] = useState("2x2");
+    const [size, setSize] = useState("3x3");
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -34,11 +34,11 @@ export function EditBinderDrawer() {
         if (binder) {
             setName(binder.name || "");
             setDescription(binder.description || "");
-            setCoverColor(binder.color || "#ffffff");
-            setSpineColor(binder.spineColor || "#1f2937");
-            setPageColor(binder.pageColor || "#f6ead6");
+            setCoverColor(binder.color || "#1a1a1a");
+            setSpineColor(binder.spineColor || "#111111");
+            setPageColor(binder.pageColor || "#0d0d0d");
             setSelectedGame(binder.game || "all");
-            setSize(binder.size || "2x2");
+            setSize(binder.size || "3x3");
             setError(null);
         }
     }, [binder]);

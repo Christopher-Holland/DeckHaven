@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Edit, Plus, Trash, X, ChevronLeft, ChevronRight, SkipBack, SkipForward, GripVertical } from "lucide-react";
 import type { ScryfallCard } from "@/app/lib/scryfall";
+import { isLightHex, paddedMaterialStyle } from "@/app/lib/binderMaterial";
 import AddToBinderModal from "../addToBinderModal";
 import { useRouter, useParams } from "next/navigation";
 import { useUser } from "@stackframe/stack";
@@ -139,9 +140,10 @@ export default function BinderPage() {
     }, [binderId]);
 
     // Use hex colors from database, with fallbacks
-    const coverColor = useMemo(() => binder?.color || "#ffffff", [binder?.color]);
-    const spineColor = useMemo(() => binder?.spineColor || "#1f2937", [binder?.spineColor]);
-    const pageColor = useMemo(() => binder?.pageColor || "var(--theme-bg)", [binder?.pageColor]);
+    const coverColor = useMemo(() => binder?.color || "#1a1a1a", [binder?.color]);
+    const spineColor = useMemo(() => binder?.spineColor || "#111111", [binder?.spineColor]);
+    const pageColor = useMemo(() => binder?.pageColor || "#0d0d0d", [binder?.pageColor]);
+    const pageIsLight = useMemo(() => isLightHex(pageColor), [pageColor]);
 
     // Determine grid size from binder size (default to 3x3 if not set)
     const gridSize = useMemo(() => {
@@ -488,270 +490,323 @@ export default function BinderPage() {
         }
     };
 
-    // Render a single page component
-    const renderPage = (slots: (BinderCard | null)[], pageNumber: number) => (
-        <div
-            className="
-                relative rounded-2xl
-                border border-black/10 dark:border-white/10
-                shadow-xl
-                overflow-hidden
-                w-full h-full
-                min-h-[500px]
-            "
-            style={{ backgroundColor: pageColor }}
-        >
-            {/* paper grain */}
+    // Render a single page — clear side-loading pocket sheet over padded backing
+    const renderPage = (slots: (BinderCard | null)[], pageNumber: number, side: "left" | "right" = "right") => {
+        // Side-loading: openings face the outer edge of the binder (away from spine)
+        const loadFromLeft = side === "left";
+
+        return (
             <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 opacity-[0.10] dark:opacity-[0.12]"
-                style={{
-                    backgroundImage:
-                        "repeating-linear-gradient(0deg, currentColor 0px, transparent 1px, transparent 6px)",
-                }}
-            />
-
-            <div className="relative p-3 sm:p-4">
-                {/* pocket grid */}
+                className="
+                    relative rounded-sm
+                    overflow-hidden
+                    w-full h-full
+                    min-h-[500px]
+                    shadow-[inset_0_0_40px_rgba(0,0,0,0.35),0_8px_24px_rgba(0,0,0,0.35)]
+                "
+                style={{ backgroundColor: pageColor }}
+            >
+                {/* Padded page core */}
                 <div
-                    className={`grid ${gridSize.cols === 2 ? "grid-cols-2 gap-2 sm:gap-3" :
-                        gridSize.cols === 4 ? "grid-cols-4 gap-1.5 sm:gap-2" :
-                            "grid-cols-3 gap-2 sm:gap-3"
-                        }`}
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 opacity-40"
+                    style={{
+                        backgroundImage:
+                            "linear-gradient(180deg, rgba(255,255,255,0.06), transparent 30%, rgba(0,0,0,0.2))",
+                    }}
+                />
+
+                {/* Clear vinyl pocket sheet */}
+                <div
+                    className="relative h-full p-2.5 sm:p-3.5"
+                    style={{
+                        background:
+                            "linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 40%, rgba(255,255,255,0.08) 100%)",
+                    }}
                 >
-                    {slots.map((slot, idx) => {
-                        const slotNumber = pageAndSlotToSlotNumber(pageNumber, idx, gridSize.total);
-                        const isDragOver = dragOverSlot === slotNumber;
+                    <div
+                        className={`
+                            grid h-full
+                            ${gridSize.cols === 2 ? "grid-cols-2 gap-1.5 sm:gap-2" :
+                                gridSize.cols === 4 ? "grid-cols-4 gap-1 sm:gap-1.5" :
+                                    "grid-cols-3 gap-1.5 sm:gap-2"
+                            }
+                        `}
+                    >
+                        {slots.map((slot, idx) => {
+                            const slotNumber = pageAndSlotToSlotNumber(pageNumber, idx, gridSize.total);
+                            const isDragOver = dragOverSlot === slotNumber;
+                            const muted = pageIsLight ? "text-black/50" : "text-white/55";
+                            const mutedHover = pageIsLight ? "hover:text-black/80" : "hover:text-white/85";
+                            const dashBorder = pageIsLight
+                                ? "border-black/25 hover:border-black/45"
+                                : "border-white/25 hover:border-white/45";
+                            const pocketBg = pageIsLight ? "bg-black/10" : "bg-black/25";
+                            const pocketRing = pageIsLight ? "ring-black/20" : "ring-white/25";
+                            const seamBorder = pageIsLight ? "border-black/20" : "border-white/30";
 
-                        return (
-                            <div
-                                key={idx}
-                                className={`
-                                    aspect-[2.5/3.5]
-                                    rounded-md
-                                    border border-black/10 dark:border-white/10
-                                    bg-black/5 dark:bg-white/5
-                                    overflow-hidden
-                                    relative
-                                    shadow-sm
-                                    ${isDragOver ? "ring-2 ring-[var(--theme-accent)] bg-[var(--theme-accent)]/20" : ""}
-                                `}
-                                title={slot?.title ?? (slot ? "Card" : "Empty slot")}
-                                onDragOver={(e) => {
-                                    if (rearranging) {
+                            return (
+                                <div
+                                    key={idx}
+                                    className={`
+                                        aspect-[2.5/3.5]
+                                        relative overflow-hidden
+                                        ${pocketBg}
+                                        shadow-[inset_0_1px_0_rgba(255,255,255,0.25),inset_0_-2px_6px_rgba(0,0,0,0.25)]
+                                        ring-1 ${pocketRing}
+                                        ${isDragOver ? "ring-2 ring-[var(--theme-accent)] bg-[var(--theme-accent)]/25" : ""}
+                                    `}
+                                    title={slot?.title ?? (slot ? "Card" : "Empty slot")}
+                                    onDragOver={(e) => {
+                                        if (rearranging) {
+                                            e.preventDefault();
+                                            setDragOverSlot(slotNumber);
+                                        }
+                                    }}
+                                    onDragLeave={() => {
+                                        setDragOverSlot(null);
+                                    }}
+                                    onDrop={(e) => {
                                         e.preventDefault();
-                                        setDragOverSlot(slotNumber);
-                                    }
-                                }}
-                                onDragLeave={() => {
-                                    setDragOverSlot(null);
-                                }}
-                                onDrop={(e) => {
-                                    e.preventDefault();
-                                    setDragOverSlot(null);
+                                        setDragOverSlot(null);
 
-                                    if (rearranging && draggedCard) {
-                                        handleMoveCard(draggedCard.id, slotNumber);
-                                        setDraggedCard(null);
-                                    }
-                                }}
-                            >
-                                {/* pocket "lip" */}
-                                <div className="absolute inset-x-0 top-0 h-3 bg-white/25 dark:bg-black/20" />
-
-                                {slot?.imageUrl ? (
+                                        if (rearranging && draggedCard) {
+                                            handleMoveCard(draggedCard.id, slotNumber);
+                                            setDraggedCard(null);
+                                        }
+                                    }}
+                                >
+                                    {/* Pocket weld / seam edges */}
                                     <div
-                                        className={`relative h-full w-full ${!rearranging ? "cursor-pointer" : ""}`}
-                                        onClick={() => {
-                                            if (!rearranging && slot) {
-                                                const cardDetail = cardDetails.get(slot.cardId) ?? { name: slot.title ?? "Unknown Card", image_uris: null };
-                                                open("BINDER_CARD_VIEW", {
-                                                    card: cardDetail,
-                                                    binderCardId: slot.id,
-                                                    cardId: slot.cardId,
-                                                    isInCollection: slot.isInCollection ?? false,
-                                                    onRemove: async () => {
-                                                        await handleDeleteCard(slot.id);
-                                                        const response = await fetch(`/api/binders/${binder?.id}`);
-                                                        if (response.ok) {
-                                                            const data = await response.json();
-                                                            setBinderCards(data.binder?.binderCards || []);
-                                                        }
-                                                    },
-                                                    onAddToCollection: async () => {
-                                                        await handleAddToCollection(slot.cardId);
-                                                    },
-                                                    onRemoveFromCollection: async () => {
-                                                        await handleRemoveFromCollection(slot.cardId);
-                                                    },
-                                                });
-                                            }
+                                        aria-hidden="true"
+                                        className={`pointer-events-none absolute inset-0 border ${seamBorder}`}
+                                        style={{
+                                            boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.15)",
                                         }}
-                                    >
-                                        <img
-                                            src={slot.imageUrl}
-                                            alt={slot.title ?? "Card"}
-                                            className={`h-full w-full object-cover transition-opacity ${rearranging ? "cursor-move" : ""} ${slot.isInCollection === false ? "opacity-60 grayscale" : ""}`}
-                                            draggable={rearranging}
-                                            onDragStart={(e) => {
-                                                if (rearranging && slot && slot.slotNumber !== null && slot.slotNumber !== undefined) {
-                                                    setDraggedCard({
-                                                        id: slot.id,
+                                    />
+
+                                    {/* Side-loading opening (clear slit on outer edge) */}
+                                    <div
+                                        aria-hidden="true"
+                                        className={`
+                                            pointer-events-none absolute top-1 bottom-1 w-[3px] sm:w-1
+                                            bg-gradient-to-b from-white/50 via-white/15 to-white/40
+                                            ${loadFromLeft ? "left-0 rounded-r-sm" : "right-0 rounded-l-sm"}
+                                        `}
+                                        style={{
+                                            boxShadow: loadFromLeft
+                                                ? "2px 0 4px rgba(0,0,0,0.2)"
+                                                : "-2px 0 4px rgba(0,0,0,0.2)",
+                                        }}
+                                    />
+
+                                    {/* Gloss across pocket face */}
+                                    <div
+                                        aria-hidden="true"
+                                        className="pointer-events-none absolute inset-0 opacity-30"
+                                        style={{
+                                            background:
+                                                "linear-gradient(115deg, rgba(255,255,255,0.35) 0%, transparent 38%, transparent 62%, rgba(255,255,255,0.12) 100%)",
+                                        }}
+                                    />
+
+                                    {slot?.imageUrl ? (
+                                        <div
+                                            className={`relative h-full w-full ${!rearranging ? "cursor-pointer" : ""}`}
+                                            onClick={() => {
+                                                if (!rearranging && slot) {
+                                                    const cardDetail = cardDetails.get(slot.cardId) ?? { name: slot.title ?? "Unknown Card", image_uris: null };
+                                                    open("BINDER_CARD_VIEW", {
+                                                        card: cardDetail,
+                                                        binderCardId: slot.id,
                                                         cardId: slot.cardId,
-                                                        slotNumber: slot.slotNumber,
+                                                        isInCollection: slot.isInCollection ?? false,
+                                                        onRemove: async () => {
+                                                            await handleDeleteCard(slot.id);
+                                                            const response = await fetch(`/api/binders/${binder?.id}`);
+                                                            if (response.ok) {
+                                                                const data = await response.json();
+                                                                setBinderCards(data.binder?.binderCards || []);
+                                                            }
+                                                        },
+                                                        onAddToCollection: async () => {
+                                                            await handleAddToCollection(slot.cardId);
+                                                        },
+                                                        onRemoveFromCollection: async () => {
+                                                            await handleRemoveFromCollection(slot.cardId);
+                                                        },
                                                     });
-                                                    e.dataTransfer.effectAllowed = "move";
                                                 }
                                             }}
-                                            onDragEnd={() => {
-                                                setDraggedCard(null);
-                                                setDragOverSlot(null);
-                                            }}
-                                            onClick={(e) => rearranging && e.stopPropagation()}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="h-full w-full flex items-center justify-center">
-                                        <div
-                                            className="
-                                            w-[84%] h-[86%]
-                                            rounded-md
-                                            border border-[var(--theme-border)]
-                                            bg-[var(--theme-sidebar)]/60
-                                            shadow-inner
-                                            flex items-center justify-center
-                                        "
                                         >
-                                            <div className="text-[10px] sm:text-xs opacity-60 px-1.5 sm:px-2 text-center leading-snug">
-                                                {slot ? (
-                                                    "Card"
-                                                ) : (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const slotNumber = pageAndSlotToSlotNumber(pageNumber, idx, gridSize.total);
-                                                            setPendingSlotNumber(slotNumber);
-                                                            setAddToBinderModalOpen(true);
-                                                        }}
-                                                        className="flex flex-col items-center justify-center gap-0.5 sm:gap-1 hover:opacity-90 transition-opacity cursor-pointer text-black/60 dark:text-white/60 border border-black/15 dark:border-white/15 rounded p-1.5 sm:p-2"
-                                                    >
-                                                        <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                        <span className="text-[10px] sm:text-xs">Add Card</span>
-                                                    </button>
-                                                )}
-                                            </div>
+                                            <img
+                                                src={slot.imageUrl}
+                                                alt={slot.title ?? "Card"}
+                                                className={`h-full w-full object-cover transition-opacity ${rearranging ? "cursor-move" : ""} ${slot.isInCollection === false ? "opacity-60 grayscale" : ""}`}
+                                                draggable={rearranging}
+                                                onDragStart={(e) => {
+                                                    if (rearranging && slot && slot.slotNumber !== null && slot.slotNumber !== undefined) {
+                                                        setDraggedCard({
+                                                            id: slot.id,
+                                                            cardId: slot.cardId,
+                                                            slotNumber: slot.slotNumber,
+                                                        });
+                                                        e.dataTransfer.effectAllowed = "move";
+                                                    }
+                                                }}
+                                                onDragEnd={() => {
+                                                    setDraggedCard(null);
+                                                    setDragOverSlot(null);
+                                                }}
+                                                onClick={(e) => rearranging && e.stopPropagation()}
+                                            />
                                         </div>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
+                                    ) : (
+                                        <div className="h-full w-full flex items-center justify-center">
+                                            {slot ? (
+                                                <span className={`text-[10px] opacity-50 ${muted}`}>Card</span>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const slotNumber = pageAndSlotToSlotNumber(pageNumber, idx, gridSize.total);
+                                                        setPendingSlotNumber(slotNumber);
+                                                        setAddToBinderModalOpen(true);
+                                                    }}
+                                                    className={`
+                                                        flex flex-col items-center justify-center gap-0.5
+                                                        ${muted} ${mutedHover}
+                                                        border border-dashed ${dashBorder}
+                                                        rounded-sm px-2 py-2
+                                                        transition-colors cursor-pointer
+                                                    `}
+                                                >
+                                                    <Plus className="w-3.5 h-3.5" />
+                                                    <span className="text-[10px] tracking-wide uppercase">Add</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
 
-                {/* Page number at bottom - subtle, no border or padding */}
-                <div className="text-center mt-0.5">
-                    <span className="text-[9px] sm:text-[10px] opacity-40 text-black/50 dark:text-white/50">
-                        {pageNumber}
-                    </span>
-                </div>
-            </div>
-        </div>
-    );
-
-    // Render the back cover component (same as front but without label plate)
-    const renderBackCover = () => (
-        <div
-            className="
-                relative rounded-2xl
-                border border-black/10 dark:border-white/10
-                shadow-xl
-                overflow-hidden
-                w-full h-full
-                min-h-[500px]
-            "
-            style={{ backgroundColor: coverColor }}
-        >
-            {/* cover shine */}
-            <div
-                aria-hidden="true"
-                className="absolute inset-0 opacity-5"
-                style={{
-                    background:
-                        "linear-gradient(120deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 35%, rgba(0,0,0,0.10) 100%)",
-                }}
-            />
-
-            {/* faux "stitched" edge */}
-            <div
-                aria-hidden="true"
-                className="absolute inset-0 rounded-2xl"
-                style={{
-                    boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.12)",
-                }}
-            />
-        </div>
-    );
-
-    // Render the cover component
-    const renderCover = () => (
-        <div
-            className="
-                relative rounded-2xl
-                border border-black/10 dark:border-white/10
-                shadow-xl
-                overflow-hidden
-                w-full h-full
-                min-h-[500px]
-            "
-            style={{ backgroundColor: coverColor }}
-        >
-            {/* cover shine */}
-            <div
-                aria-hidden="true"
-                className="absolute inset-0 opacity-5"
-                style={{
-                    background:
-                        "linear-gradient(120deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 35%, rgba(0,0,0,0.10) 100%)",
-                }}
-            />
-
-            {/* faux "stitched" edge */}
-            <div
-                aria-hidden="true"
-                className="absolute inset-0 rounded-2xl"
-                style={{
-                    boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.12)",
-                }}
-            />
-
-            {/* label plate */}
-            <div className="absolute left-5 top-5 right-5">
-                <div
-                    className="
-                        rounded-xl
-                        border border-[var(--theme-border)]
-                        bg-[var(--theme-sidebar)]
-                        backdrop-blur
-                        px-4 py-3
-                        text-[var(--theme-fg)]
-                        shadow-md
-                    "
-                >
-                    <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                            <p className="text-xs uppercase tracking-wider opacity-90">
-                                DeckHaven Binder
-                            </p>
-                            <p className="text-lg font-semibold truncate">{binder?.name}</p>
-                            {binder?.description?.trim() ? (
-                                <p className="text-sm opacity-75 line-clamp-2 mt-0.5">{binder.description}</p>
-                            ) : null}
-                        </div>
+                    <div className="absolute bottom-1 inset-x-0 text-center pointer-events-none">
+                        <span className={`text-[9px] tracking-[0.2em] uppercase ${pageIsLight ? "text-black/35" : "text-white/35"}`}>
+                            {pageNumber}
+                        </span>
                     </div>
                 </div>
             </div>
+        );
+    };
+
+    // Zipper tooth strip used on cover outer edges
+    const zipperEdge = (edge: "top" | "right" | "bottom" | "left") => {
+        const isHorizontal = edge === "top" || edge === "bottom";
+        return (
+            <div
+                aria-hidden="true"
+                className={`
+                    pointer-events-none absolute z-20
+                    ${edge === "top" ? "top-0 inset-x-3 h-2" : ""}
+                    ${edge === "bottom" ? "bottom-0 inset-x-3 h-2" : ""}
+                    ${edge === "left" ? "left-0 inset-y-3 w-2" : ""}
+                    ${edge === "right" ? "right-0 inset-y-3 w-2" : ""}
+                `}
+                style={{
+                    backgroundImage: isHorizontal
+                        ? "repeating-linear-gradient(90deg, #2a2a2a 0 4px, #6b6b6b 4px 5px, #1a1a1a 5px 9px, #8a8a8a 9px 10px)"
+                        : "repeating-linear-gradient(180deg, #2a2a2a 0 4px, #6b6b6b 4px 5px, #1a1a1a 5px 9px, #8a8a8a 9px 10px)",
+                    opacity: 0.85,
+                    boxShadow: "0 0 0 1px rgba(0,0,0,0.35)",
+                }}
+            />
+        );
+    };
+
+    const renderBackCover = () => (
+        <div
+            className="
+                relative rounded-sm
+                overflow-hidden
+                w-full h-full
+                min-h-[500px]
+                shadow-[0_12px_28px_rgba(0,0,0,0.45)]
+            "
+            style={paddedMaterialStyle(coverColor)}
+        >
+            {/* Soft padding bevel */}
+            <div
+                aria-hidden="true"
+                className="absolute inset-[6px] rounded-sm pointer-events-none"
+                style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.12), inset 0 0 24px rgba(0,0,0,0.25)" }}
+            />
+            {zipperEdge("top")}
+            {zipperEdge("right")}
+            {zipperEdge("bottom")}
         </div>
     );
+
+    const renderCover = () => {
+        const light = isLightHex(coverColor);
+        const plateFg = light ? "rgba(20,20,20,0.92)" : "rgba(245,245,245,0.95)";
+        const plateMuted = light ? "rgba(20,20,20,0.55)" : "rgba(245,245,245,0.55)";
+        const plateBorder = light ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.22)";
+        const plateBg = light ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.28)";
+
+        return (
+            <div
+                className="
+                    relative rounded-sm
+                    overflow-hidden
+                    w-full h-full
+                    min-h-[500px]
+                    shadow-[0_12px_28px_rgba(0,0,0,0.45)]
+                "
+                style={paddedMaterialStyle(coverColor)}
+            >
+                <div
+                    aria-hidden="true"
+                    className="absolute inset-[6px] rounded-sm pointer-events-none"
+                    style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.12), inset 0 0 24px rgba(0,0,0,0.25)" }}
+                />
+                {zipperEdge("top")}
+                {zipperEdge("left")}
+                {zipperEdge("bottom")}
+
+                {/* Embossed nameplate (printed Exo-Tec style, not a UI card) */}
+                <div className="absolute left-6 top-7 right-6 sm:left-8 sm:top-9 sm:right-8">
+                    <div
+                        className="rounded-sm px-4 py-3.5 sm:px-5 sm:py-4"
+                        style={{
+                            color: plateFg,
+                            background: plateBg,
+                            border: `1px solid ${plateBorder}`,
+                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.2)",
+                            backdropFilter: "blur(2px)",
+                        }}
+                    >
+                        <p
+                            className="text-[10px] sm:text-xs uppercase tracking-[0.28em] mb-1"
+                            style={{ color: plateMuted }}
+                        >
+                            DeckHaven
+                        </p>
+                        <p className="text-xl sm:text-2xl font-semibold tracking-tight truncate leading-tight">
+                            {binder?.name}
+                        </p>
+                        {binder?.description?.trim() ? (
+                            <p className="text-sm mt-1.5 line-clamp-2 leading-snug" style={{ color: plateMuted }}>
+                                {binder.description}
+                            </p>
+                        ) : null}
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
 
     if (!binder) {
@@ -870,26 +925,29 @@ export default function BinderPage() {
                     </div>
                 </div>
 
-                {/* Binder Scene */}
+                {/* Binder Scene — felt table + zippered binder shell */}
                 <div className="p-4 sm:p-6">
-                    {/* "Table" surface */}
                     <div
                         className="
                                 relative
-                                rounded-2xl
-                                border border-black/10 dark:border-white/10
-                                bg-[var(--theme-sidebar)]
-                                p-4 sm:p-6
+                                rounded-lg
+                                border border-black/40
+                                p-5 sm:p-8
                                 overflow-visible
                             "
+                        style={{
+                            background:
+                                "radial-gradient(ellipse at center, #3a4540 0%, #1c2420 70%, #121816 100%)",
+                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 20px 50px rgba(0,0,0,0.45)",
+                        }}
                     >
-                        {/* subtle diagonal texture */}
+                        {/* felt nap */}
                         <div
                             aria-hidden="true"
-                            className="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.10]"
+                            className="pointer-events-none absolute inset-0 opacity-[0.14] rounded-lg"
                             style={{
                                 backgroundImage:
-                                    "repeating-linear-gradient(135deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 12px)",
+                                    "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")",
                             }}
                         />
 
@@ -902,7 +960,7 @@ export default function BinderPage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_70px_1fr] items-stretch" style={{ perspective: "2000px" }}>
+                            <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_56px_1fr] items-stretch gap-0" style={{ perspective: "2000px" }}>
                                 {/* Previous Button - Positioned vertically in the middle on the left */}
                                 {!loadingCards && currentPage > 1 && (
                                     <button
@@ -973,38 +1031,53 @@ export default function BinderPage() {
                                                     ${isFlipping && flipDirection === "backward" ? "opacity-0" : "opacity-100"}
                                                 `}
                                         >
-                                            {renderPage(leftPageSlots, getLeftPageNumber(targetPage ?? currentPage) ?? 0)}
+                                            {renderPage(leftPageSlots, getLeftPageNumber(targetPage ?? currentPage) ?? 0, "left")}
                                         </div>
                                     ) : (
                                         <div className="relative w-full h-full">
-                                            {renderPage(getPageSlots(getLeftPageNumber(targetPage ?? currentPage) ?? 1), getLeftPageNumber(targetPage ?? currentPage) ?? 1)}
+                                            {renderPage(getPageSlots(getLeftPageNumber(targetPage ?? currentPage) ?? 1), getLeftPageNumber(targetPage ?? currentPage) ?? 1, "left")}
                                         </div>
                                     )}
                                 </div>
 
-                                {/* RINGS / SPINE */}
-                                <div className="relative flex items-center justify-center z-10">
+                                {/* PADDED ZIP SPINE */}
+                                <div className="relative flex items-center justify-center z-10 px-0.5">
                                     <div
                                         className="
-                                                relative h-full w-full
-                                                rounded-2xl
-                                                border border-black/10 dark:border-white/10
+                                                relative h-full w-full min-w-[52px]
+                                                rounded-sm
                                                 overflow-hidden
+                                                shadow-[0_8px_20px_rgba(0,0,0,0.4)]
                                             "
-                                        style={{ backgroundColor: spineColor }}
+                                        style={paddedMaterialStyle(spineColor)}
                                     >
-                                        {/* spine highlight */}
+                                        {/* Quilting / stitch channels */}
                                         <div
                                             aria-hidden="true"
-                                            className="absolute inset-0 opacity-40"
+                                            className="absolute inset-y-4 left-1/2 -translate-x-1/2 w-[2px]"
                                             style={{
                                                 background:
-                                                    "linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.06), rgba(0,0,0,0.10))",
+                                                    "repeating-linear-gradient(180deg, rgba(255,255,255,0.35) 0 3px, transparent 3px 8px)",
+                                                opacity: 0.5,
                                             }}
                                         />
-
-                                        {/* inner "hinge" line */}
-                                        <div className="absolute inset-y-0 left-1/2 w-px bg-black/15 dark:bg-white/15" />
+                                        <div
+                                            aria-hidden="true"
+                                            className="absolute inset-y-3 left-[30%] w-px bg-black/25"
+                                        />
+                                        <div
+                                            aria-hidden="true"
+                                            className="absolute inset-y-3 right-[30%] w-px bg-black/25"
+                                        />
+                                        {/* Zipper pull suggestion at top of spine */}
+                                        <div
+                                            aria-hidden="true"
+                                            className="absolute top-3 left-1/2 -translate-x-1/2 w-4 h-5 rounded-[2px]"
+                                            style={{
+                                                background: "linear-gradient(180deg, #c0c0c0, #6a6a6a)",
+                                                boxShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                                            }}
+                                        />
                                     </div>
                                 </div>
 
@@ -1034,7 +1107,8 @@ export default function BinderPage() {
                                                 ) : (
                                                     renderPage(
                                                         rightPageSlots || Array.from({ length: gridSize.total }, () => null),
-                                                        getRightPageNumber(targetPage) ?? 0
+                                                        getRightPageNumber(targetPage) ?? 0,
+                                                        "right"
                                                     )
                                                 )}
                                             </div>
@@ -1061,9 +1135,9 @@ export default function BinderPage() {
                                             // Show back cover when rightPageSlots is null
                                             renderBackCover()
                                         ) : rightPageSlots ? (
-                                            renderPage(rightPageSlots, getRightPageNumber(targetPage ?? currentPage) ?? 0)
+                                            renderPage(rightPageSlots, getRightPageNumber(targetPage ?? currentPage) ?? 0, "right")
                                         ) : (
-                                            renderPage(getPageSlots(getRightPageNumber(targetPage ?? currentPage) ?? 0), getRightPageNumber(targetPage ?? currentPage) ?? 0)
+                                            renderPage(getPageSlots(getRightPageNumber(targetPage ?? currentPage) ?? 0), getRightPageNumber(targetPage ?? currentPage) ?? 0, "right")
                                         )}
                                     </div>
                                 </div>

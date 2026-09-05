@@ -1,8 +1,9 @@
 /**
  * Binders Page
- * 
- * Displays the user's binders in a grid format. Allows for creating, editing, and deleting binders.
- * 
+ *
+ * Displays the user's binders as closed Vault X–style zip binders.
+ * Allows creating and opening binders.
+ *
  * @page
  * @route /collection/binders
  */
@@ -16,15 +17,16 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGameFilter } from "@/app/components/GameFilterContext";
 import { useDrawer } from "@/app/components/Drawer/drawerProvider";
+import { isLightHex, paddedMaterialStyle } from "@/app/lib/binderMaterial";
 
 type Binder = {
     id: string;
     name: string;
     description: string | null;
-    color: string | null; // Cover color (hex)
-    spineColor: string | null; // Spine color (hex)
-    pageColor: string | null; // Page background color (hex)
-    game: string | null; // "all" (favorites), "mtg", "pokemon", "yugioh" - null means favorites/all games
+    color: string | null;
+    spineColor: string | null;
+    pageColor: string | null;
+    game: string | null;
     createdAt: string;
     updatedAt: string;
     _count: {
@@ -35,17 +37,173 @@ type Binder = {
     }>;
 };
 
+function ZipperEdge({ edge }: { edge: "top" | "right" | "bottom" | "left" }) {
+    const isHorizontal = edge === "top" || edge === "bottom";
+    return (
+        <div
+            aria-hidden="true"
+            className={`
+                pointer-events-none absolute z-20
+                ${edge === "top" ? "top-0 inset-x-2 h-1.5" : ""}
+                ${edge === "bottom" ? "bottom-0 inset-x-2 h-1.5" : ""}
+                ${edge === "left" ? "left-0 inset-y-2 w-1.5" : ""}
+                ${edge === "right" ? "right-0 inset-y-2 w-1.5" : ""}
+            `}
+            style={{
+                backgroundImage: isHorizontal
+                    ? "repeating-linear-gradient(90deg, #2a2a2a 0 3px, #6b6b6b 3px 4px, #1a1a1a 4px 7px, #8a8a8a 7px 8px)"
+                    : "repeating-linear-gradient(180deg, #2a2a2a 0 3px, #6b6b6b 3px 4px, #1a1a1a 4px 7px, #8a8a8a 7px 8px)",
+                opacity: 0.85,
+                boxShadow: "0 0 0 1px rgba(0,0,0,0.35)",
+            }}
+        />
+    );
+}
+
+function BinderCoverCard({ binder }: { binder: Binder }) {
+    const coverColor = binder.color || "#1a1a1a";
+    const spineColor = binder.spineColor || "#111111";
+    const light = isLightHex(coverColor);
+    const plateFg = light ? "rgba(20,20,20,0.92)" : "rgba(245,245,245,0.95)";
+    const plateMuted = light ? "rgba(20,20,20,0.55)" : "rgba(245,245,245,0.55)";
+    const plateBorder = light ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.22)";
+    const plateBg = light ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.28)";
+    const cardCount = binder._count.binderCards;
+
+    return (
+        <div className="relative pb-3">
+            {/* Soft oval cast onto the felt — sits under the binder */}
+            <div
+                aria-hidden="true"
+                className="
+                    pointer-events-none absolute left-[6%] right-[4%] bottom-0 h-5
+                    rounded-[100%]
+                    bg-black/55 blur-md
+                    transition-all duration-200
+                    group-hover:left-[4%] group-hover:right-[2%] group-hover:bottom-[-2px]
+                    group-hover:h-6 group-hover:bg-black/40 group-hover:blur-lg
+                "
+            />
+            {/* Tight contact line where the binder meets the mat */}
+            <div
+                aria-hidden="true"
+                className="
+                    pointer-events-none absolute left-[10%] right-[8%] bottom-1.5 h-1.5
+                    rounded-[100%]
+                    bg-black/50 blur-[2px]
+                    transition-opacity duration-200
+                    group-hover:opacity-40
+                "
+            />
+
+            <div
+                className="
+                    relative overflow-hidden rounded-sm
+                    aspect-[3/4]
+                    transition-transform duration-200
+                    group-hover:-translate-y-2
+                "
+                style={{
+                    ...paddedMaterialStyle(coverColor),
+                    boxShadow: [
+                        "0 1px 1px rgba(0,0,0,0.35)",
+                        "0 4px 8px rgba(0,0,0,0.28)",
+                        "0 12px 24px rgba(0,0,0,0.32)",
+                        "0 22px 40px rgba(0,0,0,0.22)",
+                    ].join(", "),
+                }}
+            >
+                {/* Soft padding bevel */}
+                <div
+                    aria-hidden="true"
+                    className="absolute inset-[5px] rounded-sm pointer-events-none"
+                    style={{
+                        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.12), inset 0 0 20px rgba(0,0,0,0.25)",
+                    }}
+                />
+
+                {/* Closed binder: zipper on three outer edges */}
+                <ZipperEdge edge="top" />
+                <ZipperEdge edge="right" />
+                <ZipperEdge edge="bottom" />
+
+                {/* Padded spine strip */}
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-y-0 left-0 w-7 sm:w-8"
+                    style={paddedMaterialStyle(spineColor)}
+                >
+                    <div
+                        className="absolute inset-y-4 left-1/2 -translate-x-1/2 w-[2px]"
+                        style={{
+                            background:
+                                "repeating-linear-gradient(180deg, rgba(255,255,255,0.35) 0 3px, transparent 3px 8px)",
+                            opacity: 0.5,
+                        }}
+                    />
+                    <div
+                        className="absolute top-2.5 left-1/2 -translate-x-1/2 w-3 h-3.5 rounded-[2px]"
+                        style={{
+                            background: "linear-gradient(180deg, #c0c0c0, #6a6a6a)",
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                        }}
+                    />
+                </div>
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-y-0 left-7 sm:left-8 w-px bg-black/30"
+                />
+
+                {/* Embossed nameplate */}
+                <div className="relative h-full flex flex-col items-center justify-center px-5 pl-11 sm:pl-12 text-center">
+                    <div
+                        className="w-full max-w-[92%] rounded-sm px-3.5 py-3"
+                        style={{
+                            color: plateFg,
+                            background: plateBg,
+                            border: `1px solid ${plateBorder}`,
+                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.2)",
+                            backdropFilter: "blur(2px)",
+                        }}
+                    >
+                        <p
+                            className="text-[9px] sm:text-[10px] uppercase tracking-[0.28em] mb-1"
+                            style={{ color: plateMuted }}
+                        >
+                            DeckHaven
+                        </p>
+                        <h3 className="text-base sm:text-lg font-semibold leading-snug line-clamp-2 tracking-tight">
+                            {binder.name}
+                        </h3>
+                        {binder.description ? (
+                            <p className="mt-1.5 text-xs line-clamp-2 leading-snug" style={{ color: plateMuted }}>
+                                {binder.description}
+                            </p>
+                        ) : null}
+                    </div>
+
+                    <div
+                        className="mt-4 text-[10px] uppercase tracking-[0.18em]"
+                        style={{ color: plateMuted }}
+                    >
+                        {cardCount} {cardCount === 1 ? "card" : "cards"}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function BindersPage() {
     const user = useUser();
     const { game } = useGameFilter();
     const { open } = useDrawer();
     const [binders, setBinders] = useState<Binder[]>([]);
-    const [allBinders, setAllBinders] = useState<Binder[]>([]); // Store all binders for filtering
+    const [allBinders, setAllBinders] = useState<Binder[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    // Fetch binders
     useEffect(() => {
         if (!user) return;
 
@@ -54,7 +212,6 @@ export default function BindersPage() {
                 setLoading(true);
                 setError(null);
 
-                // Build query string with game filter
                 const gameParam = game === "all" ? "" : `?game=${game}`;
                 const response = await fetch(`/api/binders${gameParam}`);
                 if (!response.ok) throw new Error("Failed to fetch binders");
@@ -71,23 +228,19 @@ export default function BindersPage() {
         fetchBinders();
     }, [user, game]);
 
-    // Filter binders by game
     useEffect(() => {
         if (allBinders.length === 0) {
             setBinders([]);
             return;
         }
 
-        // Filter binders based on their game field
         const filteredBinders = allBinders.filter((binder) => {
-            const binderGame = binder.game || "all"; // null means "all" (favorites)
+            const binderGame = binder.game || "all";
 
             if (game === "all") {
-                // Show all binders when "all" is selected
                 return true;
             }
 
-            // Show binders that match the selected game OR are favorites (null/"all")
             return binderGame === game || binderGame === "all";
         });
 
@@ -96,15 +249,13 @@ export default function BindersPage() {
 
     const handleBinderCreated = async () => {
         try {
-            // Build query string with game filter
             const gameParam = game === "all" ? "" : `?game=${game}`;
             const response = await fetch(`/api/binders${gameParam}`);
             if (!response.ok) throw new Error("Failed to refresh binders");
 
             const data = await response.json();
             setAllBinders(data.binders || []);
-
-        } catch (err) {
+        } catch {
             // Failed to refresh binders
         }
     };
@@ -185,94 +336,41 @@ export default function BindersPage() {
                 </div>
             </section>
 
-            {/* Binders Grid */}
             {binders.length > 0 ? (
-                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10">
-                    {binders.map((binder) => {
-                        // Use hex colors from database, with fallbacks
-                        const coverColor = binder.color || "#ffffff";
-                        const spineColor = binder.spineColor || "#1f2937";
-                        
-                        // Determine text color based on brightness of cover color
-                        // Convert hex to RGB and calculate brightness
-                        const hex = coverColor.replace("#", "");
-                        const r = parseInt(hex.substring(0, 2), 16);
-                        const g = parseInt(hex.substring(2, 4), 16);
-                        const b = parseInt(hex.substring(4, 6), 16);
-                        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-                        const coverTextClass = brightness > 128 ? "text-neutral-900" : "text-white";
+                <section
+                    className="
+                        relative inline-block max-w-full rounded-lg p-5 sm:p-7
+                        border border-black/40
+                    "
+                    style={{
+                        background:
+                            "radial-gradient(ellipse at center, #3a4540 0%, #1c2420 70%, #121816 100%)",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 20px 50px rgba(0,0,0,0.35)",
+                    }}
+                >
+                    <div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 opacity-[0.14] rounded-lg"
+                        style={{
+                            backgroundImage:
+                                "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")",
+                        }}
+                    />
 
-                        return (
+                    <div className="relative flex flex-wrap gap-5 sm:gap-6">
+                        {binders.map((binder) => (
                             <button
                                 key={binder.id}
                                 type="button"
-                                className="
-        group relative text-left w-full
-        rounded-xl
-        focus:outline-none
-        border-0
-        outline-none
-      "
+                                className="group relative text-left w-[min(100%,220px)] sm:w-[240px] rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-accent)]"
                                 onClick={() => {
                                     router.push(`/collection/binders/${binder.id}`);
                                 }}
                             >
-                                {/* “Binder cover” */}
-                                <div
-                                    className="
-          relative overflow-hidden rounded-xl
-          shadow-lg
-          transition-transform duration-200
-          group-hover:-translate-y-6
-          aspect-[3/4]
-          border-0
-        "
-                                    style={{ backgroundColor: coverColor }}
-                                >
-                                    {/* subtle leather/plastic sheen */}
-                                    <div className="pointer-events-none absolute inset-0 opacity-25 bg-gradient-to-br from-white/40 via-transparent to-black/30" />
-
-                                    {/* spine (left strip) - subtle binding edge */}
-                                    <div 
-                                        className="pointer-events-none absolute inset-y-0 left-0 w-6" 
-                                        style={{ backgroundColor: spineColor, opacity: 0.85 }}
-                                    />
-                                    <div className="pointer-events-none absolute inset-y-0 left-6 w-px bg-white/10" />
-
-                                    {/* Centered content on cover */}
-                                    <div className="relative h-full flex flex-col items-center justify-center px-6 pl-10 text-center">
-                                        <div
-                                            className={`
-                                            w-full max-w-[90%]
-                                            rounded-md border border-black/30 dark:border-white/30 bg-[var(--theme-fg)]/20 backdrop-blur-[1px]
-                                            px-4 py-3
-                                            ${coverTextClass}
-                                            `}
-                                        >
-                                            <h3 className="text-base font-semibold leading-snug line-clamp-2">
-                                                {binder.name}
-                                            </h3>
-
-                                            {binder.description ? (
-                                                <p className={`mt-2 text-xs opacity-85 line-clamp-2 ${coverTextClass}`}>
-                                                    {binder.description}
-                                                </p>
-                                            ) : null}
-                                        </div>
-
-                                        {/* bottom info like a small stamp */}
-                                        <div className={`mt-5 text-xs opacity-90 ${coverTextClass}`}>
-                                            {binder._count.binderCards}{" "}
-                                            {binder._count.binderCards === 1 ? "card" : "cards"}
-                                        </div>
-                                    </div>
-
-                                    {/* table-cast shadow edge */}
-                                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 opacity-30 bg-gradient-to-t from-black/40 to-transparent" />
-                                </div>
+                                <BinderCoverCard binder={binder} />
                             </button>
-                        );
-                    })}
+                        ))}
+                    </div>
                 </section>
             ) : (
                 <section

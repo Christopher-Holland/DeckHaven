@@ -93,45 +93,43 @@ export function BinderCardDrawer() {
                 )}
             </div>
 
-            {/* Action buttons */}
+            {/* Action buttons — remove from binder is always available (cards need not be owned) */}
             <div className="mt-auto pt-4 space-y-2">
+                <button
+                    type="button"
+                    onClick={handleRemove}
+                    disabled={loading}
+                    className="
+                        w-full px-4 py-3 rounded-md text-sm font-medium
+                        bg-red-500/10 dark:bg-red-500/20
+                        hover:bg-red-500/20 dark:hover:bg-red-500/30
+                        border border-red-500/30 dark:border-red-500/40
+                        text-red-600 dark:text-red-400
+                        transition-colors
+                        focus:outline-none focus:ring-2 focus:ring-red-500/50
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                    "
+                >
+                    {loading ? "Removing..." : "Remove from Binder"}
+                </button>
                 {isInCollection ? (
-                    <>
-                        <button
-                            type="button"
-                            onClick={handleRemove}
-                            disabled={loading}
-                            className="
-                                w-full px-4 py-3 rounded-md text-sm font-medium
-                                bg-red-500/10 dark:bg-red-500/20
-                                hover:bg-red-500/20 dark:hover:bg-red-500/30
-                                border border-red-500/30 dark:border-red-500/40
-                                text-red-600 dark:text-red-400
-                                transition-colors
-                                focus:outline-none focus:ring-2 focus:ring-red-500/50
-                                disabled:opacity-50 disabled:cursor-not-allowed
-                            "
-                        >
-                            {loading ? "Removing..." : "Remove from Binder"}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleRemoveFromCollection}
-                            disabled={loading}
-                            className="
-                                w-full px-4 py-3 rounded-md text-sm font-medium
-                                bg-[var(--theme-sidebar)]
-                                border border-[var(--theme-border)]
-                                text-[var(--theme-fg)]
-                                hover:opacity-90
-                                transition-colors
-                                focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
-                                disabled:opacity-50 disabled:cursor-not-allowed
-                            "
-                        >
-                            {loading ? "Removing..." : "Remove from Collection"}
-                        </button>
-                    </>
+                    <button
+                        type="button"
+                        onClick={handleRemoveFromCollection}
+                        disabled={loading}
+                        className="
+                            w-full px-4 py-3 rounded-md text-sm font-medium
+                            bg-[var(--theme-sidebar)]
+                            border border-[var(--theme-border)]
+                            text-[var(--theme-fg)]
+                            hover:opacity-90
+                            transition-colors
+                            focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                        "
+                    >
+                        {loading ? "Removing..." : "Remove from Collection"}
+                    </button>
                 ) : (
                     <button
                         type="button"
