@@ -86,7 +86,7 @@ export function DeckCardDrawer() {
                     <img
                         src={imageUrl}
                         alt={cardName}
-                        className="max-w-full max-h-[400px] object-contain rounded-lg"
+                        className="max-w-full max-h-[40vh] sm:max-h-[400px] object-contain rounded-lg"
                     />
                 ) : (
                     <div className="w-48 h-64 rounded-lg bg-[var(--theme-sidebar)] flex items-center justify-center">

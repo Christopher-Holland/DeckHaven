@@ -478,7 +478,7 @@ export default function DeckPage() {
                             >
                                 Edit
                             </button>
-                            <div className="flex items-center gap-2">
+                            <div className="hidden md:flex items-center gap-2">
                                 <button
                                     type="button"
                                     disabled
@@ -536,7 +536,7 @@ export default function DeckPage() {
                     </div>
                     <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-sidebar)] p-6">
                         {currentCommander && currentCommander.scryfallCard ? (
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
                                 <div className="flex-shrink-0">
                                     {(() => {
                                         const cardImage =
@@ -549,12 +549,12 @@ export default function DeckPage() {
                                             <img
                                                 src={cardImage}
                                                 alt={currentCommander.scryfallCard.name}
-                                                className="w-32 h-auto rounded-md"
+                                                className="w-28 sm:w-32 h-auto rounded-md"
                                             />
                                         );
                                     })()}
                                 </div>
-                                <div className="flex-1 min-w-0">
+                                <div className="flex-1 min-w-0 text-center sm:text-left">
                                     <h4 className="text-lg font-semibold truncate">
                                         {currentCommander.scryfallCard.name}
                                     </h4>

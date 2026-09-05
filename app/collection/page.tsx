@@ -681,7 +681,8 @@ export default function CollectionPage() {
           bg-[var(--theme-sidebar)]
         "
             >
-                <div className="grid grid-cols-12 gap-2 px-4 py-3 text-xs font-semibold opacity-80 border-b border-black/10 dark:border-white/10">
+                {/* Desktop column headers */}
+                <div className="hidden md:grid grid-cols-12 gap-2 px-4 py-3 text-xs font-semibold opacity-80 border-b border-black/10 dark:border-white/10">
                     <div className="col-span-5">Card</div>
                     <div className="col-span-2">Set</div>
                     <div className="col-span-1 text-center">Qty</div>
@@ -707,82 +708,114 @@ export default function CollectionPage() {
                             tags.push(...customTags);
                         }
 
-                        return (
+                        const quantityControls = (
                             <div
-                                key={item.id}
-                                onClick={() => {
-                                    setEditCardListModalOpen(true);
-                                    setEditCardList(item);
-                                }}
-                                className="grid grid-cols-12 gap-2 px-4 py-3 text-sm border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                                className="flex items-center gap-1 border border-[var(--theme-border)] rounded-md bg-[var(--theme-sidebar)]"
+                                onClick={(e) => e.stopPropagation()}
                             >
-                                <div className="col-span-5 flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleQuantityUpdate(item, item.quantity - 1);
+                                    }}
+                                    disabled={updatingQuantities.has(item.id) || item.quantity <= 0}
+                                    className="
+                                                p-1.5 sm:p-1 rounded-l-md
+                                                hover:bg-black/10 dark:hover:bg-white/10
+                                                disabled:opacity-50 disabled:cursor-not-allowed
+                                                transition-colors
+                                                focus:outline-none
+                                            "
+                                    aria-label="Decrease quantity"
+                                >
+                                    <Minus className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+                                </button>
+                                <span className="px-2 text-xs font-semibold min-w-[2ch] text-center">
+                                    {updatingQuantities.has(item.id) ? "..." : item.quantity}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleQuantityUpdate(item, item.quantity + 1);
+                                    }}
+                                    disabled={updatingQuantities.has(item.id)}
+                                    className="
+                                                p-1.5 sm:p-1 rounded-r-md
+                                                hover:bg-black/10 dark:hover:bg-white/10
+                                                disabled:opacity-50 disabled:cursor-not-allowed
+                                                transition-colors
+                                                focus:outline-none
+                                            "
+                                    aria-label="Increase quantity"
+                                >
+                                    <Plus className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+                                </button>
+                            </div>
+                        );
+
+                        return (
+                            <div key={item.id}>
+                                {/* Mobile card row */}
+                                <div
+                                    onClick={() => {
+                                        setEditCardListModalOpen(true);
+                                        setEditCardList(item);
+                                    }}
+                                    className="md:hidden flex items-center gap-3 px-3 py-3 border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                                >
                                     {cardImage ? (
                                         <img
                                             src={cardImage}
                                             alt={cardName}
-                                            className="w-10 h-10 rounded object-cover"
+                                            className="w-12 h-12 rounded object-cover shrink-0"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded bg-black/10 dark:bg-white/10" />
+                                        <div className="w-12 h-12 rounded bg-black/10 dark:bg-white/10 shrink-0" />
                                     )}
-                                    <div>
-                                        <p className="font-medium leading-tight">{cardName}</p>
-                                        <p className="text-xs opacity-70">
-                                            {/* Determine game from card source - all Scryfall cards are MTG */}
-                                            MTG
-                                        </p>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-medium leading-tight truncate">{cardName}</p>
+                                        <p className="text-xs opacity-70 truncate mt-0.5">{setName}</p>
+                                        {tags.length > 0 ? (
+                                            <p className="text-[11px] opacity-60 truncate mt-0.5">{tags.join(" • ")}</p>
+                                        ) : null}
                                     </div>
+                                    {quantityControls}
                                 </div>
-                                <div className="col-span-2 text-xs opacity-80">{setName}</div>
-                                <div className="col-span-1 text-center font-semibold">{item.quantity}</div>
-                                <div className="col-span-2 text-xs opacity-80">
-                                    {tags.length > 0 ? tags.join(" • ") : "—"}
-                                </div>
+
+                                {/* Desktop table row */}
                                 <div
-                                    className="col-span-2 flex justify-end items-center gap-2"
-                                    onClick={(e) => e.stopPropagation()}
+                                    onClick={() => {
+                                        setEditCardListModalOpen(true);
+                                        setEditCardList(item);
+                                    }}
+                                    className="hidden md:grid grid-cols-12 gap-2 px-4 py-3 text-sm border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                                 >
-                                    <div className="flex items-center gap-1 border border-[var(--theme-border)] rounded-md bg-[var(--theme-sidebar)]">
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleQuantityUpdate(item, item.quantity - 1);
-                                            }}
-                                            disabled={updatingQuantities.has(item.id) || item.quantity <= 0}
-                                            className="
-                                                p-1 rounded-l-md
-                                                hover:bg-black/10 dark:hover:bg-white/10
-                                                disabled:opacity-50 disabled:cursor-not-allowed
-                                                transition-colors
-                                                focus:outline-none
-                                            "
-                                            aria-label="Decrease quantity"
-                                        >
-                                            <Minus className="w-3 h-3" />
-                                        </button>
-                                        <span className="px-2 text-xs font-semibold min-w-[2ch] text-center">
-                                            {updatingQuantities.has(item.id) ? "..." : item.quantity}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleQuantityUpdate(item, item.quantity + 1);
-                                            }}
-                                            disabled={updatingQuantities.has(item.id)}
-                                            className="
-                                                p-1 rounded-r-md
-                                                hover:bg-black/10 dark:hover:bg-white/10
-                                                disabled:opacity-50 disabled:cursor-not-allowed
-                                                transition-colors
-                                                focus:outline-none
-                                            "
-                                            aria-label="Increase quantity"
-                                        >
-                                            <Plus className="w-3 h-3" />
-                                        </button>
+                                    <div className="col-span-5 flex items-center gap-3 min-w-0">
+                                        {cardImage ? (
+                                            <img
+                                                src={cardImage}
+                                                alt={cardName}
+                                                className="w-10 h-10 rounded object-cover shrink-0"
+                                            />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded bg-black/10 dark:bg-white/10 shrink-0" />
+                                        )}
+                                        <div className="min-w-0">
+                                            <p className="font-medium leading-tight truncate">{cardName}</p>
+                                            <p className="text-xs opacity-70">
+                                                MTG
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="col-span-2 text-xs opacity-80 truncate self-center">{setName}</div>
+                                    <div className="col-span-1 text-center font-semibold self-center">{item.quantity}</div>
+                                    <div className="col-span-2 text-xs opacity-80 truncate self-center">
+                                        {tags.length > 0 ? tags.join(" • ") : "—"}
+                                    </div>
+                                    <div className="col-span-2 flex justify-end items-center gap-2">
+                                        {quantityControls}
                                     </div>
                                 </div>
                             </div>
@@ -800,12 +833,12 @@ export default function CollectionPage() {
 
             {/* Pagination */}
             {collectionData && displayTotalPages > 1 && (
-                <section className="mt-6 flex items-center justify-between">
-                    <p className="text-sm opacity-70">
+                <section className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm opacity-70 text-center sm:text-left">
                         Showing {paginatedDisplayItems.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
                         {Math.min(currentPage * itemsPerPage, displayTotal)} of {displayTotal} cards
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
                         <button
                             type="button"
                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -823,7 +856,7 @@ export default function CollectionPage() {
                         "
                         >
                             <ChevronLeft className="w-4 h-4" />
-                            Previous
+                            <span className="hidden xs:inline sm:inline">Previous</span>
                         </button>
 
                         <div className="flex items-center gap-1">
@@ -878,7 +911,7 @@ export default function CollectionPage() {
                             flex items-center gap-1
                         "
                         >
-                            Next
+                            <span className="hidden sm:inline">Next</span>
                             <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>

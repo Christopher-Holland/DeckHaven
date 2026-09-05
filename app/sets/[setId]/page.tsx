@@ -563,7 +563,8 @@ export default function SetDetailPage({ params }: PageProps) {
                                                     transition-colors hover:opacity-95
                                                 "
                                             >
-                                                Add to Collection ({selectedCardIds.size})
+                                                <span className="sm:hidden">Collection ({selectedCardIds.size})</span>
+                                                <span className="hidden sm:inline">Add to Collection ({selectedCardIds.size})</span>
                                             </button>
 
                                             <button
@@ -575,7 +576,8 @@ export default function SetDetailPage({ params }: PageProps) {
                                                     transition-colors hover:opacity-95
                                                 "
                                             >
-                                                Add to Binder ({selectedCardIds.size})
+                                                <span className="sm:hidden">Binder ({selectedCardIds.size})</span>
+                                                <span className="hidden sm:inline">Add to Binder ({selectedCardIds.size})</span>
                                             </button>
 
                                             <button
@@ -587,7 +589,8 @@ export default function SetDetailPage({ params }: PageProps) {
                                                     transition-colors hover:opacity-95
                                                 "
                                             >
-                                                Add to Deck ({selectedCardIds.size})
+                                                <span className="sm:hidden">Deck ({selectedCardIds.size})</span>
+                                                <span className="hidden sm:inline">Add to Deck ({selectedCardIds.size})</span>
                                             </button>
                                         </>
                                     )}
@@ -617,8 +620,7 @@ export default function SetDetailPage({ params }: PageProps) {
             {/* Virtualized Cards Grid — viewport starts at header bottom border */}
             <section
                 ref={scrollContainerRef}
-                className="overflow-auto mt-4"
-                style={{ height: "calc(100vh - 12.5rem)" }}
+                className="overflow-auto mt-4 h-[calc(100dvh-14rem)] lg:h-[calc(100vh-12.5rem)] pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0"
             >
                 <div
                     style={{
@@ -822,7 +824,7 @@ export default function SetDetailPage({ params }: PageProps) {
 
                         {/* Action Buttons */}
                         <div className="w-full pt-4">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                                 <div className="flex items-center justify-center w-full">
                                     {selectedCard && (
                                         <AddToCollectionControl

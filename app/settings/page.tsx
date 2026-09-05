@@ -894,8 +894,8 @@ export default function SettingsPage() {
                 <p className="text-sm opacity-70 mt-1">
                     Manage your account, appearance, and DeckHaven preferences.
                 </p>
-                <h3 className="text-3xl font-semibold opacity-70 mt-1 text-center">
-                    <span className="text-red-500">SOME FEATURES MAY BE UNAVAILABLE AT THIS TIME.</span>
+                <h3 className="text-sm sm:text-base font-semibold opacity-80 mt-3 text-center leading-snug px-2">
+                    <span className="text-red-500">Some features may be unavailable at this time.</span>
                 </h3>
             </section>
 

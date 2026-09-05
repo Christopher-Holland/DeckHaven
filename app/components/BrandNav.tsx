@@ -12,11 +12,11 @@
 
 import { useGameFilter, GameKey } from "./GameFilterContext";
 
-const items: { key: GameKey; label: string }[] = [
-    { key: "all", label: "All" },
-    { key: "mtg", label: "Magic the Gathering" },
-    { key: "pokemon", label: "Pokémon" },
-    { key: "yugioh", label: "Yu-Gi-Oh!" },
+const items: { key: GameKey; label: string; shortLabel: string }[] = [
+    { key: "all", label: "All", shortLabel: "All" },
+    { key: "mtg", label: "Magic the Gathering", shortLabel: "MTG" },
+    { key: "pokemon", label: "Pokémon", shortLabel: "Pokémon" },
+    { key: "yugioh", label: "Yu-Gi-Oh!", shortLabel: "Yu-Gi-Oh!" },
 ];
 
 export default function BrandNav() {
@@ -48,8 +48,10 @@ export default function BrandNav() {
                                 active ? "text-[var(--theme-accent-text)] underline font-semibold" : "hover:text-[var(--theme-accent-text)]",
                             ].join(" ")}
                             aria-current={active ? "page" : undefined}
+                            aria-label={item.label}
                         >
-                            {item.label}
+                            <span className="sm:hidden">{item.shortLabel}</span>
+                            <span className="hidden sm:inline">{item.label}</span>
                         </button>
                     );
                 })}

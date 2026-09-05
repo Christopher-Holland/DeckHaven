@@ -41,7 +41,7 @@ function HomeContent() {
           w-full max-w-xl
           text-center
           flex flex-col items-center
-          -mt-64
+          mt-0 sm:-mt-8 lg:-mt-16
         "
             >
                 {/* Logo */}
@@ -57,12 +57,12 @@ function HomeContent() {
                 </div>
 
                 {/* App Title */}
-                <h1 className="text-4xl font-semibold mb-3">
+                <h1 className="text-3xl sm:text-4xl font-semibold mb-3">
                     Deck Haven
                 </h1>
 
                 {/* Tagline */}
-                <p className="text-lg opacity-80 mb-8">
+                <p className="text-base sm:text-lg opacity-80 mb-8">
                     The collector's safe haven.
                 </p>
 

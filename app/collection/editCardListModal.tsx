@@ -247,7 +247,7 @@ export default function EditCardListModal({ open, card, onClose, onSave }: Props
                             <img
                                 src={cardImage}
                                 alt={safeName}
-                                className="h-[300px] w-auto"
+                                className="max-h-[30vh] sm:max-h-none sm:h-[300px] w-auto object-contain"
                             />
                         </div>
                     </div>

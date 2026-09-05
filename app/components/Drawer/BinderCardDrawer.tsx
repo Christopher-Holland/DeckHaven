@@ -78,7 +78,7 @@ export function BinderCardDrawer() {
                     <img
                         src={imageUrl}
                         alt={cardName}
-                        className={`max-w-full max-h-[400px] object-contain rounded-lg ${
+                        className={`max-w-full max-h-[40vh] sm:max-h-[400px] object-contain rounded-lg ${
                             !isInCollection ? "opacity-60 grayscale" : ""
                         }`}
                     />

@@ -304,7 +304,7 @@ export default function BindersPage() {
         transition-all duration-300
       "
         >
-            <section className="mb-6 flex items-start justify-between gap-4">
+            <section className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <button
                         onClick={() => router.push("/collection")}
@@ -320,13 +320,13 @@ export default function BindersPage() {
                         Back to Collection
                     </button>
                 </div>
-                <div>
+                <div className="sm:text-center">
                     <h2 className="text-2xl font-semibold">Binders</h2>
-                    <p className="text-sm opacity-70 mt-1 mb-4">
+                    <p className="text-sm opacity-70 mt-1 mb-0 sm:mb-4">
                         Create and manage your favorite binder layouts.
                     </p>
                 </div>
-                <div className="flex items-center justify-end gap-2">
+                <div className="flex items-center sm:justify-end gap-2">
                     <button
                         className="px-3 py-1.5 rounded-md text-sm font-medium bg-black/5 dark:bg-white/5 border border-[var(--theme-border)] hover:bg-black/10 dark:hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]"
                         onClick={() => open("NEW_BINDER", { onSuccess: handleBinderCreated })}

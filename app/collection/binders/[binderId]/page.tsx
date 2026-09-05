@@ -501,7 +501,7 @@ export default function BinderPage() {
                     relative rounded-sm
                     overflow-hidden
                     w-full h-full
-                    min-h-[500px]
+                    min-h-[360px] sm:min-h-[440px] lg:min-h-[500px]
                     shadow-[inset_0_0_40px_rgba(0,0,0,0.35),0_8px_24px_rgba(0,0,0,0.35)]
                 "
                 style={{ backgroundColor: pageColor }}
@@ -528,8 +528,8 @@ export default function BinderPage() {
                         className={`
                             grid h-full
                             ${gridSize.cols === 2 ? "grid-cols-2 gap-1.5 sm:gap-2" :
-                                gridSize.cols === 4 ? "grid-cols-4 gap-1 sm:gap-1.5" :
-                                    "grid-cols-3 gap-1.5 sm:gap-2"
+                                gridSize.cols === 4 ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1 sm:gap-1.5" :
+                                    "grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2"
                             }
                         `}
                     >
@@ -732,7 +732,7 @@ export default function BinderPage() {
                 relative rounded-sm
                 overflow-hidden
                 w-full h-full
-                min-h-[500px]
+                min-h-[360px] sm:min-h-[440px] lg:min-h-[500px]
                 shadow-[0_12px_28px_rgba(0,0,0,0.45)]
             "
             style={paddedMaterialStyle(coverColor)}
@@ -762,7 +762,7 @@ export default function BinderPage() {
                     relative rounded-sm
                     overflow-hidden
                     w-full h-full
-                    min-h-[500px]
+                    min-h-[360px] sm:min-h-[440px] lg:min-h-[500px]
                     shadow-[0_12px_28px_rgba(0,0,0,0.45)]
                 "
                 style={paddedMaterialStyle(coverColor)}
@@ -824,15 +824,29 @@ export default function BinderPage() {
         <div className="min-h-screen bg-[var(--theme-bg)]">
             <div className="container mx-auto px-4 py-6">
                 {/* Header */}
-                <div className="flex items-start justify-between gap-3 mb-6 border-b border-black/10 dark:border-white/10 pb-4">
-                    <div className="min-w-0">
-                        <h1 className="text-2xl font-semibold truncate text-center justify-center text-[var(--theme-fg)]">{binder.name}</h1>
+                <div className="flex flex-col gap-3 mb-4 sm:mb-6 border-b border-black/10 dark:border-white/10 pb-4">
+                    <div className="flex items-center justify-between gap-3 min-w-0">
+                        <h1 className="text-xl sm:text-2xl font-semibold truncate text-[var(--theme-fg)]">{binder.name}</h1>
+                        <button
+                            type="button"
+                            onClick={() => router.push("/collection/binders")}
+                            className="
+                                    p-2 rounded-md shrink-0
+                                    bg-black/5 dark:bg-white/5
+                                    hover:bg-black/10 dark:hover:bg-white/10
+                                    transition-colors
+                                    focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
+                                "
+                            aria-label="Close"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <button
                             className={`
                                     inline-flex items-center gap-2
-                                    px-3 py-2 rounded-md text-sm
+                                    px-2.5 sm:px-3 py-2 rounded-md text-sm
                                     flex-shrink-0
                                     transition-colors
                                     border
@@ -843,14 +857,15 @@ export default function BinderPage() {
                                     `}
                             type="button"
                             onClick={() => setRearranging((prev) => !prev)}
+                            aria-label={rearranging ? "Done rearranging" : "Rearrange"}
                         >
                             <GripVertical className="w-5 h-5" />
-                            <span className="text-sm">{rearranging ? "Done Rearranging" : "Rearrange"}</span>
+                            <span className="text-sm hidden sm:inline">{rearranging ? "Done Rearranging" : "Rearrange"}</span>
                         </button>
                         <button
                             className="
                                     inline-flex items-center gap-2
-                                    px-3 py-2 rounded-md text-sm
+                                    px-2.5 sm:px-3 py-2 rounded-md text-sm
                                     bg-black/5 dark:bg-white/5
                                     hover:bg-black/10 dark:hover:bg-white/10
                                     border border-black/10 dark:border-white/10
@@ -858,6 +873,7 @@ export default function BinderPage() {
                                     transition-colors
                                     "
                             type="button"
+                            aria-label="Edit binder"
                             onClick={() => open("EDIT_BINDER", {
                                 binder,
                                 onSuccess: async () => {
@@ -871,14 +887,14 @@ export default function BinderPage() {
                             })}
                         >
                             <Edit className="w-5 h-5" />
-                            <span className="text-sm">Edit Binder</span>
+                            <span className="text-sm hidden sm:inline">Edit Binder</span>
                         </button>
                         <button
                             type="button"
                             disabled
                             title="Coming soon"
                             className="
-                                        w-full px-3 py-2 rounded-md text-sm font-medium
+                                        hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium
                                         bg-black/5 dark:bg-white/5
                                         border border-[var(--theme-border)]
                                         opacity-60 cursor-not-allowed
@@ -889,7 +905,7 @@ export default function BinderPage() {
                         <button
                             className="
                                     inline-flex items-center gap-2
-                                    px-3 py-2 rounded-md text-sm
+                                    px-2.5 sm:px-3 py-2 rounded-md text-sm
                                     bg-red-500/10 dark:bg-red-500/20
                                     hover:bg-red-500/20 dark:hover:bg-red-500/30
                                     border border-red-500/30 dark:border-red-500/40
@@ -899,6 +915,7 @@ export default function BinderPage() {
                                     disabled:opacity-50 disabled:cursor-not-allowed
                                     "
                             type="button"
+                            aria-label="Delete binder"
                             onClick={() => {
                                 if (!binder) return;
                                 setDeleteModalOpen(true);
@@ -906,33 +923,19 @@ export default function BinderPage() {
                             disabled={deleting}
                         >
                             <Trash className="w-5 h-5" />
-                            <span className="text-sm">{deleting ? "Deleting..." : "Delete Binder"}</span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => router.push("/collection/binders")}
-                            className="
-                                    p-2 rounded-md
-                                    bg-black/5 dark:bg-white/5
-                                    hover:bg-black/10 dark:hover:bg-white/10
-                                    transition-colors
-                                    focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
-                                "
-                            aria-label="Close"
-                        >
-                            <X className="w-5 h-5" />
+                            <span className="text-sm hidden sm:inline">{deleting ? "Deleting..." : "Delete Binder"}</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Binder Scene — felt table + zippered binder shell */}
-                <div className="p-4 sm:p-6">
+                <div className="py-2 sm:py-4 sm:px-4 lg:p-6">
                     <div
                         className="
                                 relative
                                 rounded-lg
                                 border border-black/40
-                                p-5 sm:p-8
+                                p-3 sm:p-5 lg:p-8
                                 overflow-visible
                             "
                         style={{
@@ -960,16 +963,17 @@ export default function BinderPage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_56px_1fr] items-stretch gap-0" style={{ perspective: "2000px" }}>
-                                {/* Previous Button - Positioned vertically in the middle on the left */}
+                            <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_56px_1fr] items-stretch gap-3 lg:gap-0" style={{ perspective: "2000px" }}>
+                                {/* Previous Button — desktop only; mobile uses footer */}
                                 {!loadingCards && currentPage > 1 && (
                                     <button
                                         type="button"
                                         onClick={() => handlePageChange(currentPage - 1)}
                                         disabled={isFlipping}
                                         className="
+                                                hidden lg:flex
                                                 absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-20
-                                                flex items-center justify-center
+                                                items-center justify-center
                                                 w-10 h-10 rounded-full
                                 bg-[var(--theme-sidebar)]
                                 border border-[var(--theme-border)]
@@ -986,15 +990,16 @@ export default function BinderPage() {
                                     </button>
                                 )}
 
-                                {/* Next Button - Positioned vertically in the middle on the right */}
+                                {/* Next Button — desktop only; mobile uses footer */}
                                 {!loadingCards && currentPage < totalPages && (
                                     <button
                                         type="button"
                                         onClick={() => handlePageChange(currentPage + 1)}
                                         disabled={isFlipping}
                                         className="
+                                                hidden lg:flex
                                                 absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-20
-                                                flex items-center justify-center
+                                                items-center justify-center
                                                 w-10 h-10 rounded-full
                                 bg-[var(--theme-sidebar)]
                                 border border-[var(--theme-border)]
@@ -1040,8 +1045,8 @@ export default function BinderPage() {
                                     )}
                                 </div>
 
-                                {/* PADDED ZIP SPINE */}
-                                <div className="relative flex items-center justify-center z-10 px-0.5">
+                                {/* PADDED ZIP SPINE — desktop open-book only */}
+                                <div className="relative hidden lg:flex items-center justify-center z-10 px-0.5">
                                     <div
                                         className="
                                                 relative h-full w-full min-w-[52px]
@@ -1083,10 +1088,10 @@ export default function BinderPage() {
 
                                 {/* RIGHT PAGE - Next page (or current page if page 1) */}
                                 <div className="relative w-full h-full" style={{ transformStyle: "preserve-3d" }}>
-                                    {/* Flipping page - shows back side during forward flip */}
+                                    {/* Flipping page - shows back side during forward flip (desktop) */}
                                     {isFlipping && flipDirection === "forward" && targetPage !== null && (
                                         <div
-                                            className="absolute inset-0 w-full h-full"
+                                            className="absolute inset-0 w-full h-full hidden lg:block"
                                             style={{
                                                 transformOrigin: "left center",
                                                 transform: "rotateY(-180deg)",
@@ -1120,7 +1125,7 @@ export default function BinderPage() {
                                         className={`
                                                 relative w-full h-full
                                                 ${isFlipping && flipDirection === "forward"
-                                                ? "transition-transform duration-600 ease-in-out transform rotateY(-180deg)"
+                                                ? "lg:transition-transform lg:duration-600 lg:ease-in-out lg:transform lg:rotateY(-180deg)"
                                                 : isFlipping && flipDirection === "backward"
                                                     ? "transition-opacity duration-600 ease-in-out opacity-0"
                                                     : "transition-opacity duration-600 ease-in-out opacity-100"
@@ -1157,8 +1162,8 @@ export default function BinderPage() {
                         <div
                             className="
                                 sticky bottom-0 z-20
-                                mt-4 px-4 py-3
-                                flex items-center justify-between
+                                mt-4 px-2 sm:px-4 py-3
+                                flex items-center justify-between gap-2
                                 border-t border-black/10 dark:border-white/10
                                 bg-[var(--theme-bg)]/95
                                 backdrop-blur
@@ -1169,8 +1174,8 @@ export default function BinderPage() {
                                 onClick={() => handlePageChange(1)}
                                 disabled={currentPage === 1 || isFlipping}
                                 className="
-        flex items-center gap-2
-        px-4 py-2 rounded-md
+        flex items-center gap-1 sm:gap-2
+        px-2.5 sm:px-4 py-2 rounded-md text-sm
                                 bg-[var(--theme-sidebar)]
                                 border border-[var(--theme-border)]
                                 text-[var(--theme-fg)]
@@ -1179,18 +1184,60 @@ export default function BinderPage() {
                                 transition-colors
                                 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
       "
+                                aria-label="To beginning"
                             >
                                 <SkipBack className="w-4 h-4" />
-                                To Beginning
+                                <span className="hidden sm:inline">To Beginning</span>
                             </button>
+
+                            <div className="flex items-center gap-2 lg:hidden">
+                                <button
+                                    type="button"
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage <= 1 || isFlipping}
+                                    className="
+                                        flex items-center justify-center
+                                        w-10 h-10 rounded-full
+                                        bg-[var(--theme-sidebar)]
+                                        border border-[var(--theme-border)]
+                                        text-[var(--theme-fg)]
+                                        hover:bg-black/10 dark:hover:bg-white/10
+                                        disabled:opacity-50 disabled:cursor-not-allowed
+                                        transition-colors
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
+                                    "
+                                    aria-label="Previous page"
+                                >
+                                    <ChevronLeft className="w-5 h-5" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage >= totalPages || isFlipping}
+                                    className="
+                                        flex items-center justify-center
+                                        w-10 h-10 rounded-full
+                                        bg-[var(--theme-sidebar)]
+                                        border border-[var(--theme-border)]
+                                        text-[var(--theme-fg)]
+                                        hover:bg-black/10 dark:hover:bg-white/10
+                                        disabled:opacity-50 disabled:cursor-not-allowed
+                                        transition-colors
+                                        focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
+                                    "
+                                    aria-label="Next page"
+                                >
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </div>
 
                             <button
                                 type="button"
                                 onClick={() => handlePageChange(totalPages)}
                                 disabled={currentPage >= totalPages || isFlipping}
                                 className="
-        flex items-center gap-2
-        px-4 py-2 rounded-md
+        flex items-center gap-1 sm:gap-2
+        px-2.5 sm:px-4 py-2 rounded-md text-sm
                                 bg-[var(--theme-sidebar)]
                                 border border-[var(--theme-border)]
                                 text-[var(--theme-fg)]
@@ -1199,8 +1246,9 @@ export default function BinderPage() {
                                 transition-colors
                                 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]
       "
+                                aria-label="To end"
                             >
-                                To End
+                                <span className="hidden sm:inline">To End</span>
                                 <SkipForward className="w-4 h-4" />
                             </button>
                         </div>

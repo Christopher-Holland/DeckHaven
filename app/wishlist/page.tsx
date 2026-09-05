@@ -210,7 +210,7 @@ function WishlistContent() {
                     </div>
                 </section>
             ) : (
-                <section className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <section className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
                     {Array.from(filteredCards.entries()).map(([cardId, card]) => {
                         const cardImage = card.image_uris?.normal ||
                             card.image_uris?.large ||
@@ -225,11 +225,11 @@ function WishlistContent() {
                                     rounded-lg
                                     border border-[var(--theme-border)]
                                     bg-[var(--theme-sidebar)]
-                                    p-4
-                                    flex flex-col gap-3
+                                    p-2.5 sm:p-4
+                                    flex flex-col gap-2 sm:gap-3
                                 "
                             >
-                                <h3 className="text-md font-semibold text-center">{card.name}</h3>
+                                <h3 className="text-sm sm:text-md font-semibold text-center line-clamp-2 leading-snug">{card.name}</h3>
                                 {cardImage && (
                                     <img
                                         src={cardImage}
@@ -244,6 +244,7 @@ function WishlistContent() {
                                     />
                                     <button
                                         onClick={() => removeFromWishlist(cardId)}
+                                        aria-label="Remove from wishlist"
                                         className="
                                             w-full px-3 py-1.5 rounded-md text-sm
                                             border border-red-500/50
@@ -253,7 +254,7 @@ function WishlistContent() {
                                             transition-colors
                                         "
                                     >
-                                        Remove from Wishlist
+                                        Remove
                                     </button>
                                 </div>
                             </div>
