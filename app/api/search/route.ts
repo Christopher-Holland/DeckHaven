@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
-import { getSets } from "@/app/lib/scryfall";
+import { getSets, SCRYFALL_HEADERS } from "@/app/lib/scryfall";
 import type { ScryfallSet } from "@/app/lib/scryfall";
 
 const MAX_CARDS = 5;
@@ -63,7 +63,7 @@ async function searchCards(query: string) {
         const searchQuery = query;
         const scryfallUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(searchQuery)}&order=released&unique=prints&page=1`;
         const response = await fetch(scryfallUrl, {
-            headers: { Accept: "application/json" },
+            headers: { ...SCRYFALL_HEADERS },
             cache: "no-store",
         });
 

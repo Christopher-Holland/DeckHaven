@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { SCRYFALL_HEADERS } from "@/app/lib/scryfall";
 
 export async function GET(request: NextRequest) {
     try {
@@ -31,9 +32,7 @@ export async function GET(request: NextRequest) {
         const scryfallUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(searchQuery)}&order=released&unique=prints`;
         
         const response = await fetch(scryfallUrl, {
-            headers: {
-                "Accept": "application/json",
-            },
+            headers: { ...SCRYFALL_HEADERS },
             cache: "no-store",
         });
 

@@ -45,6 +45,15 @@ export type ScryfallList<T> = {
 const SCRYFALL_BASE_URL = "https://api.scryfall.com";
 
 /**
+ * Required by Scryfall for all non-browser requests.
+ * @see https://scryfall.com/docs/api
+ */
+export const SCRYFALL_HEADERS = {
+    Accept: "application/json",
+    "User-Agent": "DeckHaven/0.1.0",
+} as const;
+
+/**
  * Generic fetch wrapper for Scryfall API requests
  * 
  * @param path - API endpoint path (e.g., "/cards/search")
@@ -56,7 +65,7 @@ export async function scryfallFetch<T>(path: string, init?: RequestInit): Promis
     const res = await fetch(`${SCRYFALL_BASE_URL}${path}`, {
         ...init,
         headers: {
-            "Accept": "application/json",
+            ...SCRYFALL_HEADERS,
             ...(init?.headers ?? {}),
         },
         next: { revalidate: 60 }, // 60s cache to reduce Scryfall API load
@@ -68,6 +77,13 @@ export async function scryfallFetch<T>(path: string, init?: RequestInit): Promis
     }
 
     return res.json() as Promise<T>;
+}
+
+/**
+ * Fetches a single card by Scryfall ID
+ */
+export async function getCardById(cardId: string) {
+    return scryfallFetch<ScryfallCard>(`/cards/${cardId}`);
 }
 
 /**

@@ -59,7 +59,7 @@ function WishlistContent() {
                 const cardsMap = new Map<string, ScryfallCard>();
                 for (const cardId of cardIds) {
                     try {
-                        const cardResponse = await fetch(`https://api.scryfall.com/cards/${cardId}`);
+                        const cardResponse = await fetch(`/api/scryfall/card/${cardId}`);
                         if (cardResponse.ok) {
                             const cardData = await cardResponse.json();
                             cardsMap.set(cardId, cardData);

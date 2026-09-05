@@ -5,6 +5,7 @@
  */
 
 import { NextRequest } from "next/server";
+import { SCRYFALL_HEADERS } from "@/app/lib/scryfall";
 
 const ALLOWED_ORIGINS = [
     "https://scryfall.com",
@@ -34,7 +35,13 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const res = await fetch(url, { redirect: "follow" });
+        const res = await fetch(url, {
+            redirect: "follow",
+            headers: {
+                "User-Agent": SCRYFALL_HEADERS["User-Agent"],
+                Accept: "*/*",
+            },
+        });
         if (!res.ok) {
             return new Response("Failed to fetch image", { status: res.status });
         }

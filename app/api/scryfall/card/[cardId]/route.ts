@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { getCardById } from "@/app/lib/scryfall";
 
 export async function GET(
     request: NextRequest,
@@ -15,27 +16,12 @@ export async function GET(
 ) {
     try {
         const { cardId } = await params;
-        
-        const response = await fetch(`https://api.scryfall.com/cards/${cardId}`, {
-            headers: {
-                "Accept": "application/json",
-            },
-            next: { revalidate: 3600 }, // Cache for 1 hour
-        });
-
-        if (!response.ok) {
-            return NextResponse.json(
-                { error: "Card not found" },
-                { status: 404 }
-            );
-        }
-
-        const card = await response.json();
+        const card = await getCardById(cardId);
         return NextResponse.json(card);
-    } catch (error) {
+    } catch {
         return NextResponse.json(
-            { error: "Failed to fetch card" },
-            { status: 500 }
+            { error: "Card not found" },
+            { status: 404 }
         );
     }
 }

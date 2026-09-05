@@ -518,7 +518,7 @@ export default function CollectionPage() {
           opacity-60 cursor-not-allowed
         "
                         >
-                            Import CSV
+                            Import Cards
                         </button>
                     </div>
                 </div>

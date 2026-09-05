@@ -126,7 +126,7 @@ export default function DeckPage() {
                             continue;
                         }
 
-                        const cardResponse = await fetch(`https://api.scryfall.com/cards/${actualCardId}`);
+                        const cardResponse = await fetch(`/api/scryfall/card/${actualCardId}`);
                         if (cardResponse.ok) {
                             const cardData = await cardResponse.json();
                             cardDetailsMap.set(actualCardId, cardData);

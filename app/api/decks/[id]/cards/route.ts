@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/app/lib/stack";
 import { prisma } from "@/app/lib/prisma";
 import { FORMAT_RULES, type FormatKey } from "@/app/lib/mtgFormatRules";
+import { getCardById } from "@/app/lib/scryfall";
 import { addCardToDeckSchema } from "@/app/lib/schemas/deck";
 import { validationErrorResponse } from "@/app/lib/schemas/parse";
 
@@ -96,12 +97,9 @@ export async function POST(
         // Scryfall API call for card validation. Failures handled gracefully to avoid blocking deck operations.
         try {
             const actualCardId = cardId.startsWith("c:") ? cardId.replace(/^c:/, "") : cardId;
-            const scryfallResponse = await fetch(`https://api.scryfall.com/cards/${actualCardId}`);
-            if (scryfallResponse.ok) {
-                const cardData = await scryfallResponse.json();
-                const cardName = cardData.name || "";
-                isBasicLand = basicLands.includes(cardName);
-            }
+            const cardData = await getCardById(actualCardId);
+            const cardName = cardData.name || "";
+            isBasicLand = basicLands.includes(cardName);
         } catch {
             // Scryfall failures default isBasicLand=false; copy limits apply.
         }
