@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDeckHavenTheme } from "@/app/components/ThemeContext";
 import { baseThemes, accentColors, type BaseThemeId, type AccentColorId } from "@/app/lib/themes";
 import { logger } from "@/app/lib/logger";
+import Link from "next/link";
 
 type Tab = "account" | "appearance" | "security" | "notifications" | "faq" | "about";
 
@@ -976,7 +977,10 @@ export default function SettingsPage() {
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center border-b border-[var(--theme-border)] pb-2">
                                     <span className="font-medium text-sm">Version</span>
-                                    <span className="text-xs opacity-70">v1.0.0</span>
+                                    <span className="text-xs opacity-70">v1.0.0
+                                        <Link href="/release-notes/v1.0" className="text-xs opacity-70 hover:underline pl-8">View Release Notes
+                                        </Link>
+                                    </span>
                                 </div>
                                 <div className="flex justify-between items-center border-b border-[var(--theme-border)] pb-2">
                                     <span className="font-medium text-sm">Credits</span>
@@ -1006,8 +1010,7 @@ export default function SettingsPage() {
                 </div>
             </section>
 
-            {/* Mobile fallback: your original cards (optional) */}
-            {/* If you prefer, you can keep your 2x2 grid for md and below and only show the left-nav layout on lg+ */}
+            
         </main>
     );
 }
