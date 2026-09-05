@@ -131,6 +131,48 @@ export default function Dashboard() {
                 </Button>
             </section>
 
+            <section
+                className="
+                    mb-6
+                    rounded-lg
+                    border border-[var(--theme-border)]
+                    bg-[var(--theme-sidebar)]
+                    px-4 py-3
+                    flex flex-col
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                    gap-3
+                "
+            >
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold">
+                        DeckHaven just got its first major update 🎉
+                    </p>
+
+                    <p className="mt-1 text-xs opacity-80">
+                        New features, improvements, and fixes are now live.
+                    </p>
+                </div>
+
+                <Link
+                    href="/release-notes/v1.0"
+                    className="
+                        inline-flex
+                        items-center
+                        gap-1
+                        shrink-0
+                        text-sm
+                        font-medium
+                        text-[var(--theme-accent-text)]
+                        hover:underline
+                    "
+                >
+                    View release notes
+                    <ArrowRight className="w-4 h-4" />
+                </Link>
+            </section>
+
             {/* Quick Actions */}
             <section className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <ActionCard
